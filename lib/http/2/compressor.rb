@@ -148,6 +148,15 @@ module HTTP2
         case cmd[:type]
         when :changetablesize
           fail CompressionError, 'tried to change table size after adding elements to table' if @_table_updated
+
+          # we can receive multiple table size change commands inside a header frame. However,
+          # we should blow up if we receive another frame where the new table size is bigger.
+          table_size_updated = @limit != @options[:table_size]
+
+          if !table_size_updated && cmd[:value] > @limit
+            fail CompressionError, 'dynamic table size update exceed limit'
+          end
+
           self.table_size = cmd[:value]
 
         when :indexed
