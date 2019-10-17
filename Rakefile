@@ -13,6 +13,7 @@ RSpec::Core::RakeTask.new(:hpack) do |t|
   t.pattern = './spec/hpack_test_spec.rb'
 end
 
+desc "Install h2spec"
 task :h2spec_install do
   platform = case RUBY_PLATFORM
   when /darwin/
@@ -49,6 +50,7 @@ task :h2spec_install do
   FileUtils.rm(tar_location)
 end
 
+desc "Runs h2spec"
 task :h2spec do
   h2spec = File.join(__dir__, 'h2spec')
   unless File.exist?(h2spec)
