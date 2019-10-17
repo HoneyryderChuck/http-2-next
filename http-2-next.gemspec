@@ -5,11 +5,11 @@ require 'http/2/version'
 Gem::Specification.new do |spec|
   spec.name          = 'http-2'
   spec.version       = HTTP2::VERSION
-  spec.authors       = ['Ilya Grigorik', 'Kaoru Maeda']
-  spec.email         = ['ilya@igvita.com']
+  spec.authors       = ['Tiago Cardoso', 'Ilya Grigorik', 'Kaoru Maeda']
+  spec.email         = ['cardoso_tiago@hotmail.com']
   spec.description   = 'Pure-ruby HTTP 2.0 protocol implementation'
   spec.summary       = spec.description
-  spec.homepage      = 'https://github.com/igrigorik/http-2'
+  spec.homepage      = 'https://gitlab.com/honeyryderchuck/http-2-next'
   spec.license       = 'MIT'
   spec.required_ruby_version = '>=2.1.0'
 
