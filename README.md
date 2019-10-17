@@ -1,4 +1,5 @@
-# HTTP-2
+# HTTP-2-Next
+
 
 [![Gem Version](https://badge.fury.io/rb/http-2.svg)](http://rubygems.org/gems/http-2)
 [![Build Status](https://travis-ci.org/igrigorik/http-2.svg?branch=master)](https://travis-ci.org/igrigorik/http-2)
@@ -19,11 +20,14 @@ Protocol specifications:
 * [Hypertext Transfer Protocol Version 2 (RFC 7540)](https://httpwg.github.io/specs/rfc7540.html)
 * [HPACK: Header Compression for HTTP/2 (RFC 7541)](https://httpwg.github.io/specs/rfc7541.html)
 
+## Fork
+
+This is a fork of the [http-2](https://github.com/igrigorik/http-2) gem.
 
 ## Getting started
 
 ```bash
-$> gem install http-2
+$> gem install http-2-next
 ```
 
 This implementation makes no assumptions as how the data is delivered: it could be a regular Ruby TCP socket, your custom eventloop, or whatever other transport you wish to use - e.g. ZeroMQ, [avian carriers](http://www.ietf.org/rfc/rfc1149.txt), etc.
@@ -31,7 +35,9 @@ This implementation makes no assumptions as how the data is delivered: it could 
 Your code is responsible for feeding data into the parser, which performs all of the necessary HTTP/2 decoding, state management and the rest, and vice versa, the parser will emit bytes (encoded HTTP/2 frames) that you can then route to the destination. Roughly, this works as follows:
 
 ```ruby
-require 'http/2'
+require 'http/2/next'
+HTTP2 = HTTP2Next
+
 socket = YourTransport.new
 
 conn = HTTP2::Client.new
@@ -50,6 +56,7 @@ Checkout provided [client](https://github.com/igrigorik/http-2/blob/master/examp
 Depending on the role of the endpoint you must initialize either a [Client](http://www.rubydoc.info/github/igrigorik/http-2/HTTP2/Client) or a [Server](http://www.rubydoc.info/github/igrigorik/http-2/HTTP2/Server) object. Doing so picks the appropriate header compression / decompression algorithms and stream management logic. From there, you can subscribe to connection level events, or invoke appropriate APIs to allocate new streams and manage the lifecycle. For example:
 
 ```ruby
+HTTP2 = HTTP2Next
 # - Server ---------------
 server = HTTP2::Server.new
 
@@ -122,6 +129,7 @@ The good news is, all of the stream management, and state transitions, and error
 For sake of example, let's take a look at a simple server implementation:
 
 ```ruby
+HTTP2 = HTTP2Next
 conn = HTTP2::Server.new
 
 # emits new streams opened by the client
@@ -189,6 +197,7 @@ Events emitted by the [Stream object](http://www.rubydoc.info/github/igrigorik/h
 Each HTTP/2 [stream has a priority value](https://hpbn.co/http2/#stream-prioritization) that can be sent when the new stream is initialized, and optionally reprioritized later:
 
 ```ruby
+HTTP2 = HTTP2Next
 client = HTTP2::Client.new
 
 default_priority_stream = client.new_stream
@@ -225,6 +234,7 @@ stream.window_update(2048) # increment stream window by 2048 bytes
 An HTTP/2 server can [send multiple replies](https://hpbn.co/http2/#server-push) to a single client request. To do so, first it emits a "push promise" frame which contains the headers of the promised resource, followed by the response to the original request, as well as promised resource payloads (which may be interleaved). A simple example is in order:
 
 ```ruby
+HTTP2 = HTTP2Next
 conn = HTTP2::Server.new
 
 conn.on(:stream) do |stream|
@@ -264,6 +274,7 @@ end
 When a new push promise stream is sent by the server, the client is notified via the `:promise` event:
 
 ```ruby
+HTTP2 = HTTP2Next
 conn = HTTP2::Client.new
 conn.on(:promise) do |push|
   # process push stream
@@ -285,4 +296,5 @@ rake
 
 ### License
 
-(MIT License) - Copyright (c) 2013 Ilya Grigorik ![GA](https://www.google-analytics.com/__utm.gif?utmac=UA-71196-9&utmhn=github.com&utmdt=HTTP2&utmp=/http-2/readme)
+(MIT License) - Copyright (c) 2013-2019 Ilya Grigorik ![GA](https://www.google-analytics.com/__utm.gif?utmac=UA-71196-9&utmhn=github.com&utmdt=HTTP2&utmp=/http-2/readme)
+(MIT License) - Copyright (c) 2019 Tiago Cardoso ![GA](https://www.google-analytics.com/__utm.gif?utmac=UA-71196-9&utmhn=github.com&utmdt=HTTP2&utmp=/http-2/readme)
