@@ -77,6 +77,7 @@ module HTTP2
       @decompressor = Header::Decompressor.new(settings)
 
       @active_stream_count = 0
+      @last_activated_stream = 0
       @streams = {}
       @streams_recently_closed = {}
       @pending_settings = []
@@ -480,7 +481,8 @@ module HTTP2
           connection_error
         end
       when :closed
-        connection_error if (Time.now - @closed_since) > 15
+        # connection_error if (Time.now - @closed_since) > 15
+        connection_error
       else
         connection_error
       end
@@ -685,6 +687,8 @@ module HTTP2
     # @param parent [Stream]
     def activate_stream(id: nil, **args)
       connection_error(msg: 'Stream ID already exists') if @streams.key?(id)
+      connection_error(:protocol_error, msg: 'id is smaller than previous') if id < @last_activated_stream
+
       fail StreamLimitExceeded if @active_stream_count >= @local_settings[:settings_max_concurrent_streams]
 
       stream = Stream.new({ connection: self, id: id }.merge(args))
@@ -709,6 +713,7 @@ module HTTP2
       stream.on(:promise, &method(:promise)) if self.is_a? Server
       stream.on(:frame,   &method(:send))
 
+      @last_activated_stream = id
       @streams[id] = stream
     end
 
