@@ -227,14 +227,22 @@ RSpec.describe HTTP2::Header do
 
       it 'should shrink table if set smaller size' do
         cc = EncodingContext.new(table_size: 2048)
-        cc.instance_eval do
-          add_to_table(['test1', '1' * 1024])
-          add_to_table(['test2', '2' * 500])
+        cc.listen_on_table do
+          cc.instance_eval do
+            add_to_table(['test1', '1' * 1024])
+            add_to_table(['test2', '2' * 500])
+          end
         end
 
         cc.process(type: :changetablesize, value: 1500)
         expect(cc.table.size).to be 1
         expect(cc.table.first[0]).to eq 'test2'
+      end
+
+      it 'should reject table size update if exceed limit' do
+        cc = EncodingContext.new(table_size: 4096)
+
+        expect { cc.process(type: :changetablesize, value: 150_000_000) }.to raise_error(CompressionError)
       end
     end
 
