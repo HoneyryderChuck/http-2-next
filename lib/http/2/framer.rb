@@ -441,8 +441,8 @@ module HTTP2
       [e].pack(UINT32)
     end
 
-    def unpack_error(e)
-      name, _ = DEFINED_ERRORS.find { |_name, v| v == e }
+    def unpack_error(error)
+      name, _ = DEFINED_ERRORS.find { |_name, v| v == error }
       name || error
     end
   end
