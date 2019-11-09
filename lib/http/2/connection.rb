@@ -368,7 +368,7 @@ module HTTP2
               when :window_update
                 stream = @streams_recently_closed[frame[:stream]]
                 connection_error(:protocol_error, 'sent window update on idle stream') unless stream
-                process_window_update(frame: frame)
+                process_window_update(frame: frame, encode: true)
               else
                 # An endpoint that receives an unexpected stream identifier
                 # MUST respond with a connection error of type PROTOCOL_ERROR.
