@@ -342,7 +342,7 @@ module HTTP2
                 update_local_window(frame)
                 calculate_window_update(@local_window_limit)
               end
-              process_window_update(frame: frame) if frame[:type] == :window_update
+              process_window_update(frame: frame, encode: true) if frame[:type] == :window_update
             else
               case frame[:type]
               # The PRIORITY frame can be sent for a stream in the "idle" or
