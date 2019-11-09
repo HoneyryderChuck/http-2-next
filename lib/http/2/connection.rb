@@ -77,6 +77,8 @@ module HTTP2
       @decompressor = Header::Decompressor.new(settings)
 
       @active_stream_count = 0
+      @last_activated_stream = 0
+      @last_stream_id = 0
       @streams = {}
       @streams_recently_closed = {}
       @pending_settings = []
@@ -110,7 +112,11 @@ module HTTP2
       fail ConnectionClosed if @state == :closed
       fail StreamLimitExceeded if @active_stream_count >= @remote_settings[:settings_max_concurrent_streams]
 
+      connection_error(:protocol_error, msg: 'id is smaller than previous') if @stream_id < @last_activated_stream
+
       stream = activate_stream(id: @stream_id, **args)
+      @last_activated_stream = stream.id
+
       @stream_id += 2
 
       stream
@@ -201,6 +207,17 @@ module HTTP2
       end
 
       while (frame = @framer.parse(@recv_buffer))
+        # Implementations MUST discard frames
+        # that have unknown or unsupported types.
+        if frame[:type].nil?
+          # However, extension frames that appear in
+          # the middle of a header block (Section 4.3) are not permitted; these
+          # MUST be treated as a connection error (Section 5.4.1) of type
+          # PROTOCOL_ERROR.
+          connection_error(:protocol_error) unless @continuation.empty?
+          next
+        end
+
         emit(:frame_received, frame)
 
         # Header blocks MUST be transmitted as a contiguous sequence of frames
@@ -211,7 +228,7 @@ module HTTP2
           end
 
           @continuation << frame
-          return unless frame[:flags].include? :end_headers
+          next unless frame[:flags].include? :end_headers
 
           payload = @continuation.map { |f| f[:payload] }.join
 
@@ -229,6 +246,7 @@ module HTTP2
         # anything other than 0x0, the endpoint MUST respond with a connection
         # error (Section 5.4.1) of type PROTOCOL_ERROR.
         if connection_frame?(frame)
+          connection_error(:protocol_error) unless frame[:stream].zero?
           connection_management(frame)
         else
           case frame[:type]
@@ -241,7 +259,7 @@ module HTTP2
             # frames MUST have the END_HEADERS flag set.
             unless frame[:flags].include? :end_headers
               @continuation << frame
-              return
+              next
             end
 
             # After sending a GOAWAY frame, the sender can discard frames
@@ -260,6 +278,7 @@ module HTTP2
                 dependency: frame[:dependency] || 0,
                 exclusive:  frame[:exclusive] || false,
               )
+              verify_stream_order(stream.id)
               emit(:stream, stream)
             end
 
@@ -313,6 +332,7 @@ module HTTP2
             end
 
             stream = activate_stream(id: pid, parent: parent)
+            verify_stream_order(stream.id)
             emit(:promise, stream)
             stream << frame
           else
@@ -322,6 +342,7 @@ module HTTP2
                 update_local_window(frame)
                 calculate_window_update(@local_window_limit)
               end
+              process_window_update(frame: frame, encode: true) if frame[:type] == :window_update
             else
               case frame[:type]
               # The PRIORITY frame can be sent for a stream in the "idle" or
@@ -345,7 +366,9 @@ module HTTP2
               # "closed" stream. A receiver MUST NOT treat this as an error
               # (see Section 5.1).
               when :window_update
-                process_window_update(frame)
+                stream = @streams_recently_closed[frame[:stream]]
+                connection_error(:protocol_error, 'sent window update on idle stream') unless stream
+                process_window_update(frame: frame, encode: true)
               else
                 # An endpoint that receives an unexpected stream identifier
                 # MUST respond with a connection error of type PROTOCOL_ERROR.
@@ -437,15 +460,9 @@ module HTTP2
         when :settings
           connection_settings(frame)
         when :window_update
-          @remote_window += frame[:increment]
-          send_data(nil, true)
+          process_window_update(frame: frame, encode: true)
         when :ping
-          if frame[:flags].include? :ack
-            emit(:ack, frame[:payload])
-          else
-            send(type: :ping, stream: 0,
-                 flags: [:ack], payload: frame[:payload])
-          end
+          ping_management(frame)
         when :goaway
           # Receivers of a GOAWAY frame MUST NOT open additional streams on
           # the connection, although a new connection can be established
@@ -466,9 +483,25 @@ module HTTP2
           connection_error
         end
       when :closed
-        connection_error if (Time.now - @closed_since) > 15
+        case frame[:type]
+        when :goaway
+          connection_error
+        when :ping
+          ping_management(frame)
+        else
+          connection_error if (Time.now - @closed_since) > 15
+        end
       else
         connection_error
+      end
+    end
+
+    def ping_management(frame)
+      if frame[:flags].include? :ack
+        emit(:ack, frame[:payload])
+      else
+        send(type: :ping, stream: 0,
+             flags: [:ack], payload: frame[:payload])
       end
     end
 
@@ -536,7 +569,8 @@ module HTTP2
         # Process pending settings we have sent.
         [@pending_settings.shift, :local]
       else
-        connection_error(check) if validate_settings(@remote_role, frame[:payload])
+        check = validate_settings(@remote_role, frame[:payload])
+        connection_error(check) if check
         [frame[:payload], :remote]
       end
 
@@ -562,14 +596,14 @@ module HTTP2
           case side
           when :local
             @local_window = @local_window - @local_window_limit + v
-            @streams.each do |_id, stream|
+            @streams.each_value do |stream|
               stream.emit(:local_window, stream.local_window - @local_window_limit + v)
             end
 
             @local_window_limit = v
           when :remote
             @remote_window = @remote_window - @remote_window_limit + v
-            @streams.each do |_id, stream|
+            @streams.each_value do |stream|
               # Event name is :window, not :remote_window
               stream.emit(:window, stream.remote_window - @remote_window_limit + v)
             end
@@ -604,6 +638,9 @@ module HTTP2
         unless @state == :closed || @h2c_upgrade == :start
           # Send ack to peer
           send(type: :settings, stream: 0, payload: [], flags: [:ack])
+          # when initial window size changes, we try to flush any buffered
+          # data.
+          @streams.each_value(&:flush)
         end
       end
     end
@@ -618,7 +655,7 @@ module HTTP2
     # @param frame [Hash]
     def decode_headers(frame)
       if frame[:payload].is_a? Buffer
-        frame[:payload] = @decompressor.decode(frame[:payload])
+        frame[:payload] = @decompressor.decode(frame[:payload], frame)
       end
 
     rescue CompressionError => e
@@ -671,15 +708,15 @@ module HTTP2
     def activate_stream(id: nil, **args)
       connection_error(msg: 'Stream ID already exists') if @streams.key?(id)
 
-      stream = Stream.new({ connection: self, id: id }.merge(args))
+      fail StreamLimitExceeded if @active_stream_count >= @local_settings[:settings_max_concurrent_streams]
+
+      stream = Stream.new(connection: self, id: id, **args)
 
       # Streams that are in the "open" state, or either of the "half closed"
       # states count toward the maximum number of streams that an endpoint is
       # permitted to open.
       stream.once(:active) { @active_stream_count += 1 }
       stream.once(:close) do
-        @active_stream_count -= 1
-
         # Store a reference to the closed stream, such that we can respond
         # to any in-flight frames while close is registered on both sides.
         # References to such streams will be purged whenever another stream
@@ -696,6 +733,13 @@ module HTTP2
       stream.on(:frame,   &method(:send))
 
       @streams[id] = stream
+    end
+
+    def verify_stream_order(id)
+      return unless id.odd?
+
+      connection_error(msg: 'Stream ID smaller than previous') if @last_stream_id > id
+      @last_stream_id = id
     end
 
     # Emit GOAWAY error indicating to peer that the connection is being
