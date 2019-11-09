@@ -164,8 +164,12 @@ module HTTP2
       headers = frame[:payload]
       return if headers.is_a?(Buffer)
       mandatory_headers = @id.odd? ? REQUEST_MANDATORY_HEADERS : RESPONSE_MANDATORY_HEADERS
-      pseudo_headers = headers.take_while do |k, _|
-        k.start_with?(':')
+      pseudo_headers = headers.take_while do |field, value|
+        # use this loop to validate pseudo-headers
+        if field == ':path' && value.empty?
+          stream_error(:protocol_error, msg: 'path is empty')
+        end
+        field.start_with?(':')
       end.map(&:first)
       return if mandatory_headers.size == pseudo_headers.size &&
                 (mandatory_headers - pseudo_headers).empty?
