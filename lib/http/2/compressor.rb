@@ -153,9 +153,7 @@ module HTTP2
           # we should blow up if we receive another frame where the new table size is bigger.
           table_size_updated = @limit != @options[:table_size]
 
-          if !table_size_updated && cmd[:value] > @limit
-            fail CompressionError, 'dynamic table size update exceed limit'
-          end
+          fail CompressionError, 'dynamic table size update exceed limit' if !table_size_updated && cmd[:value] > @limit
 
           self.table_size = cmd[:value]
 
@@ -187,8 +185,8 @@ module HTTP2
             cmd[:index] ||= cmd[:name]
             cmd[:value] ||= v
             cmd[:name] = k
-          else
-            fail ProtocolError, "Invalid uppercase key: #{cmd[:name]}" if cmd[:name] != cmd[:name].downcase
+          elsif cmd[:name] != cmd[:name].downcase
+            fail ProtocolError, "Invalid uppercase key: #{cmd[:name]}"
           end
 
           emit = [cmd[:name], cmd[:value]]
@@ -587,9 +585,7 @@ module HTTP2
               fail ProtocolError, 'one or more pseudo headers encountered after regular headers'
             end
             decoding_pseudo_headers = is_pseudo_header
-            if FORBIDDEN_HEADERS.include?(field)
-              fail ProtocolError, "invalid header received: #{field}"
-            end
+            fail ProtocolError, "invalid header received: #{field}" if FORBIDDEN_HEADERS.include?(field)
             case field
             when ':method'
               frame[:method] = value

@@ -147,9 +147,7 @@ module HTTP2
         # An ALTSVC frame on a
         # stream other than stream 0 containing non-empty "Origin" information
         # is invalid and MUST be ignored.
-        if !frame[:origin] || frame[:origin].empty?
-          emit(frame[:type], frame)
-        end
+        emit(frame[:type], frame) if !frame[:origin] || frame[:origin].empty?
       when :blocked
         emit(frame[:type], frame)
       end
@@ -167,9 +165,7 @@ module HTTP2
       mandatory_headers = @id.odd? ? REQUEST_MANDATORY_HEADERS : RESPONSE_MANDATORY_HEADERS
       pseudo_headers = headers.take_while do |field, value|
         # use this loop to validate pseudo-headers
-        if field == ':path' && value.empty?
-          stream_error(:protocol_error, msg: 'path is empty')
-        end
+        stream_error(:protocol_error, msg: 'path is empty') if field == ':path' && value.empty?
         field.start_with?(':')
       end.map(&:first)
       return if mandatory_headers.size == pseudo_headers.size &&
@@ -594,20 +590,18 @@ module HTTP2
           else
             stream_error(:stream_closed) unless (frame[:type] == :rst_stream)
           end
+        elsif frame[:type] == :priority
+          process_priority(frame)
         else
-          if frame[:type] == :priority
-            process_priority(frame)
-          else
-            case @closed
-            when :remote_rst, :remote_closed
-              case frame[:type]
-              when :rst_stream, :window_update # nop here
-              else
-                stream_error(:stream_closed)
-              end
-            when :local_rst, :local_closed
-              frame[:ignore] = true if frame[:type] != :window_update
+          case @closed
+          when :remote_rst, :remote_closed
+            case frame[:type]
+            when :rst_stream, :window_update # nop here
+            else
+              stream_error(:stream_closed)
             end
+          when :local_rst, :local_closed
+            frame[:ignore] = true if frame[:type] != :window_update
           end
         end
       end

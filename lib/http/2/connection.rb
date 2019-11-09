@@ -223,9 +223,7 @@ module HTTP2
         # Header blocks MUST be transmitted as a contiguous sequence of frames
         # with no interleaved frames of any other type, or from any other stream.
         unless @continuation.empty?
-          unless frame[:type] == :continuation && frame[:stream] == @continuation.first[:stream]
-            connection_error
-          end
+          connection_error unless frame[:type] == :continuation && frame[:stream] == @continuation.first[:stream]
 
           @continuation << frame
           next unless frame[:flags].include? :end_headers
@@ -401,17 +399,16 @@ module HTTP2
       if frame[:type] == :data
         send_data(frame, true)
 
-      else
+      elsif frame[:type] == :rst_stream && frame[:error] == :protocol_error
         # An endpoint can end a connection at any time. In particular, an
         # endpoint MAY choose to treat a stream error as a connection error.
-        if frame[:type] == :rst_stream && frame[:error] == :protocol_error
-          goaway(frame[:error])
-        else
-          # HEADERS and PUSH_PROMISE may generate CONTINUATION. Also send
-          # RST_STREAM that are not protocol errors
-          frames = encode(frame)
-          frames.each { |f| emit(:frame, f) }
-        end
+
+        goaway(frame[:error])
+      else
+        # HEADERS and PUSH_PROMISE may generate CONTINUATION. Also send
+        # RST_STREAM that are not protocol errors
+        frames = encode(frame)
+        frames.each { |f| emit(:frame, f) }
       end
     end
 
@@ -474,9 +471,7 @@ module HTTP2
           # 4.  The ALTSVC HTTP/2 Frame
           # An ALTSVC frame on stream 0 with empty (length 0) "Origin"
           # information is invalid and MUST be ignored.
-          if frame[:origin] && !frame[:origin].empty?
-            emit(frame[:type], frame)
-          end
+          emit(frame[:type], frame) if frame[:origin] && !frame[:origin].empty?
         when :blocked
           emit(frame[:type], frame)
         else
@@ -525,9 +520,7 @@ module HTTP2
           when :client
             # Any value other than 0 or 1 MUST be treated as a
             # connection error (Section 5.4.1) of type PROTOCOL_ERROR.
-            unless v.zero? || v == 1
-              return ProtocolError.new("invalid #{key} value")
-            end
+            return ProtocolError.new("invalid #{key} value") unless v.zero? || v == 1
           end
         when :settings_max_concurrent_streams
           # Any value is valid
@@ -535,18 +528,14 @@ module HTTP2
           # Values above the maximum flow control window size of 2^31-1 MUST
           # be treated as a connection error (Section 5.4.1) of type
           # FLOW_CONTROL_ERROR.
-          unless v <= 0x7fffffff
-            return FlowControlError.new("invalid #{key} value")
-          end
+          return FlowControlError.new("invalid #{key} value") unless v <= 0x7fffffff
         when :settings_max_frame_size
           # The initial value is 2^14 (16,384) octets.  The value advertised
           # by an endpoint MUST be between this initial value and the maximum
           # allowed frame size (2^24-1 or 16,777,215 octets), inclusive.
           # Values outside this range MUST be treated as a connection error
           # (Section 5.4.1) of type PROTOCOL_ERROR.
-          unless v >= 16_384 && v <= 16_777_215
-            return ProtocolError.new("invalid #{key} value")
-          end
+          return ProtocolError.new("invalid #{key} value") unless v >= 16_384 && v <= 16_777_215
         when :settings_max_header_list_size
           # Any value is valid
           # else # ignore unknown settings
@@ -654,9 +643,7 @@ module HTTP2
     #
     # @param frame [Hash]
     def decode_headers(frame)
-      if frame[:payload].is_a? Buffer
-        frame[:payload] = @decompressor.decode(frame[:payload], frame)
-      end
+      frame[:payload] = @decompressor.decode(frame[:payload], frame) if frame[:payload].is_a? Buffer
 
     rescue CompressionError => e
       connection_error(:compression_error, e: e)

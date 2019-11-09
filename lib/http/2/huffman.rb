@@ -49,9 +49,7 @@ module HTTP2
           end
         end
         # Check whether partial input is correctly filled
-        unless state <= MAX_FINAL_STATE
-          fail CompressionError, 'Huffman decode error (EOS invalid)'
-        end
+        fail CompressionError, 'Huffman decode error (EOS invalid)' unless state <= MAX_FINAL_STATE
         emit.force_encoding(Encoding::BINARY)
       end
 

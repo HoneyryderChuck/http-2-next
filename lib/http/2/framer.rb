@@ -114,21 +114,13 @@ module HTTP2
     def common_header(frame)
       header = []
 
-      unless FRAME_TYPES[frame[:type]]
-        fail CompressionError, "Invalid frame type (#{frame[:type]})"
-      end
+      fail CompressionError, "Invalid frame type (#{frame[:type]})" unless FRAME_TYPES[frame[:type]]
 
-      if frame[:length] > @max_frame_size
-        fail CompressionError, "Frame size is too large: #{frame[:length]}"
-      end
+      fail CompressionError, "Frame size is too large: #{frame[:length]}" if frame[:length] > @max_frame_size
 
-      if frame[:length] < 0
-        fail CompressionError, "Frame size is invalid: #{frame[:length]}"
-      end
+      fail CompressionError, "Frame size is invalid: #{frame[:length]}" if frame[:length] < 0
 
-      if frame[:stream] > MAX_STREAM_ID
-        fail CompressionError, "Stream ID (#{frame[:stream]}) is too large"
-      end
+      fail CompressionError, "Stream ID (#{frame[:stream]}) is too large" if frame[:stream] > MAX_STREAM_ID
 
       if frame[:type] == :window_update && frame[:increment] > MAX_WINDOWINC
         fail CompressionError, "Window increment (#{frame[:increment]}) is too large"
@@ -139,9 +131,7 @@ module HTTP2
       header << FRAME_TYPES[frame[:type]]
       header << frame[:flags].reduce(0) do |acc, f|
         position = FRAME_FLAGS[frame[:type]][f]
-        unless position
-          fail CompressionError, "Invalid frame flag (#{f}) for #{frame[:type]}"
-        end
+        fail CompressionError, "Invalid frame flag (#{f}) for #{frame[:type]}" unless position
 
         acc | (1 << position)
       end
@@ -215,9 +205,7 @@ module HTTP2
         length += 4
 
       when :settings
-        if (frame[:stream]).nonzero?
-          fail CompressionError, "Invalid stream ID (#{frame[:stream]})"
-        end
+        fail CompressionError, "Invalid stream ID (#{frame[:stream]})" if (frame[:stream]).nonzero?
 
         frame[:payload].each do |(k, v)|
           if k.is_a? Integer
@@ -376,13 +364,9 @@ module HTTP2
         # NOTE: frame[:length] might not match the number of frame[:payload]
         # because unknown extensions are ignored.
         frame[:payload] = []
-        unless (frame[:length] % 6).zero?
-          fail ProtocolError, 'Invalid settings payload length'
-        end
+        fail ProtocolError, 'Invalid settings payload length' unless (frame[:length] % 6).zero?
 
-        if (frame[:stream]).nonzero?
-          fail ProtocolError, "Invalid stream ID (#{frame[:stream]})"
-        end
+        fail ProtocolError, "Invalid stream ID (#{frame[:stream]})" if (frame[:stream]).nonzero?
 
         (frame[:length] / 6).times do
           id  = payload.read(2).unpack(UINT16).first
@@ -431,9 +415,7 @@ module HTTP2
 
     def pack_error(e)
       unless e.is_a? Integer
-        if DEFINED_ERRORS[e].nil?
-          fail CompressionError, "Unknown error ID for #{e}"
-        end
+        fail CompressionError, "Unknown error ID for #{e}" if DEFINED_ERRORS[e].nil?
 
         e = DEFINED_ERRORS[e]
       end

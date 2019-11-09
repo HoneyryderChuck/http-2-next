@@ -58,12 +58,6 @@ Style/ParallelAssignment:
 Style/ParenthesesAroundCondition:
   Enabled: false
 
-Style/IfInsideElse:
-  Enabled: false
-
-Style/IfUnlessModifier:
-  Enabled: false
-
 Style/MultilineIfModifier:
   Enabled: false
 
