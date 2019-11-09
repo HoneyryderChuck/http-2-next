@@ -584,14 +584,14 @@ module HTTP2
           case side
           when :local
             @local_window = @local_window - @local_window_limit + v
-            @streams.each do |_id, stream|
+            @streams.each_value do |stream|
               stream.emit(:local_window, stream.local_window - @local_window_limit + v)
             end
 
             @local_window_limit = v
           when :remote
             @remote_window = @remote_window - @remote_window_limit + v
-            @streams.each do |_id, stream|
+            @streams.each_value do |stream|
               # Event name is :window, not :remote_window
               stream.emit(:window, stream.remote_window - @remote_window_limit + v)
             end
@@ -626,6 +626,9 @@ module HTTP2
         unless @state == :closed || @h2c_upgrade == :start
           # Send ack to peer
           send(type: :settings, stream: 0, payload: [], flags: [:ack])
+          # when initial window size changes, we try to flush any buffered
+          # data.
+          @streams.each_value(&:flush)
         end
       end
     end
@@ -692,7 +695,11 @@ module HTTP2
     # @param parent [Stream]
     def activate_stream(id: nil, **args)
       connection_error(msg: 'Stream ID already exists') if @streams.key?(id)
-      connection_error(:protocol_error, msg: 'id is smaller than previous') if id < @last_activated_stream
+
+      if id.odd?
+        connection_error(msg: 'Stream ID smaller than previous') if @last_stream_id > id
+        @last_stream_id = id
+      end
 
       fail StreamLimitExceeded if @active_stream_count >= @local_settings[:settings_max_concurrent_streams]
 
@@ -718,7 +725,6 @@ module HTTP2
       stream.on(:promise, &method(:promise)) if self.is_a? Server
       stream.on(:frame,   &method(:send))
 
-      @last_activated_stream = id
       @streams[id] = stream
     end
 
