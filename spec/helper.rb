@@ -4,9 +4,6 @@ RSpec.configure(&:disable_monkey_patching!)
 RSpec::Expectations.configuration.warn_about_potential_false_positives = false
 
 require 'json'
-require 'coveralls'
-
-Coveralls.wear! if ENV['CI']
 
 # rubocop: disable Style/MixinUsage
 require 'http/2'

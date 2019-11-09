@@ -69,9 +69,5 @@ end
 RuboCop::RakeTask.new
 YARD::Rake::YardocTask.new
 
-if ENV['CI'] && RUBY_ENGINE != 'jruby'
-  task default: [:spec, :rubocop, :h2spec_install, :h2spec]
-else
-  task default: [:spec, :rubocop]
-end
+task default: [:spec, :rubocop]
 task all: [:default, :hpack]

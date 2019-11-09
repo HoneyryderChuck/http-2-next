@@ -90,6 +90,7 @@ module HTTP2
       @send_buffer = []
       @_method = @_content_length = nil
       @_waiting_on_trailers = false
+      @received_data = false
 
       on(:window) { |v| @remote_window = v }
       on(:local_window) { |v| @local_window_max_size = @local_window = v }
