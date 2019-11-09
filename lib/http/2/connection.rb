@@ -278,6 +278,7 @@ module HTTP2
                 dependency: frame[:dependency] || 0,
                 exclusive:  frame[:exclusive] || false,
               )
+              verify_stream_order(stream.id)
               emit(:stream, stream)
             end
 
@@ -331,6 +332,7 @@ module HTTP2
             end
 
             stream = activate_stream(id: pid, parent: parent)
+            verify_stream_order(stream.id)
             emit(:promise, stream)
             stream << frame
           else
@@ -696,14 +698,9 @@ module HTTP2
     def activate_stream(id: nil, **args)
       connection_error(msg: 'Stream ID already exists') if @streams.key?(id)
 
-      if id.odd?
-        connection_error(msg: 'Stream ID smaller than previous') if @last_stream_id > id
-        @last_stream_id = id
-      end
-
       fail StreamLimitExceeded if @active_stream_count >= @local_settings[:settings_max_concurrent_streams]
 
-      stream = Stream.new({ connection: self, id: id }.merge(args))
+      stream = Stream.new(connection: self, id: id, **args)
 
       # Streams that are in the "open" state, or either of the "half closed"
       # states count toward the maximum number of streams that an endpoint is
@@ -726,6 +723,13 @@ module HTTP2
       stream.on(:frame,   &method(:send))
 
       @streams[id] = stream
+    end
+
+    def verify_stream_order(id)
+      return unless id.odd?
+
+      connection_error(msg: 'Stream ID smaller than previous') if @last_stream_id > id
+      @last_stream_id = id
     end
 
     # Emit GOAWAY error indicating to peer that the connection is being
