@@ -462,12 +462,7 @@ module HTTP2
         when :window_update
           process_window_update(frame: frame, encode: true)
         when :ping
-          if frame[:flags].include? :ack
-            emit(:ack, frame[:payload])
-          else
-            send(type: :ping, stream: 0,
-                 flags: [:ack], payload: frame[:payload])
-          end
+          ping_management(frame)
         when :goaway
           # Receivers of a GOAWAY frame MUST NOT open additional streams on
           # the connection, although a new connection can be established
@@ -488,10 +483,25 @@ module HTTP2
           connection_error
         end
       when :closed
-        # connection_error if (Time.now - @closed_since) > 15
-        connection_error
+        case frame[:type]
+        when :goaway
+          connection_error
+        when :ping
+          ping_management(frame)
+        else
+          connection_error if (Time.now - @closed_since) > 15
+        end
       else
         connection_error
+      end
+    end
+
+    def ping_management(frame)
+      if frame[:flags].include? :ack
+        emit(:ack, frame[:payload])
+      else
+        send(type: :ping, stream: 0,
+             flags: [:ack], payload: frame[:payload])
       end
     end
 

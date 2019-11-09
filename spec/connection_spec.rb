@@ -546,7 +546,13 @@ RSpec.describe HTTP2::Connection do
 
       expect { @conn << f.generate(settings_frame) }.not_to raise_error(ProtocolError)
       expect { @conn << f.generate(ping_frame) }.not_to raise_error(ProtocolError)
-      expect { @conn << f.generate(goaway_frame) }.not_to raise_error(ProtocolError)
+    end
+
+    it 'should respond with protocol error when receiving goaway' do
+      @conn.goaway
+      expect(@conn).to be_closed
+
+      expect { @conn << f.generate(goaway_frame) }.to raise_error(ProtocolError)
     end
 
     it 'should process connection management frames after GOAWAY' do
