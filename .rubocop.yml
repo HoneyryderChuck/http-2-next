@@ -14,7 +14,7 @@ Layout/IndentHeredoc:
     - 'example/*'
 
 Metrics/LineLength:
-  Max: 120
+  Max: 121
 
 Metrics/BlockLength:
   Max: 700
@@ -28,16 +28,7 @@ Layout/CaseIndentation:
 Layout/IndentHash:
   EnforcedStyle: consistent
 
-Style/TrailingCommaInArrayLiteral:
-  EnforcedStyleForMultiline: comma
-
-Style/TrailingCommaInHashLiteral:
-  EnforcedStyleForMultiline: comma
-
 Layout/SpaceAroundOperators:
-  Enabled: false
-
-Layout/ExtraSpacing:
   Enabled: false
 
 Layout/EmptyLinesAroundExceptionHandlingKeywords:
@@ -46,19 +37,10 @@ Layout/EmptyLinesAroundExceptionHandlingKeywords:
 Naming/UncommunicativeMethodParamName:
   Enabled: false
 
-Style/SignalException:
-  Enabled: false
-
 Style/FrozenStringLiteralComment:
   Enabled: false
 
 Style/ParallelAssignment:
-  Enabled: false
-
-Style/ParenthesesAroundCondition:
-  Enabled: false
-
-Style/MultilineIfModifier:
   Enabled: false
 
 Lint/EmptyWhen:
@@ -68,15 +50,6 @@ Style/TrailingCommaInArguments:
   Enabled: false
 
 Style/TrailingUnderscoreVariable:
-  Enabled: false
-
-Style/SymbolArray:
-  Enabled: false
-
-Style/CommentedKeyword:
-  Enabled: false
-
-Style/PercentLiteralDelimiters:
   Enabled: false
 
 Performance/TimesMap:

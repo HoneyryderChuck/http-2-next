@@ -43,13 +43,13 @@ module HTTP2
             #  [emit] character to be emitted on this transition, empty string, or EOS.
             #  [next] next state number.
             trans = MACHINE[state][branch]
-            fail CompressionError, 'Huffman decode error (EOS found)' if trans.first == EOS
+            raise CompressionError, 'Huffman decode error (EOS found)' if trans.first == EOS
             emit << trans.first.chr if trans.first
             state = trans.last
           end
         end
         # Check whether partial input is correctly filled
-        fail CompressionError, 'Huffman decode error (EOS invalid)' unless state <= MAX_FINAL_STATE
+        raise CompressionError, 'Huffman decode error (EOS invalid)' unless state <= MAX_FINAL_STATE
         emit.force_encoding(Encoding::BINARY)
       end
 
@@ -151,23 +151,23 @@ module HTTP2
         [0x7fff0, 19],
         [0x1ffc, 13],
         [0x3ffc, 14],
-        [0x22,  6],
+        [0x22, 6],
         [0x7ffd, 15],
-        [0x3,  5],
-        [0x23,  6],
-        [0x4,  5],
-        [0x24,  6],
-        [0x5,  5],
+        [0x3, 5],
+        [0x23, 6],
+        [0x4, 5],
+        [0x24, 6],
+        [0x5, 5],
         [0x25,  6],
         [0x26,  6],
         [0x27,  6],
-        [0x6,  5],
+        [0x6, 5],
         [0x74,  7],
         [0x75,  7],
         [0x28,  6],
         [0x29,  6],
         [0x2a,  6],
-        [0x7,  5],
+        [0x7, 5],
         [0x2b,  6],
         [0x76,  7],
         [0x2c,  6],
@@ -312,7 +312,7 @@ module HTTP2
         [0x7ffffef, 27],
         [0x7fffff0, 27],
         [0x3ffffee, 26],
-        [0x3fffffff, 30],
+        [0x3fffffff, 30]
       ].each(&:freeze).freeze
 
       ENCODE_TABLE = CODES.map { |c, l| [c].pack('N').unpack('B*').first[-l..-1] }.each(&:freeze).freeze

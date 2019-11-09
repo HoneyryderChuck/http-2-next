@@ -8,8 +8,8 @@ RSpec.describe HTTP2::Framer do
       {
         length: 4,
         type: :headers,
-        flags: [:end_stream, :end_headers],
-        stream: 15,
+        flags: %i[end_stream end_headers],
+        stream: 15
       }
     end
 
@@ -29,8 +29,8 @@ RSpec.describe HTTP2::Framer do
       frame = {
         length: 2**18 + 2**16 + 17,
         type: :headers,
-        flags: [:end_stream, :end_headers],
-        stream: 15,
+        flags: %i[end_stream end_headers],
+        stream: 15
       }
       bytes = [5, 17, 0x01, 0x5, 0x0000000F].pack('CnCCN')
       expect(f.common_header(frame)).to eq bytes
@@ -73,7 +73,7 @@ RSpec.describe HTTP2::Framer do
         type: :data,
         flags: [:end_stream],
         stream: 1,
-        payload: 'text',
+        payload: 'text'
       }
 
       bytes = f.generate(frame)
@@ -88,9 +88,9 @@ RSpec.describe HTTP2::Framer do
       frame = {
         length: 12,
         type: :headers,
-        flags: [:end_stream, :end_headers],
+        flags: %i[end_stream end_headers],
         stream: 1,
-        payload: 'header-block',
+        payload: 'header-block'
       }
 
       bytes = f.generate(frame)
@@ -107,7 +107,7 @@ RSpec.describe HTTP2::Framer do
         dependency: 15,
         weight: 12,
         exclusive: false,
-        payload: 'header-block',
+        payload: 'header-block'
       }
 
       bytes = f.generate(frame)
@@ -124,7 +124,7 @@ RSpec.describe HTTP2::Framer do
         stream: 1,
         dependency: 15,
         weight: 12,
-        exclusive: true,
+        exclusive: true
       }
 
       bytes = f.generate(frame)
@@ -139,7 +139,7 @@ RSpec.describe HTTP2::Framer do
         length: 4,
         type: :rst_stream,
         stream: 1,
-        error: :stream_closed,
+        error: :stream_closed
       }
 
       bytes = f.generate(frame)
@@ -156,8 +156,8 @@ RSpec.describe HTTP2::Framer do
         stream: 0,
         payload: [
           [:settings_max_concurrent_streams, 10],
-          [:settings_header_table_size,      2048],
-        ],
+          [:settings_header_table_size,      2048]
+        ]
       }
     end
 
@@ -180,7 +180,7 @@ RSpec.describe HTTP2::Framer do
       frame[:payload] = [
         [:settings_max_concurrent_streams, 10],
         [:settings_initial_window_size,    20],
-        [55, 30],
+        [55, 30]
       ]
 
       buf = f.generate(frame)
@@ -192,7 +192,7 @@ RSpec.describe HTTP2::Framer do
     it 'should ignore custom settings when receiving' do
       frame[:payload] = [
         [:settings_max_concurrent_streams, 10],
-        [:settings_initial_window_size,    20],
+        [:settings_initial_window_size,    20]
       ]
 
       buf = f.generate(frame)
@@ -243,7 +243,7 @@ RSpec.describe HTTP2::Framer do
         flags: [:end_headers],
         stream: 1,
         promise_stream: 2,
-        payload: 'headers',
+        payload: 'headers'
       }
 
       bytes = f.generate(frame)
@@ -259,7 +259,7 @@ RSpec.describe HTTP2::Framer do
         stream: 1,
         type: :ping,
         flags: [:ack],
-        payload: '12345678',
+        payload: '12345678'
       }
     end
 
@@ -285,7 +285,7 @@ RSpec.describe HTTP2::Framer do
         type: :goaway,
         last_stream: 2,
         error: :no_error,
-        payload: 'debug',
+        payload: 'debug'
       }
     end
 
@@ -310,7 +310,7 @@ RSpec.describe HTTP2::Framer do
       frame = {
         length: 4,
         type: :window_update,
-        increment: 10,
+        increment: 10
       }
 
       bytes = f.generate(frame)
@@ -326,7 +326,7 @@ RSpec.describe HTTP2::Framer do
         type: :continuation,
         stream: 1,
         flags: [:end_headers],
-        payload: 'header-block',
+        payload: 'header-block'
       }
 
       bytes = f.generate(frame)
@@ -358,7 +358,7 @@ RSpec.describe HTTP2::Framer do
   end
 
   context 'Padding' do
-    [:data, :headers, :push_promise].each do |type|
+    %i[data headers push_promise].each do |type|
       [1, 256].each do |padlen|
         context "generating #{type} frame padded #{padlen}" do
           before do
@@ -366,7 +366,7 @@ RSpec.describe HTTP2::Framer do
               length: 12,
               type: type,
               stream: 1,
-              payload: 'example data',
+              payload: 'example data'
             }
             @frame[:promise_stream] = 2 if type == :push_promise
             @normal = f.generate(@frame)
@@ -395,7 +395,7 @@ RSpec.describe HTTP2::Framer do
           length: 12,
           type: :data,
           stream: 1,
-          payload: 'example data',
+          payload: 'example data'
         }
       end
       [0, 257, 1334].each do |padlen|
@@ -420,7 +420,7 @@ RSpec.describe HTTP2::Framer do
           length: 12,
           type: :data,
           stream: 1,
-          payload: 'example data',
+          payload: 'example data'
         }
         @padlen = 123
         @padded = f.generate(@frame.merge(padding: @padlen))
@@ -443,7 +443,7 @@ RSpec.describe HTTP2::Framer do
       [{ type: :ping, payload: 'blob' * 2 }, 8],
       [{ type: :goaway, last_stream: 5, error: 20, payload: 'blob' }, 12],
       [{ type: :window_update, stream: 1, increment: 1024 }, 4],
-      [{ type: :continuation, stream: 1, payload: 'abc' }, 3],
+      [{ type: :continuation, stream: 1, payload: 'abc' }, 3]
     ]
 
     frames.each do |(frame, size)|
@@ -456,7 +456,7 @@ RSpec.describe HTTP2::Framer do
   it 'should parse single frame at a time' do
     frames = [
       { type: :headers, stream: 1, payload: 'headers' },
-      { type: :data, stream: 1, flags: [:end_stream], payload: 'abc' },
+      { type: :data, stream: 1, flags: [:end_stream], payload: 'abc' }
     ]
 
     buf = f.generate(frames[0]) << f.generate(frames[1])

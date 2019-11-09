@@ -89,7 +89,7 @@ loop do
       stream.headers({
         ':status' => '200',
         'content-length' => response.bytesize.to_s,
-        'content-type' => 'text/plain',
+        'content-type' => 'text/plain'
       }, end_stream: false)
 
       if options[:push]

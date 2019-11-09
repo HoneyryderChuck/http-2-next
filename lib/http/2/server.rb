@@ -92,7 +92,7 @@ module HTTP2
         weight:     DEFAULT_WEIGHT,
         dependency: 0,
         exclusive:  false,
-        payload: headers,
+        payload: headers
       }
 
       if body.empty?

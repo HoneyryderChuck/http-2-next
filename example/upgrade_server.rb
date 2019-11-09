@@ -38,7 +38,7 @@ def request_header_hash
 end
 
 class UpgradeHandler
-  VALID_UPGRADE_METHODS = %w(GET OPTIONS).freeze
+  VALID_UPGRADE_METHODS = %w[GET OPTIONS].freeze
   UPGRADE_RESPONSE = <<RESP.freeze
 HTTP/1.1 101 Switching Protocols
 Connection: Upgrade
@@ -68,7 +68,7 @@ RESP
       ':scheme'    => 'http',
       ':method'    => @parser.http_method,
       ':authority' => headers['Host'],
-      ':path'      => @parser.request_url,
+      ':path'      => @parser.request_url
     }.merge(headers)
 
     @conn.upgrade(settings, request, @body)
@@ -87,7 +87,7 @@ RESP
   end
 
   def on_message_complete
-    fail unless VALID_UPGRADE_METHODS.include?(@parser.http_method)
+    raise unless VALID_UPGRADE_METHODS.include?(@parser.http_method)
     @parsing = false
     complete!
   end
@@ -139,7 +139,7 @@ loop do
           stream.headers({
             ':status' => '200',
             'content-length' => response.bytesize.to_s,
-            'content-type' => 'text/plain',
+            'content-type' => 'text/plain'
           }, end_stream: false)
           stream.data(response)
         end
@@ -157,7 +157,7 @@ loop do
         stream.headers({
           ':status' => '200',
           'content-length' => response.bytesize.to_s,
-          'content-type' => 'text/plain',
+          'content-type' => 'text/plain'
         }, end_stream: false)
 
         # split response into multiple DATA frames

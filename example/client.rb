@@ -97,7 +97,7 @@ head = {
   ':method' => (options[:payload].nil? ? 'GET' : 'POST'),
   ':authority' => [uri.host, uri.port].join(':'),
   ':path' => uri.path,
-  'accept' => '*/*',
+  'accept' => '*/*'
 }
 
 puts 'Sending HTTP 2.0 request'

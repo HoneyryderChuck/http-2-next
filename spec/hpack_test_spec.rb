@@ -2,7 +2,7 @@ require 'helper'
 require 'json'
 
 RSpec.describe HTTP2::Header do
-  folders = %w(
+  folders = %w[
     go-hpack
     haskell-http2-diff
     haskell-http2-diff-huffman
@@ -17,7 +17,7 @@ RSpec.describe HTTP2::Header do
     nghttp2-16384-4096
     nghttp2-change-table-size
     node-http2-hpack
-  )
+  ]
 
   context 'Decompressor' do
     folders.each do |folder|
@@ -45,12 +45,12 @@ RSpec.describe HTTP2::Header do
   end
 
   context 'Compressor' do
-    %w(
+    %w[
       LINEAR
       NAIVE
       SHORTER
       STATIC
-    ).each do |mode|
+    ].each do |mode|
       next if mode =~ /#/
       ['', 'H'].each do |huffman|
         encoding_mode = "#{mode}#{huffman}".to_sym

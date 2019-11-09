@@ -125,7 +125,7 @@ HEADER
             emit = transition.emit
             unless emit == EOS
               bytes = emit.bytes
-              fail ArgumentError if bytes.size > 1
+              raise ArgumentError if bytes.size > 1
               emit = bytes.first
             end
             "[#{emit.inspect}, #{state_id.fetch(transition.node)}]"
@@ -157,9 +157,7 @@ TAILER
         emit << t.emit
         n = t.node
       end
-      unless n.final && nibbles.all? { |x| x == 0xf }
-        puts "len = #{emit.size} n.final = #{n.final} nibbles = #{nibbles}"
-      end
+      puts "len = #{emit.size} n.final = #{n.final} nibbles = #{nibbles}" unless n.final && nibbles.all? { |x| x == 0xf }
       emit
     end
   end

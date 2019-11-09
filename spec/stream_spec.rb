@@ -222,14 +222,14 @@ RSpec.describe HTTP2::Stream do
 
         stream.on(:active) { order << :active }
         stream.on(:half_close) { order << :half_close }
-        stream.on(:close)  { order << :close }
+        stream.on(:close) { order << :close }
 
         req = headers_frame
         req[:flags] = [:end_headers]
 
         stream.send req
         stream.send data_frame
-        expect(order).to eq [:active, :half_close]
+        expect(order).to eq %i[active half_close]
       end
 
       it 'should emit :close on close transition' do
@@ -252,16 +252,16 @@ RSpec.describe HTTP2::Stream do
         stream.on(:active) { order << :active }
         stream.on(:data)   { order << :data }
         stream.on(:half_close) { order << :half_close }
-        stream.on(:close)  { order << :close }
+        stream.on(:close) { order << :close }
 
         req = headers_frame
-        req[:flags] = [:end_stream, :end_headers]
+        req[:flags] = %i[end_stream end_headers]
 
         stream.send req
         stream.receive headers_frame
         stream.receive data_frame
 
-        expect(order).to eq [:active, :half_close, :data, :close]
+        expect(order).to eq %i[active half_close data close]
       end
 
       it 'should emit :close with reason' do
@@ -282,7 +282,7 @@ RSpec.describe HTTP2::Stream do
     end
 
     context 'half closed (local)' do
-      before(:each) { @stream.send headers_frame.merge(flags: [:end_headers, :end_stream]) }
+      before(:each) { @stream.send headers_frame.merge(flags: %i[end_headers end_stream]) }
 
       it 'should raise error on attempt to send invalid frames' do
         frame_types.reject { |frame| %i[priority rst_stream window_update].include?(frame[:type]) }.each do |frame|
@@ -342,10 +342,10 @@ RSpec.describe HTTP2::Stream do
         stream.on(:half_close) { order << :half_close }
 
         req = headers_frame
-        req[:flags] = [:end_stream, :end_headers]
+        req[:flags] = %i[end_stream end_headers]
 
         stream.send req
-        expect(order).to eq [:active, :half_close]
+        expect(order).to eq %i[active half_close]
       end
 
       it 'should emit :close event on transition to closed' do
@@ -359,7 +359,7 @@ RSpec.describe HTTP2::Stream do
     end
 
     context 'half closed (remote)' do
-      before(:each) { @stream.receive headers_frame.merge(flags: [:end_headers, :end_stream]) }
+      before(:each) { @stream.receive headers_frame.merge(flags: %i[end_headers end_stream]) }
 
       it 'should raise STREAM_CLOSED error on reciept of frames' do
         (frame_types - [priority_frame, rst_stream_frame, window_update_frame]).each do |frame|
@@ -381,7 +381,7 @@ RSpec.describe HTTP2::Stream do
       end
 
       it 'should not transition to closed if END_STREAM flag is sent when overflowing window' do
-        @stream.on(:close) { fail 'should not have closed' }
+        @stream.on(:close) { raise 'should not have closed' }
         data = { type: :data, flags: [], stream: @stream.id }
         4.times do
           data = data.merge(flags: [:end_stream]) if @stream.remote_window < 16_384
@@ -440,10 +440,10 @@ RSpec.describe HTTP2::Stream do
         stream.on(:half_close) { order << :half_close }
 
         req = headers_frame
-        req[:flags] = [:end_stream, :end_headers]
+        req[:flags] = %i[end_stream end_headers]
 
         stream.receive req
-        expect(order).to eq [:active, :half_close]
+        expect(order).to eq %i[active half_close]
       end
 
       it 'should emit :close event on close transition' do
@@ -459,8 +459,8 @@ RSpec.describe HTTP2::Stream do
     context 'closed' do
       context 'remote closed stream' do
         before(:each) do
-          @stream.send headers_frame.merge(flags: [:end_headers, :end_stream])     # half closed local
-          @stream.receive headers_frame.merge(flags: [:end_headers, :end_stream])  # closed by remote
+          @stream.send headers_frame.merge(flags: %i[end_headers end_stream])     # half closed local
+          @stream.receive headers_frame.merge(flags: %i[end_headers end_stream])  # closed by remote
         end
 
         it 'should raise STREAM_CLOSED on attempt to send frames' do
@@ -545,7 +545,7 @@ RSpec.describe HTTP2::Stream do
       #   end
       # end
     end
-  end # end stream states
+  end
 
   # TODO: add test cases to ensure on(:priority) emitted after close
 
@@ -648,7 +648,7 @@ RSpec.describe HTTP2::Stream do
         ':scheme' => 'http',
         ':host'   => 'www.example.org',
         ':path'   => '/resource',
-        'custom'  => 'value',
+        'custom'  => 'value'
       }
 
       expect(@stream).to receive(:send) do |frame|
@@ -680,7 +680,7 @@ RSpec.describe HTTP2::Stream do
       want = [
         { type: :data, flags: [], length: 16_384 },
         { type: :data, flags: [], length: 16_384 },
-        { type: :data, flags: [:end_stream], length: 1 },
+        { type: :data, flags: [:end_stream], length: 1 }
       ]
       want.each do |w|
         expect(@stream).to receive(:send) do |frame|
@@ -701,7 +701,7 @@ RSpec.describe HTTP2::Stream do
         { type: :data, flags: [], length: 16_384 },
         { type: :data, flags: [], length: 16_384 },
         { type: :data, flags: [], length: 16_384 },
-        { type: :data, flags: [:end_stream], length: 1 },
+        { type: :data, flags: [:end_stream], length: 1 }
       ]
       want.each do |w|
         expect(@stream).to receive(:send) do |frame|
@@ -822,15 +822,15 @@ RSpec.describe HTTP2::Stream do
             expect(push.state).to eq :reserved_local
             order << :reserved
 
-            push.on(:active)    { order << :active }
+            push.on(:active) { order << :active }
             push.on(:half_close) { order << :half_close }
-            push.on(:close)     { order << :close }
+            push.on(:close) { order << :close }
 
             push.headers(RESPONSE_HEADERS)
             push.send data_frame.merge(stream: stream.id)
           end
 
-          expect(order).to eq [:reserved, :active, :half_close, :close]
+          expect(order).to eq %i[reserved active half_close close]
         end
 
         it 'client: promise_headers > active > headers > .. > data > close' do
@@ -841,7 +841,7 @@ RSpec.describe HTTP2::Stream do
             push.on(:active)    { order << :active }
             push.on(:data)      { order << :data }
             push.on(:half_close) { order << :half_close }
-            push.on(:close)     { order << :close }
+            push.on(:close) { order << :close }
 
             push.on(:promise_headers) do |h|
               order << :promise_headers
@@ -862,14 +862,14 @@ RSpec.describe HTTP2::Stream do
 
           expect(promise_headers).to eq(REQUEST_HEADERS)
           expect(headers).to eq(RESPONSE_HEADERS)
-          expect(order).to eq [
-            :reserved,
-            :promise_headers,
-            :active,
-            :headers,
-            :half_close,
-            :data,
-            :close,
+          expect(order).to eq %i[
+            reserved
+            promise_headers
+            active
+            headers
+            half_close
+            data
+            close
           ]
         end
       end

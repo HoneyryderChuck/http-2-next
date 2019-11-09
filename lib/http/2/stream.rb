@@ -231,7 +231,7 @@ module HTTP2
     end
 
     def promise(headers, end_headers: true, &block)
-      fail ArgumentError, 'must provide callback' unless block_given?
+      raise ArgumentError, 'must provide callback' unless block_given?
 
       flags = end_headers ? [:end_headers] : []
       emit(:promise, self, headers, flags, &block)
@@ -588,7 +588,7 @@ module HTTP2
           when :priority   then
             process_priority(frame)
           else
-            stream_error(:stream_closed) unless (frame[:type] == :rst_stream)
+            stream_error(:stream_closed) unless frame[:type] == :rst_stream
           end
         elsif frame[:type] == :priority
           process_priority(frame)
@@ -670,7 +670,7 @@ module HTTP2
       close(error) if @state != :closed
 
       klass = error.to_s.split('_').map(&:capitalize).join
-      fail Error.const_get(klass), msg
+      raise Error.const_get(klass), msg
     end
     alias error stream_error
 

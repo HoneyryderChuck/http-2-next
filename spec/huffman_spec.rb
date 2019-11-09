@@ -4,7 +4,7 @@ RSpec.describe HTTP2::Header::Huffman do
   huffman_examples = [ # plain, encoded
     ['www.example.com', 'f1e3c2e5f23a6ba0ab90f4ff'],
     ['no-cache',        'a8eb10649cbf'],
-    ['Mon, 21 Oct 2013 20:13:21 GMT', 'd07abe941054d444a8200595040b8166e082a62d1bff'],
+    ['Mon, 21 Oct 2013 20:13:21 GMT', 'd07abe941054d444a8200595040b8166e082a62d1bff']
   ]
   context 'encode' do
     before(:all) { @encoder = HTTP2::Header::Huffman.new }
@@ -29,7 +29,7 @@ RSpec.describe HTTP2::Header::Huffman do
       'cl_b=AB2BKbsl4hGM7M4nH5PYWghTM5A; cl_def_lang=en; cl_def_hp=shoals',
       'image/png,image/*;q=0.8,*/*;q=0.5',
       'BX=c99r6jp89a7no&b=3&s=q4; localization=en-us%3Bus%3Bus',
-      'UTF-8でエンコードした日本語文字列',
+      'UTF-8でエンコードした日本語文字列'
     ].each do |string|
       it "should encode then decode '#{string}' into the same" do
         s = string.dup.force_encoding(Encoding::BINARY)

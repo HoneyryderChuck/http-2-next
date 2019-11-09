@@ -64,7 +64,7 @@ module HTTP2
 
     # Ensures that data that is added is binary encoded as well,
     # otherwise this could lead to the Buffer instance changing its encoding.
-    [:<<, :prepend].each do |mutating_method|
+    %i[<< prepend].each do |mutating_method|
       define_method(mutating_method) do |string|
         string = string.dup if string.frozen?
         @buffer.send mutating_method, string.force_encoding(Encoding::BINARY)

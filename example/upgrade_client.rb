@@ -84,7 +84,7 @@ RESP
   end
 
   def on_message_complete
-    fail 'could not upgrade to h2c' unless @parser.status_code == 101
+    raise 'could not upgrade to h2c' unless @parser.status_code == 101
     @parsing = false
     complete!
   end

@@ -153,12 +153,12 @@ RSpec.describe HTTP2::Connection do
       input = [
         ['Content-Type', 'text/html'],
         ['Cache-Control', 'max-age=60, private'],
-        ['Cache-Control', 'must-revalidate'],
+        ['Cache-Control', 'must-revalidate']
       ]
       expected = [
         ['content-type', 'text/html'],
         ['cache-control', 'max-age=60, private'],
-        ['cache-control', 'must-revalidate'],
+        ['cache-control', 'must-revalidate']
       ]
       headers = []
       @conn.on(:frame) do |bytes|
@@ -290,7 +290,7 @@ RSpec.describe HTTP2::Connection do
     it 'should decompress header blocks regardless of stream state' do
       req_headers = [
         ['content-length', '20'],
-        ['x-my-header', 'first'],
+        ['x-my-header', 'first']
       ]
 
       cc = Compressor.new
@@ -310,7 +310,7 @@ RSpec.describe HTTP2::Connection do
     it 'should decode non-contiguous header blocks' do
       req_headers = [
         ['content-length', '15'],
-        ['x-my-header', 'first'],
+        ['x-my-header', 'first']
       ]
 
       cc = Compressor.new
@@ -399,7 +399,7 @@ RSpec.describe HTTP2::Connection do
         ':scheme' => 'http',
         ':authority' => 'www.example.org',
         ':path'   => '/resource',
-        'custom' => 'q' * 44_000,
+        'custom' => 'q' * 44_000
       }, end_stream: true)
       expect(headers.size).to eq 3
       expect(headers[0][:type]).to eq :headers
@@ -611,7 +611,7 @@ RSpec.describe HTTP2::Connection do
         expect(frame[:type]).to eq :settings
         expect(frame[:payload]).to eq([
           [:settings_max_concurrent_streams, 10],
-          [:settings_initial_window_size, 0x7fffffff],
+          [:settings_initial_window_size, 0x7fffffff]
         ])
         expect(frame[:stream]).to eq 0
       end

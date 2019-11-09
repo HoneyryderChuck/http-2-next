@@ -28,7 +28,7 @@ module HTTP2
   }.freeze
 
   # Default stream priority (lower values are higher priority).
-  DEFAULT_WEIGHT    = 16
+  DEFAULT_WEIGHT = 16
 
   # Default connection "fast-fail" preamble string as defined by the spec.
   CONNECTION_PREFACE_MAGIC = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n".freeze
@@ -109,8 +109,8 @@ module HTTP2
     # @param window [Integer]
     # @param parent [Stream]
     def new_stream(**args)
-      fail ConnectionClosed if @state == :closed
-      fail StreamLimitExceeded if @active_stream_count >= @remote_settings[:settings_max_concurrent_streams]
+      raise ConnectionClosed if @state == :closed
+      raise StreamLimitExceeded if @active_stream_count >= @remote_settings[:settings_max_concurrent_streams]
 
       connection_error(:protocol_error, msg: 'id is smaller than previous') if @stream_id < @last_activated_stream
 
@@ -192,7 +192,7 @@ module HTTP2
       if @state == :waiting_magic
         if @recv_buffer.size < 24
           if !CONNECTION_PREFACE_MAGIC.start_with? @recv_buffer
-            fail HandshakeError
+            raise HandshakeError
           else
             return # maybe next time
           end
@@ -202,7 +202,7 @@ module HTTP2
           payload = @local_settings.reject { |k, v| v == SPEC_DEFAULT_CONNECTION_SETTINGS[k] }
           settings(payload)
         else
-          fail HandshakeError
+          raise HandshakeError
         end
       end
 
@@ -695,7 +695,7 @@ module HTTP2
     def activate_stream(id: nil, **args)
       connection_error(msg: 'Stream ID already exists') if @streams.key?(id)
 
-      fail StreamLimitExceeded if @active_stream_count >= @local_settings[:settings_max_concurrent_streams]
+      raise StreamLimitExceeded if @active_stream_count >= @local_settings[:settings_max_concurrent_streams]
 
       stream = Stream.new(connection: self, id: id, **args)
 
@@ -747,7 +747,7 @@ module HTTP2
       klass = error.to_s.split('_').map(&:capitalize).join
       msg ||= e && e.message
       backtrace = (e && e.backtrace) || []
-      fail Error.const_get(klass), msg, backtrace
+      raise Error.const_get(klass), msg, backtrace
     end
     alias error connection_error
 
