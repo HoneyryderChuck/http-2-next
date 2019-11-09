@@ -78,6 +78,7 @@ module HTTP2
 
       @active_stream_count = 0
       @last_activated_stream = 0
+      @last_stream_id = 0
       @streams = {}
       @streams_recently_closed = {}
       @pending_settings = []
@@ -111,7 +112,11 @@ module HTTP2
       fail ConnectionClosed if @state == :closed
       fail StreamLimitExceeded if @active_stream_count >= @remote_settings[:settings_max_concurrent_streams]
 
+      connection_error(:protocol_error, msg: 'id is smaller than previous') if @stream_id < @last_activated_stream
+
       stream = activate_stream(id: @stream_id, **args)
+      @last_activated_stream = stream.id
+
       @stream_id += 2
 
       stream
