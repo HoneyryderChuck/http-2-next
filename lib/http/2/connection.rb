@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module HTTP2
   # Default connection and stream flow control window (64KB).
   DEFAULT_FLOW_WINDOW = 65_535
@@ -376,7 +378,6 @@ module HTTP2
           end
         end
       end
-
     rescue StandardError => e
       raise if e.is_a?(Error::Error)
       connection_error(e: e)
@@ -420,7 +421,7 @@ module HTTP2
       frames = if frame[:type] == :headers || frame[:type] == :push_promise
         encode_headers(frame) # HEADERS and PUSH_PROMISE may create more than one frame
       else
-        [frame]               # otherwise one frame
+        [frame] # otherwise one frame
       end
 
       frames.map { |f| @framer.generate(f) }
@@ -644,7 +645,6 @@ module HTTP2
     # @param frame [Hash]
     def decode_headers(frame)
       frame[:payload] = @decompressor.decode(frame[:payload], frame) if frame[:payload].is_a? Buffer
-
     rescue CompressionError => e
       connection_error(:compression_error, e: e)
     rescue ProtocolError => e
@@ -679,7 +679,6 @@ module HTTP2
       end
 
       frames
-
     rescue StandardError => e
       connection_error(:compression_error, e: e)
       nil

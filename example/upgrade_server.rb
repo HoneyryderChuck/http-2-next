@@ -190,7 +190,6 @@ loop do
       when uh.complete
         conn << data
       end
-
     rescue StandardError => e
       puts "Exception: #{e}, #{e.message} - closing socket."
       puts e.backtrace.last(10).join("\n")

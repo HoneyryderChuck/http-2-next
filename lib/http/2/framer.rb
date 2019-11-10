@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module HTTP2
   # Performs encoding, decoding, and validation of binary HTTP/2 frames.
   #
@@ -257,7 +259,7 @@ module HTTP2
         if frame[:proto]
           raise CompressionError, 'Proto too long' if frame[:proto].bytesize > 255
           bytes << [frame[:proto].bytesize].pack(UINT8)
-          bytes << frame[:proto].force_encoding(Encoding::BINARY)
+          bytes << frame[:proto]
           length += 1 + frame[:proto].bytesize
         else
           bytes << [0].pack(UINT8)
@@ -266,7 +268,7 @@ module HTTP2
         if frame[:host]
           raise CompressionError, 'Host too long' if frame[:host].bytesize > 255
           bytes << [frame[:host].bytesize].pack(UINT8)
-          bytes << frame[:host].force_encoding(Encoding::BINARY)
+          bytes << frame[:host]
           length += 1 + frame[:host].bytesize
         else
           bytes << [0].pack(UINT8)

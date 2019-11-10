@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 desc 'Generate Huffman precompiled table in huffman_statemachine.rb'
 task :generate_table do
   HuffmanTable::Node.generate_state_table

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require './spec/support/deep_dup'
 
 RSpec.configure(&:disable_monkey_patching!)

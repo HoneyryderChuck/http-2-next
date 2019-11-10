@@ -31,9 +31,6 @@ Layout/IndentHash:
 Layout/SpaceAroundOperators:
   Enabled: false
 
-Layout/EmptyLinesAroundExceptionHandlingKeywords:
-  Enabled: false
-
 Naming/UncommunicativeMethodParamName:
   Enabled: false
 
@@ -50,11 +47,5 @@ Style/TrailingCommaInArguments:
   Enabled: false
 
 Style/TrailingUnderscoreVariable:
-  Enabled: false
-
-Performance/TimesMap:
-  Enabled: false
-
-Performance/RedundantBlockCall:
   Enabled: false
 

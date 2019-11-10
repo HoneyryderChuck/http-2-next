@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'base64'
 module HTTP2
   # HTTP 2.0 server connection class that implements appropriate header
@@ -116,7 +118,7 @@ module HTTP2
     #
     # @param args [Array]
     # @param callback [Proc]
-    def promise(*args, &callback)
+    def promise(*args)
       parent, headers, flags = *args
       promise = new_stream(parent: parent)
       promise.send(
@@ -127,7 +129,7 @@ module HTTP2
         payload: headers.to_a,
       )
 
-      callback.call(promise)
+      yield(promise)
     end
   end
 end

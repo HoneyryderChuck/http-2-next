@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module HTTP2
   # HTTP 2.0 client connection class that implements appropriate header
   # compression / decompression algorithms and stream management logic.

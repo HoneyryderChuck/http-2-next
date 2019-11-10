@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # https://github.com/rails/rails/blob/master/activesupport/lib/active_support/core_ext/object/deep_dup.rb
 
 require_relative 'duplicable'

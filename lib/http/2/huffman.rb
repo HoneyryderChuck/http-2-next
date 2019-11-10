@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'error'
 
 module HTTP2
@@ -30,7 +32,7 @@ module HTTP2
       # @return [String] binary string
       # @raise [CompressionError] when Huffman coded string is malformed
       def decode(buf)
-        emit = ''
+        emit = ''.b
         state = 0 # start state
 
         mask = (1 << BITS_AT_ONCE) - 1
