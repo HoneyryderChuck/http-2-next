@@ -51,6 +51,3 @@ Metrics/PerceivedComplexity:
 # Offense count: 4
 Style/Documentation:
   Enabled: false
-
-Performance/TimesMap:
-  Enabled: false

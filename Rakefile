@@ -44,6 +44,7 @@ task :h2spec_install do
       # http.set_debug_output($stderr)
       response = http.get(uri.request_uri)
       break unless response.is_a?(Net::HTTPRedirection)
+
       uri = response["location"]
     end
     file.write(response.body)

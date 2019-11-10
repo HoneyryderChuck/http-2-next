@@ -98,8 +98,8 @@ module HTTP2
       #   :index       Symbol   :all, :static, :never
       def initialize(**options)
         default_options = {
-          huffman:    :shorter,
-          index:      :all,
+          huffman: :shorter,
+          index: :all,
           table_size: 4096
         }
         @table = []
@@ -135,6 +135,7 @@ module HTTP2
         # NOTE: index is zero-based in this module.
         value = STATIC_TABLE[index] || @table[index - STATIC_TABLE.size]
         raise CompressionError, "Index too large" unless value
+
         value
       end
 
@@ -300,6 +301,7 @@ module HTTP2
       # @param cmd [Array] +[name, value]+
       def add_to_table(cmd)
         return unless size_check(cmd)
+
         @table.unshift(cmd)
         @_table_updated = true
       end
@@ -326,9 +328,9 @@ module HTTP2
 
     # Header representation as defined by the spec.
     HEADREP = {
-      indexed:      { prefix: 7, pattern: 0x80 },
-      incremental:  { prefix: 6, pattern: 0x40 },
-      noindex:      { prefix: 4, pattern: 0x00 },
+      indexed: { prefix: 7, pattern: 0x80 },
+      incremental: { prefix: 6, pattern: 0x40 },
+      noindex: { prefix: 4, pattern: 0x00 },
       neverindexed: { prefix: 4, pattern: 0x10 },
       changetablesize: { prefix: 5, pattern: 0x20 }
     }.each_value(&:freeze).freeze
@@ -528,10 +530,12 @@ module HTTP2
       # @raise [CompressionError] when input is malformed
       def string(buf)
         raise CompressionError, "invalid header block fragment" if buf.empty?
+
         huffman = (buf.readbyte(0) & 0x80) == 0x80
         len = integer(buf, 7)
         str = buf.read(len)
         raise CompressionError, "string too short" unless str.bytesize == len
+
         str = Huffman.new.decode(Buffer.new(str)) if huffman
         str.force_encoding(Encoding::UTF_8)
       end
@@ -556,6 +560,7 @@ module HTTP2
         case header[:type]
         when :indexed
           raise CompressionError if (header[:name]).zero?
+
           header[:name] -= 1
         when :changetablesize
           header[:value] = header[:name]
@@ -585,12 +590,15 @@ module HTTP2
           until buf.empty?
             field, value = @cc.process(header(buf))
             next if field.nil?
+
             is_pseudo_header = field.start_with? ":"
             if !decoding_pseudo_headers && is_pseudo_header
               raise ProtocolError, "one or more pseudo headers encountered after regular headers"
             end
+
             decoding_pseudo_headers = is_pseudo_header
             raise ProtocolError, "invalid header received: #{field}" if FORBIDDEN_HEADERS.include?(field)
+
             if frame
               case field
               when ":method"

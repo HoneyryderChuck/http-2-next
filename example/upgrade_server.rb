@@ -69,10 +69,10 @@ RESP
 
     settings = headers["http2-settings"]
     request = {
-      ":scheme"    => "http",
-      ":method"    => @parser.http_method,
+      ":scheme" => "http",
+      ":method" => @parser.http_method,
       ":authority" => headers["Host"],
-      ":path"      => @parser.request_url
+      ":path" => @parser.request_url
     }.merge(headers)
 
     @conn.upgrade(settings, request, @body)
@@ -92,6 +92,7 @@ RESP
 
   def on_message_complete
     raise unless VALID_UPGRADE_METHODS.include?(@parser.http_method)
+
     @parsing = false
     complete!
   end

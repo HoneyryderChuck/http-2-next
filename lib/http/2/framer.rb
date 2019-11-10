@@ -20,17 +20,17 @@ module HTTP2
 
     # HTTP/2 frame type mapping as defined by the spec
     FRAME_TYPES = {
-      data:          0x0,
-      headers:       0x1,
-      priority:      0x2,
-      rst_stream:    0x3,
-      settings:      0x4,
-      push_promise:  0x5,
-      ping:          0x6,
-      goaway:        0x7,
+      data: 0x0,
+      headers: 0x1,
+      priority: 0x2,
+      rst_stream: 0x3,
+      settings: 0x4,
+      push_promise: 0x5,
+      ping: 0x6,
+      goaway: 0x7,
       window_update: 0x8,
-      continuation:  0x9,
-      altsvc:        0xa
+      continuation: 0x9,
+      altsvc: 0xa
     }.freeze
 
     FRAME_TYPES_WITH_PADDING = %i[data headers push_promise].freeze
@@ -38,25 +38,25 @@ module HTTP2
     # Per frame flags as defined by the spec
     FRAME_FLAGS = {
       data: {
-        end_stream:  0,
+        end_stream: 0,
         padded: 3,
         compressed: 5
       },
       headers: {
-        end_stream:  0,
+        end_stream: 0,
         end_headers: 2,
         padded: 3,
         priority: 5
       },
-      priority:     {},
-      rst_stream:   {},
-      settings:     { ack: 0 },
+      priority: {},
+      rst_stream: {},
+      settings: { ack: 0 },
       push_promise: {
         end_headers: 2,
         padded: 3
       },
-      ping:         { ack: 0 },
-      goaway:       {},
+      ping: { ack: 0 },
+      goaway: {},
       window_update: {},
       continuation: { end_headers: 2 },
       altsvc: {}
@@ -64,30 +64,30 @@ module HTTP2
 
     # Default settings as defined by the spec
     DEFINED_SETTINGS = {
-      settings_header_table_size:      1,
-      settings_enable_push:            2,
+      settings_header_table_size: 1,
+      settings_enable_push: 2,
       settings_max_concurrent_streams: 3,
-      settings_initial_window_size:    4,
-      settings_max_frame_size:         5,
-      settings_max_header_list_size:   6
+      settings_initial_window_size: 4,
+      settings_max_frame_size: 5,
+      settings_max_header_list_size: 6
     }.freeze
 
     # Default error types as defined by the spec
     DEFINED_ERRORS = {
-      no_error:           0,
-      protocol_error:     1,
-      internal_error:     2,
+      no_error: 0,
+      protocol_error: 1,
+      internal_error: 2,
       flow_control_error: 3,
-      settings_timeout:   4,
-      stream_closed:      5,
-      frame_size_error:   6,
-      refused_stream:     7,
-      cancel:             8,
-      compression_error:  9,
-      connect_error:      10,
-      enhance_your_calm:  11,
+      settings_timeout: 4,
+      stream_closed: 5,
+      frame_size_error: 6,
+      refused_stream: 7,
+      cancel: 8,
+      compression_error: 9,
+      connect_error: 10,
+      enhance_your_calm: 11,
       inadequate_security: 12,
-      http_1_1_required:  13
+      http_1_1_required: 13
     }.freeze
 
     RBIT  = 0x7fffffff
@@ -182,6 +182,7 @@ module HTTP2
           unless frame[:weight] && frame[:dependency] && !frame[:exclusive].nil?
             raise CompressionError, "Must specify all of priority parameters for #{frame[:type]}"
           end
+
           frame[:flags] += [:priority] unless frame[:flags].include? :priority
         end
 
@@ -198,6 +199,7 @@ module HTTP2
         unless frame[:weight] && frame[:dependency] && !frame[:exclusive].nil?
           raise CompressionError, "Must specify all of priority parameters for #{frame[:type]}"
         end
+
         bytes << [(frame[:exclusive] ? EBIT : 0) | (frame[:dependency] & RBIT)].pack(UINT32)
         bytes << [frame[:weight] - 1].pack(UINT8)
         length += 5
@@ -232,6 +234,7 @@ module HTTP2
         if frame[:payload].bytesize != 8
           raise CompressionError, "Invalid payload size (#{frame[:payload].size} != 8 bytes)"
         end
+
         bytes << frame[:payload]
         length += 8
 
@@ -258,6 +261,7 @@ module HTTP2
         length += 6
         if frame[:proto]
           raise CompressionError, "Proto too long" if frame[:proto].bytesize > 255
+
           bytes << [frame[:proto].bytesize].pack(UINT8)
           bytes << frame[:proto]
           length += 1 + frame[:proto].bytesize
@@ -267,6 +271,7 @@ module HTTP2
         end
         if frame[:host]
           raise CompressionError, "Host too long" if frame[:host].bytesize > 255
+
           bytes << [frame[:host].bytesize].pack(UINT8)
           bytes << frame[:host]
           length += 1 + frame[:host].bytesize
@@ -314,6 +319,7 @@ module HTTP2
     # @param buf [Buffer]
     def parse(buf)
       return nil if buf.size < 9
+
       frame = read_common_header(buf)
       return nil if buf.size < 9 + frame[:length]
 
@@ -335,6 +341,7 @@ module HTTP2
           padlen = payload.read(1).unpack(UINT8).first
           frame[:padding] = padlen + 1
           raise ProtocolError, "padding too long" if padlen > payload.bytesize
+
           payload.slice!(-padlen, padlen) if padlen > 0
           frame[:length] -= frame[:padding]
           frame[:flags].delete(:padded)
@@ -354,12 +361,14 @@ module HTTP2
         frame[:payload] = payload.read(frame[:length])
       when :priority
         raise FrameSizeError, "Invalid length for PRIORITY_STREAM (#{frame[:length]} != 5)" if frame[:length] != 5
+
         e_sd = payload.read_uint32
         frame[:dependency] = e_sd & RBIT
         frame[:exclusive] = (e_sd & EBIT) != 0
         frame[:weight] = payload.getbyte + 1
       when :rst_stream
         raise FrameSizeError, "Invalid length for RST_STREAM (#{frame[:length]} != 4)" if frame[:length] != 4
+
         frame[:error] = unpack_error payload.read_uint32
 
       when :settings
@@ -394,6 +403,7 @@ module HTTP2
         if frame[:length] % 4 != 0
           raise FrameSizeError, "Invalid length for WINDOW_UPDATE (#{frame[:length]} not multiple of 4)"
         end
+
         frame[:increment] = payload.read_uint32 & RBIT
       when :continuation
         frame[:payload] = payload.read(frame[:length])

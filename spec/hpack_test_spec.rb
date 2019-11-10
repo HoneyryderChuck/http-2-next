@@ -24,11 +24,14 @@ RSpec.describe HTTP2::Header do
   context "Decompressor" do
     folders.each do |folder|
       next if folder =~ /#/
+
       path = File.expand_path("hpack-test-case/#{folder}", File.dirname(__FILE__))
       next unless Dir.exist?(path)
+
       context folder.to_s do
         Dir.foreach(path) do |file|
           next if file !~ /\.json/
+
           it "should decode #{file}" do
             story = JSON.parse(File.read("#{path}/#{file}"))
             cases = story["cases"]
@@ -54,6 +57,7 @@ RSpec.describe HTTP2::Header do
       STATIC
     ].each do |mode|
       next if mode =~ /#/
+
       ["", "H"].each do |huffman|
         encoding_mode = "#{mode}#{huffman}".to_sym
         encoding_options = HTTP2::Header::EncodingContext.const_get(encoding_mode)
@@ -65,6 +69,7 @@ RSpec.describe HTTP2::Header do
             path = File.expand_path("hpack-test-case/raw-data", File.dirname(__FILE__))
             Dir.foreach(path) do |file|
               next if file !~ /\.json/
+
               it "should encode #{file}" do
                 story = JSON.parse(File.read("#{path}/#{file}"))
                 cases = story["cases"]

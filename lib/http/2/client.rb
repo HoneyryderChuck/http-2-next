@@ -48,6 +48,7 @@ module HTTP2
     # sends the preface and initializes the first stream in half-closed state
     def upgrade
       raise ProtocolError unless @stream_id == 1
+
       send_connection_preface
       new_stream(state: :half_closed_local)
     end
@@ -55,6 +56,7 @@ module HTTP2
     # Emit the connection preface if not yet
     def send_connection_preface
       return unless @state == :waiting_connection_preface
+
       @state = :connected
       emit(:frame, CONNECTION_PREFACE_MAGIC)
 

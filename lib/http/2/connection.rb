@@ -12,21 +12,21 @@ module HTTP2
 
   # Default values for SETTINGS frame, as defined by the spec.
   SPEC_DEFAULT_CONNECTION_SETTINGS = {
-    settings_header_table_size:       4096,
-    settings_enable_push:             1,                     # enabled for servers
-    settings_max_concurrent_streams:  Framer::MAX_STREAM_ID, # unlimited
-    settings_initial_window_size:     65_535,
-    settings_max_frame_size:          16_384,
-    settings_max_header_list_size:    2**31 - 1,             # unlimited
+    settings_header_table_size: 4096,
+    settings_enable_push: 1, # enabled for servers
+    settings_max_concurrent_streams: Framer::MAX_STREAM_ID, # unlimited
+    settings_initial_window_size: 65_535,
+    settings_max_frame_size: 16_384,
+    settings_max_header_list_size: 2**31 - 1 # unlimited
   }.freeze
 
   DEFAULT_CONNECTION_SETTINGS = {
-    settings_header_table_size:       4096,
-    settings_enable_push:             1,                     # enabled for servers
-    settings_max_concurrent_streams:  100,
-    settings_initial_window_size:     65_535,
-    settings_max_frame_size:          16_384,
-    settings_max_header_list_size:    2**31 - 1,             # unlimited
+    settings_header_table_size: 4096,
+    settings_enable_push: 1, # enabled for servers
+    settings_max_concurrent_streams: 100,
+    settings_initial_window_size: 65_535,
+    settings_max_frame_size: 16_384,
+    settings_max_header_list_size: 2**31 - 1 # unlimited
   }.freeze
 
   # Default stream priority (lower values are higher priority).
@@ -42,7 +42,7 @@ module HTTP2
   # Note that this class should not be used directly. Instead, you want to
   # use either Client or Server class to drive the HTTP 2.0 exchange.
   #
-  # rubocop:disable ClassLength
+  # rubocop:disable Metrics/ClassLength
   class Connection
     include FlowBuffer
     include Emitter
@@ -271,10 +271,10 @@ module HTTP2
             stream = @streams[frame[:stream]]
             if stream.nil?
               stream = activate_stream(
-                id:         frame[:stream],
-                weight:     frame[:weight] || DEFAULT_WEIGHT,
+                id: frame[:stream],
+                weight: frame[:weight] || DEFAULT_WEIGHT,
                 dependency: frame[:dependency] || 0,
-                exclusive:  frame[:exclusive] || false
+                exclusive: frame[:exclusive] || false
               )
               verify_stream_order(stream.id)
               emit(:stream, stream)
@@ -349,10 +349,10 @@ module HTTP2
               # unused or closed parent stream.
               when :priority
                 stream = activate_stream(
-                  id:         frame[:stream],
-                  weight:     frame[:weight] || DEFAULT_WEIGHT,
+                  id: frame[:stream],
+                  weight: frame[:weight] || DEFAULT_WEIGHT,
                   dependency: frame[:dependency] || 0,
-                  exclusive:  frame[:exclusive] || false
+                  exclusive: frame[:exclusive] || false
                 )
 
                 emit(:stream, stream)
@@ -378,6 +378,7 @@ module HTTP2
       end
     rescue StandardError => e
       raise if e.is_a?(Error::Error)
+
       connection_error(e: e)
     end
 
@@ -743,8 +744,8 @@ module HTTP2
       @state = :closed
       @error = error
       klass = error.to_s.split("_").map(&:capitalize).join
-      msg ||= e && e.message
-      backtrace = (e && e.backtrace) || []
+      msg ||= e.message
+      backtrace = e.backtrace || []
       raise Error.const_get(klass), msg, backtrace
     end
     alias error connection_error
@@ -753,5 +754,5 @@ module HTTP2
       yield
     end
   end
-  # rubocop:enable ClassLength
+  # rubocop:enable Metrics/ClassLength
 end

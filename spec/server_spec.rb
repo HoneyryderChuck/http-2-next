@@ -27,7 +27,7 @@ RSpec.describe HTTP2::Server do
       frames = []
 
       @srv = Server.new(settings_max_concurrent_streams: 200,
-                        settings_initial_window_size:    2**10)
+                        settings_initial_window_size: 2**10)
       @srv.on(:frame) { |recv| frames << recv }
       @srv << CONNECTION_PREFACE_MAGIC
 

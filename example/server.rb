@@ -35,6 +35,7 @@ if options[:secure]
 
   ctx.alpn_select_cb = lambda do |protocols|
     raise "Protocol #{DRAFT} is required" if protocols.index(DRAFT).nil?
+
     DRAFT
   end
 

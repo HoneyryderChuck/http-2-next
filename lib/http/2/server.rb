@@ -89,11 +89,11 @@ module HTTP2
       emit(:stream, stream)
 
       headers_frame = {
-        type:       :headers,
-        stream:     1,
-        weight:     DEFAULT_WEIGHT,
+        type: :headers,
+        stream: 1,
+        weight: DEFAULT_WEIGHT,
         dependency: 0,
-        exclusive:  false,
+        exclusive: false,
         payload: headers
       }
 

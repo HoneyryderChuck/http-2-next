@@ -156,12 +156,12 @@ RSpec.describe HTTP2::Connection do
       input = [
         ["Content-Type", "text/html"],
         ["Cache-Control", "max-age=60, private"],
-        ["Cache-Control", "must-revalidate"]
+        %w[Cache-Control must-revalidate]
       ]
       expected = [
         ["content-type", "text/html"],
         ["cache-control", "max-age=60, private"],
-        ["cache-control", "must-revalidate"]
+        %w[cache-control must-revalidate]
       ]
       headers = []
       @conn.on(:frame) do |bytes|
@@ -295,8 +295,8 @@ RSpec.describe HTTP2::Connection do
 
     it "should decompress header blocks regardless of stream state" do
       req_headers = [
-        ["content-length", "20"],
-        ["x-my-header", "first"]
+        %w[content-length 20],
+        %w[x-my-header first]
       ]
 
       cc = Compressor.new
@@ -315,8 +315,8 @@ RSpec.describe HTTP2::Connection do
 
     it "should decode non-contiguous header blocks" do
       req_headers = [
-        ["content-length", "15"],
-        ["x-my-header", "first"]
+        %w[content-length 15],
+        %w[x-my-header first]
       ]
 
       cc = Compressor.new
@@ -430,7 +430,7 @@ RSpec.describe HTTP2::Connection do
                        ":scheme" => "http",
                        ":authority" => "www.example.org",
                        ":path" => "/resource",
-                       "custom" => "q" * 18_682, # this number should be updated when Huffman table is changed
+                       "custom" => "q" * 18_682 # this number should be updated when Huffman table is changed
                      }, end_stream: true)
       expect(headers[0][:length]).to eq @conn.remote_settings[:settings_max_frame_size]
       expect(headers.size).to eq 1
@@ -452,7 +452,7 @@ RSpec.describe HTTP2::Connection do
                        ":scheme" => "http",
                        ":authority" => "www.example.org",
                        ":path" => "/resource",
-                       "custom" => "q" * 18_682, # this number should be updated when Huffman table is changed
+                       "custom" => "q" * 18_682 # this number should be updated when Huffman table is changed
                      }, end_stream: true)
       expect(headers[0][:length]).to eq @conn.remote_settings[:settings_max_frame_size]
       expect(headers.size).to eq 1
@@ -473,7 +473,7 @@ RSpec.describe HTTP2::Connection do
                        ":scheme" => "http",
                        ":authority" => "www.example.org",
                        ":path" => "/resource",
-                       "custom" => "q" * 18_683, # this number should be updated when Huffman table is changed
+                       "custom" => "q" * 18_683 # this number should be updated when Huffman table is changed
                      }, end_stream: true)
       expect(headers[0][:length]).to eq @conn.remote_settings[:settings_max_frame_size]
       expect(headers[1][:length]).to eq 1

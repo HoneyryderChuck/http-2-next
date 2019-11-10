@@ -83,7 +83,7 @@ module HTTP2
       @dependency = dependency
       process_priority(weight: weight, dependency: dependency, exclusive: exclusive)
       @local_window_max_size = connection.local_settings[:settings_initial_window_size]
-      @local_window  = connection.local_settings[:settings_initial_window_size]
+      @local_window = connection.local_settings[:settings_initial_window_size]
       @remote_window = connection.remote_settings[:settings_initial_window_size]
       @parent = parent
       @state  = state
@@ -164,6 +164,7 @@ module HTTP2
     def verify_pseudo_headers(frame)
       headers = frame[:payload]
       return if headers.is_a?(Buffer)
+
       mandatory_headers = @id.odd? ? REQUEST_MANDATORY_HEADERS : RESPONSE_MANDATORY_HEADERS
       pseudo_headers = headers.take_while do |field, value|
         # use this loop to validate pseudo-headers
@@ -172,14 +173,17 @@ module HTTP2
       end.map(&:first)
       return if mandatory_headers.size == pseudo_headers.size &&
                 (mandatory_headers - pseudo_headers).empty?
+
       stream_error(:protocol_error, msg: "invalid pseudo-headers")
     end
 
     def verify_trailers(frame)
       stream_error(:protocol_error, msg: "trailer headers frame must close the stream") unless end_stream?(frame)
       return unless @_trailers
+
       trailers = frame[:payload]
       return if trailers.is_a?(Buffer)
+
       trailers.each do |field, _|
         @_trailers.delete(field)
         break if @_trailers.empty?
@@ -189,8 +193,10 @@ module HTTP2
 
     def calculate_content_length(data_length)
       return unless @_content_length
+
       @_content_length -= data_length
       return if @_content_length >= 0
+
       stream_error(:protocol_error, msg: "received more data than what was defined in content-length")
     end
 
@@ -306,6 +312,7 @@ module HTTP2
     def window_update(increment)
       # emit stream-level WINDOW_UPDATE unless stream is closed
       return if @state == :closed || @state == :remote_closed
+
       send(type: :window_update, increment: increment)
     end
 
@@ -586,8 +593,8 @@ module HTTP2
       when :closed
         if sending
           case frame[:type]
-          when :rst_stream then # ignore
-          when :priority   then
+          when :rst_stream # ignore
+          when :priority
             process_priority(frame)
           else
             stream_error(:stream_closed) unless frame[:type] == :rst_stream
@@ -648,9 +655,9 @@ module HTTP2
       @dependency = frame[:dependency]
       emit(
         :priority,
-        weight:     frame[:weight],
+        weight: frame[:weight],
         dependency: frame[:dependency],
-        exclusive:  frame[:exclusive]
+        exclusive: frame[:exclusive]
       )
       # TODO: implement dependency tree housekeeping
       #   Latest draft defines a fairly complex priority control.

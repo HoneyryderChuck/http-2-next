@@ -9,7 +9,7 @@ group :test do
   gem "pry"
   gem "pry-byebug", platform: :mri
   gem "rspec", "~> 3.4.0"
-  gem "rubocop", "0.57.2"
+  gem "rubocop", "0.76.0"
 end
 
 gemspec

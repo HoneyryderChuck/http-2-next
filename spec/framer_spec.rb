@@ -347,7 +347,7 @@ RSpec.describe HTTP2::Framer do
         port: 8080,                 # 2
         proto: "h2-13",             # 1 + 5
         host: "www.example.com",    # 1 + 15
-        origin: "www.example.com",  # 15
+        origin: "www.example.com" # 15
       }
       bytes = f.generate(frame)
       expected = [0, 43, 0xa, 0, 1, 1_402_290_402, 8080].pack("CnCCNNn")

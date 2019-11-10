@@ -658,9 +658,9 @@ RSpec.describe HTTP2::Stream do
       payload = {
         ":method" => "GET",
         ":scheme" => "http",
-        ":host"   => "www.example.org",
-        ":path"   => "/resource",
-        "custom"  => "value"
+        ":host" => "www.example.org",
+        ":path" => "/resource",
+        "custom" => "value"
       }
 
       expect(@stream).to receive(:send) do |frame|

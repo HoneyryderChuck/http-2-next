@@ -64,6 +64,7 @@ module HuffmanTable
         togo.delete(node)
 
         next if node.transitions
+
         node.transitions = Array[1 << BITS_AT_ONCE]
 
         (1 << BITS_AT_ONCE).times do |input|
@@ -73,6 +74,7 @@ module HuffmanTable
             bit = (input & (1 << i)).zero? ? 0 : 1
             n = n.next[bit]
             next unless n.emit
+
             if n.emit == EOS
               emit = EOS # cause error on decoding
             else
@@ -128,6 +130,7 @@ HEADER
             unless emit == EOS
               bytes = emit.bytes
               raise ArgumentError if bytes.size > 1
+
               emit = bytes.first
             end
             "[#{emit.inspect}, #{state_id.fetch(transition.node)}]"
