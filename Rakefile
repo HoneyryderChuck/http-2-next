@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "English"
 require "bundler/gem_tasks"
 require "rspec/core/rake_task"
 require "rubocop/rake_task"
@@ -22,6 +23,7 @@ RSpec::Core::RakeTask.new(:hpack) do |t|
   t.pattern = "./spec/hpack_test_spec.rb"
 end
 
+desc "install h2spec"
 task :h2spec_install do
   platform = case RUBY_PLATFORM
              when /darwin/
@@ -31,34 +33,37 @@ task :h2spec_install do
              else
                "h2spec_linux_amd64.tar.gz"
              end
-  uri = "https://github.com/summerwind/h2spec/releases/download/v2.2.0/#{platform}"
+  # uri = "https://github.com/summerwind/h2spec/releases/download/v2.3.0/#{platform}"
 
-  tar_location = File.join(__dir__, platform)
-  require "net/http"
-  File.open(tar_location, "wb") do |file|
-    response = nil
-    loop do
-      uri = URI(uri)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      # http.set_debug_output($stderr)
-      response = http.get(uri.request_uri)
-      break unless response.is_a?(Net::HTTPRedirection)
+  tar_location = File.join(__dir__, "h2spec-releases", platform)
+  # require "net/http"
+  # File.open(tar_location, "wb") do |file|
+  #   response = nil
+  #   loop do
+  #     uri = URI(uri)
+  #     http = Net::HTTP.new(uri.host, uri.port)
+  #     http.use_ssl = true
+  #     # http.set_debug_output($stderr)
+  #     response = http.get(uri.request_uri)
+  #     break unless response.is_a?(Net::HTTPRedirection)
 
-      uri = response["location"]
-    end
-    file.write(response.body)
-  end
+  #     uri = response["location"]
+  #   end
+  #   file.write(response.body)
+  # end
 
   case RUBY_PLATFORM
   when /cygwin|mswin|mingw|bccwin|wince|emx/
     puts "Hi, you're on Windows, please unzip this file: #{tar_location}"
+  when /darwin/
+    system("gunzip -c #{tar_location} | tar -xvzf -")
   else
     system("tar -xvzf #{tar_location} h2spec")
   end
-  FileUtils.rm(tar_location)
+  # FileUtils.rm(tar_location)
 end
 
+desc "run h2spec"
 task :h2spec do
   h2spec = File.join(__dir__, "h2spec")
   unless File.exist?(h2spec)
@@ -68,16 +73,18 @@ task :h2spec do
   end
 
   server_pid = Process.spawn("ruby example/server.rb -p 9000", out: File::NULL)
-  sleep 1
-  h2spec_pid = fork do
-    exec("#{h2spec} -p 9000 -o 1")
-  end
-  Process.waitpid(h2spec_pid)
+  sleep RUBY_ENGINE == "jruby" ? 20 : 1
+  system("#{h2spec} -p 9000 -o 1 --strict")
   Process.kill("TERM", server_pid)
+  exit($CHILD_STATUS.exitstatus)
 end
 
 RuboCop::RakeTask.new
 YARD::Rake::YardocTask.new
 
-task default: %i[spec cop]
+if ENV["CI"]
+  task default: %i[spec cop h2spec_install h2spec]
+else
+  task default: %i[spec cop]
+end
 task all: %i[default hpack]

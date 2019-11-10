@@ -47,8 +47,8 @@ RSpec.describe HTTP2::Header do
         ].each do |datatype, plain|
           it "should handle #{datatype} #{desc}" do
             # NOTE: don't put this new in before{} because of test case shuffling
-            @c = Compressor.new(huffman: option)
-            str = @c.string(plain)
+            c = Compressor.new(huffman: option)
+            str = c.string(plain)
             expect(str.getbyte(0) & 0x80).to eq msb
 
             buf = Buffer.new(str + trailer)
@@ -61,10 +61,9 @@ RSpec.describe HTTP2::Header do
         [["日本語", :plain],
          ["200", :huffman],
          ["xq", :plain]].each do |string, choice|
-          before { @c = Compressor.new(huffman: :shorter) }
-
           it "should return #{choice} representation" do
-            wire = @c.string(string)
+            c = Compressor.new(huffman: :shorter)
+            wire = c.string(string)
             expect(wire.getbyte(0) & 0x80).to eq(choice == :plain ? 0 : 0x80)
           end
         end
@@ -143,10 +142,9 @@ RSpec.describe HTTP2::Header do
   end
 
   context "shared compression context" do
-    before(:each) { @cc = EncodingContext.new }
+    let(:cc) { EncodingContext.new }
 
     it "should be initialized with empty headers" do
-      cc = EncodingContext.new
       expect(cc.table).to be_empty
     end
 
@@ -157,37 +155,37 @@ RSpec.describe HTTP2::Header do
       ].each do |desc, type|
         context desc.to_s do
           it "should process indexed header with literal value" do
-            original_table = @cc.table.dup
+            original_table = cc.table
 
-            emit = @cc.process(name: 4, value: "/path", type: type)
+            emit = cc.process(name: 4, value: "/path", type: type)
             expect(emit).to eq [":path", "/path"]
-            expect(@cc.table).to eq original_table
+            expect(cc.table).to eq original_table
           end
 
           it "should process literal header with literal value" do
-            original_table = @cc.table.dup
+            original_table = cc.table
 
-            emit = @cc.process(name: "x-custom", value: "random", type: type)
+            emit = cc.process(name: "x-custom", value: "random", type: type)
             expect(emit).to eq %w[x-custom random]
-            expect(@cc.table).to eq original_table
+            expect(cc.table).to eq original_table
           end
         end
       end
 
       context "incremental indexing" do
         it "should process indexed header with literal value" do
-          original_table = @cc.table.dup
+          original_table = cc.table.dup
 
-          emit = @cc.process(name: 4, value: "/path", type: :incremental)
+          emit = cc.process(name: 4, value: "/path", type: :incremental)
           expect(emit).to eq [":path", "/path"]
-          expect(@cc.table - original_table).to eq [[":path", "/path"]]
+          expect(cc.table - original_table).to eq [[":path", "/path"]]
         end
 
         it "should process literal header with literal value" do
-          original_table = @cc.table.dup
+          original_table = cc.table.dup
 
-          @cc.process(name: "x-custom", value: "random", type: :incremental)
-          expect(@cc.table - original_table).to eq [%w[x-custom random]]
+          cc.process(name: "x-custom", value: "random", type: :incremental)
+          expect(cc.table - original_table).to eq [%w[x-custom random]]
         end
       end
 
@@ -554,41 +552,38 @@ RSpec.describe HTTP2::Header do
       context "spec example #{ex[:title]}" do
         ex[:streams].size.times do |nth|
           context "request #{nth + 1}" do
-            before { @dc = Decompressor.new(table_size: ex[:table_size]) }
+            let(:dc) { Decompressor.new(table_size: ex[:table_size]) }
             before do
               (0...nth).each do |i|
                 bytes = [ex[:streams][i][:wire].delete(" \n")].pack("H*")
                 if ex[:streams][i][:has_bad_headers]
-                  expect { @dc.decode(HTTP2::Buffer.new(bytes)) }.to raise_error ProtocolError
+                  expect { dc.decode(HTTP2::Buffer.new(bytes)) }.to raise_error ProtocolError
                 else
-                  @dc.decode(HTTP2::Buffer.new(bytes))
+                  dc.decode(HTTP2::Buffer.new(bytes))
                 end
               end
             end
             if ex[:streams][nth][:has_bad_headers]
               it "should raise CompressionError" do
                 bytes = [ex[:streams][nth][:wire].delete(" \n")].pack("H*")
-                expect { @dc.decode(HTTP2::Buffer.new(bytes)) }.to raise_error ProtocolError
+                expect { dc.decode(HTTP2::Buffer.new(bytes)) }.to raise_error ProtocolError
               end
             else
-              subject do
+              let!(:emitted) do
                 bytes = [ex[:streams][nth][:wire].delete(" \n")].pack("H*")
-                @emitted = @dc.decode(HTTP2::Buffer.new(bytes))
+                dc.decode(HTTP2::Buffer.new(bytes))
               end
               it "should emit expected headers" do
-                subject
                 # partitioned compare
                 pseudo_headers, headers = ex[:streams][nth][:emitted].partition { |f, _| f.start_with? ":" }
                 partitioned_headers = pseudo_headers + headers
-                expect(@emitted).to eq partitioned_headers
+                expect(emitted).to eq partitioned_headers
               end
               it "should update header table" do
-                subject
-                expect(@dc.instance_eval { @cc.table }).to eq ex[:streams][nth][:table]
+                expect(dc.instance_eval { @cc.table }).to eq ex[:streams][nth][:table]
               end
               it "should compute header table size" do
-                subject
-                expect(@dc.instance_eval { @cc.current_table_size }).to eq ex[:streams][nth][:table_size]
+                expect(dc.instance_eval { @cc.current_table_size }).to eq ex[:streams][nth][:table_size]
               end
             end
           end
@@ -604,24 +599,24 @@ RSpec.describe HTTP2::Header do
       context "spec example #{ex[:title]}" do
         ex[:streams].size.times do |nth|
           context "request #{nth + 1}" do
-            before do
-              @cc = Compressor.new(table_size: ex[:table_size],
-                                   huffman: ex[:huffman])
+            let(:cc) do
+              Compressor.new(table_size: ex[:table_size],
+                             huffman: ex[:huffman])
             end
             before do
               (0...nth).each do |i|
                 if ex[:streams][i][:has_bad_headers]
-                  @cc.encode(ex[:streams][i][:emitted], ensure_proper_ordering: false)
+                  cc.encode(ex[:streams][i][:emitted], ensure_proper_ordering: false)
                 else
-                  @cc.encode(ex[:streams][i][:emitted])
+                  cc.encode(ex[:streams][i][:emitted])
                 end
               end
             end
             subject do
               if ex[:streams][nth][:has_bad_headers]
-                @cc.encode(ex[:streams][nth][:emitted], ensure_proper_ordering: false)
+                cc.encode(ex[:streams][nth][:emitted], ensure_proper_ordering: false)
               else
-                @cc.encode(ex[:streams][nth][:emitted])
+                cc.encode(ex[:streams][nth][:emitted])
               end
             end
             it "should emit expected bytes on wire" do
@@ -630,11 +625,11 @@ RSpec.describe HTTP2::Header do
             unless ex[:streams][nth][:has_bad_headers]
               it "should update header table" do
                 subject
-                expect(@cc.instance_eval { @cc.table }).to eq ex[:streams][nth][:table]
+                expect(cc.instance_eval { @cc.table }).to eq ex[:streams][nth][:table]
               end
               it "should compute header table size" do
                 subject
-                expect(@cc.instance_eval { @cc.current_table_size }).to eq ex[:streams][nth][:table_size]
+                expect(cc.instance_eval { @cc.current_table_size }).to eq ex[:streams][nth][:table_size]
               end
             end
           end

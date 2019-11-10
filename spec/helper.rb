@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "./spec/support/deep_dup"
+require "simplecov" if ENV.key?("CI")
 
 RSpec.configure(&:disable_monkey_patching!)
 RSpec::Expectations.configuration.warn_about_potential_false_positives = false
