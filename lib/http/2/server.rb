@@ -1,4 +1,6 @@
-require 'base64'
+# frozen_string_literal: true
+
+require "base64"
 module HTTP2
   # HTTP 2.0 server connection class that implements appropriate header
   # compression / decompression algorithms and stream management logic.
@@ -77,7 +79,7 @@ module HTTP2
         length: buf.bytesize,
         type: :settings,
         stream: 0,
-        flags: [],
+        flags: []
       )
       buf.prepend(header)
       receive(buf)
@@ -87,16 +89,16 @@ module HTTP2
       emit(:stream, stream)
 
       headers_frame = {
-        type:       :headers,
-        stream:     1,
-        weight:     DEFAULT_WEIGHT,
+        type: :headers,
+        stream: 1,
+        weight: DEFAULT_WEIGHT,
         dependency: 0,
-        exclusive:  false,
-        payload: headers,
+        exclusive: false,
+        payload: headers
       }
 
       if body.empty?
-        headers_frame.merge!(flags: [:end_stream])
+        headers_frame[:flags] = [:end_stream]
         stream << headers_frame
       else
         stream << headers_frame
@@ -116,7 +118,7 @@ module HTTP2
     #
     # @param args [Array]
     # @param callback [Proc]
-    def promise(*args, &callback)
+    def promise(*args)
       parent, headers, flags = *args
       promise = new_stream(parent: parent)
       promise.send(
@@ -124,10 +126,10 @@ module HTTP2
         flags: flags,
         stream: parent.id,
         promise_stream: promise.id,
-        payload: headers.to_a,
+        payload: headers.to_a
       )
 
-      callback.call(promise)
+      yield(promise)
     end
   end
 end

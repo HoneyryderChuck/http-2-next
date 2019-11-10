@@ -1,12 +1,14 @@
-$LOAD_PATH << 'lib' << '../lib'
+# frozen_string_literal: true
 
-require 'optparse'
-require 'socket'
-require 'openssl'
-require 'http/2'
-require 'uri'
+$LOAD_PATH << "lib" << "../lib"
 
-DRAFT = 'h2'.freeze
+require "optparse"
+require "socket"
+require "openssl"
+require "http/2"
+require "uri"
+
+DRAFT = "h2"
 
 class Logger
   def initialize(id)

@@ -1,4 +1,6 @@
-require 'forwardable'
+# frozen_string_literal: true
+
+require "forwardable"
 
 module HTTP2
   # Binary buffer wraps String.
@@ -10,11 +12,11 @@ module HTTP2
                    :size, :each_byte, :to_str, :to_s, :length, :inspect,
                    :[], :[]=, :empty?, :bytesize, :include?
 
-    UINT32 = 'N'.freeze
+    UINT32 = "N"
     private_constant :UINT32
 
     # Forces binary encoding on the string
-    def initialize(str = '')
+    def initialize(str = "".b)
       str = str.dup if str.frozen?
       @buffer = str.force_encoding(Encoding::BINARY)
     end
@@ -64,7 +66,7 @@ module HTTP2
 
     # Ensures that data that is added is binary encoded as well,
     # otherwise this could lead to the Buffer instance changing its encoding.
-    [:<<, :prepend].each do |mutating_method|
+    %i[<< prepend].each do |mutating_method|
       define_method(mutating_method) do |string|
         string = string.dup if string.frozen?
         @buffer.send mutating_method, string.force_encoding(Encoding::BINARY)

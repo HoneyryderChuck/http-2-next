@@ -1,3 +1,5 @@
-source 'https://rubygems.org'
+# frozen_string_literal: true
 
-gem 'http_parser.rb'
+source "https://rubygems.org"
+
+gem "http_parser.rb"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #--
 # Most objects are cloneable, but not all. For example you can't dup +nil+:
 #
@@ -76,7 +78,7 @@ class Numeric
   end
 end
 
-require 'bigdecimal'
+require "bigdecimal"
 class BigDecimal
   # BigDecimals are duplicable:
   #

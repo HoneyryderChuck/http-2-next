@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module HTTP2
   # Implementation of stream and connection DATA flow control: frames may
   # be split and / or may be buffered based on current flow control window.
@@ -49,6 +51,7 @@ module HTTP2
       # until the receiver window is exhausted, after which he'll be
       # waiting for the WINDOW_UPDATE frame.
       return unless @local_window <= (window_max_size / 2)
+
       window_update(window_max_size - @local_window)
     end
 
@@ -70,7 +73,8 @@ module HTTP2
       while @remote_window > 0 && !@send_buffer.empty?
         frame = @send_buffer.shift
 
-        sent, frame_size = 0, frame[:payload].bytesize
+        sent = 0
+        frame_size = frame[:payload].bytesize
 
         if frame_size > @remote_window
           payload = frame.delete(:payload)
@@ -106,10 +110,12 @@ module HTTP2
 
     def process_window_update(frame:, encode: false)
       return if frame[:ignore]
+
       if frame[:increment]
-        fail ProtocolError, 'increment MUST be higher than zero' if frame[:increment].zero?
+        raise ProtocolError, "increment MUST be higher than zero" if frame[:increment].zero?
+
         @remote_window += frame[:increment]
-        error(:flow_control_error, msg: 'window size too large') if @remote_window > MAX_WINDOW_SIZE
+        error(:flow_control_error, msg: "window size too large") if @remote_window > MAX_WINDOW_SIZE
       end
       send_data(nil, encode)
     end

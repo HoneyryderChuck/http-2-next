@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module HTTP2
   # Default connection and stream flow control window (64KB).
   DEFAULT_FLOW_WINDOW = 65_535
@@ -10,28 +12,28 @@ module HTTP2
 
   # Default values for SETTINGS frame, as defined by the spec.
   SPEC_DEFAULT_CONNECTION_SETTINGS = {
-    settings_header_table_size:       4096,
-    settings_enable_push:             1,                     # enabled for servers
-    settings_max_concurrent_streams:  Framer::MAX_STREAM_ID, # unlimited
-    settings_initial_window_size:     65_535,
-    settings_max_frame_size:          16_384,
-    settings_max_header_list_size:    2**31 - 1,             # unlimited
+    settings_header_table_size: 4096,
+    settings_enable_push: 1, # enabled for servers
+    settings_max_concurrent_streams: Framer::MAX_STREAM_ID, # unlimited
+    settings_initial_window_size: 65_535,
+    settings_max_frame_size: 16_384,
+    settings_max_header_list_size: 2**31 - 1 # unlimited
   }.freeze
 
   DEFAULT_CONNECTION_SETTINGS = {
-    settings_header_table_size:       4096,
-    settings_enable_push:             1,                     # enabled for servers
-    settings_max_concurrent_streams:  100,
-    settings_initial_window_size:     65_535,
-    settings_max_frame_size:          16_384,
-    settings_max_header_list_size:    2**31 - 1,             # unlimited
+    settings_header_table_size: 4096,
+    settings_enable_push: 1, # enabled for servers
+    settings_max_concurrent_streams: 100,
+    settings_initial_window_size: 65_535,
+    settings_max_frame_size: 16_384,
+    settings_max_header_list_size: 2**31 - 1 # unlimited
   }.freeze
 
   # Default stream priority (lower values are higher priority).
-  DEFAULT_WEIGHT    = 16
+  DEFAULT_WEIGHT = 16
 
   # Default connection "fast-fail" preamble string as defined by the spec.
-  CONNECTION_PREFACE_MAGIC = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n".freeze
+  CONNECTION_PREFACE_MAGIC = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
 
   # Connection encapsulates all of the connection, stream, flow-control,
   # error management, and other processing logic required for a well-behaved
@@ -40,7 +42,7 @@ module HTTP2
   # Note that this class should not be used directly. Instead, you want to
   # use either Client or Server class to drive the HTTP 2.0 exchange.
   #
-  # rubocop:disable ClassLength
+  # rubocop:disable Metrics/ClassLength
   class Connection
     include FlowBuffer
     include Emitter
@@ -109,10 +111,10 @@ module HTTP2
     # @param window [Integer]
     # @param parent [Stream]
     def new_stream(**args)
-      fail ConnectionClosed if @state == :closed
-      fail StreamLimitExceeded if @active_stream_count >= @remote_settings[:settings_max_concurrent_streams]
+      raise ConnectionClosed if @state == :closed
+      raise StreamLimitExceeded if @active_stream_count >= @remote_settings[:settings_max_concurrent_streams]
 
-      connection_error(:protocol_error, msg: 'id is smaller than previous') if @stream_id < @last_activated_stream
+      connection_error(:protocol_error, msg: "id is smaller than previous") if @stream_id < @last_activated_stream
 
       stream = activate_stream(id: @stream_id, **args)
       @last_activated_stream = stream.id
@@ -143,10 +145,10 @@ module HTTP2
     # @param payload [String]
     def goaway(error = :no_error, payload = nil)
       last_stream = if (max = @streams.max)
-        max.first
-      else
-        0
-      end
+                      max.first
+                    else
+                      0
+                    end
 
       send(type: :goaway, last_stream: last_stream,
            error: error, payload: payload)
@@ -191,18 +193,16 @@ module HTTP2
       # SETTINGS frame. Server connection header is SETTINGS frame only.
       if @state == :waiting_magic
         if @recv_buffer.size < 24
-          if !CONNECTION_PREFACE_MAGIC.start_with? @recv_buffer
-            fail HandshakeError
-          else
-            return # maybe next time
-          end
+          raise HandshakeError unless CONNECTION_PREFACE_MAGIC.start_with? @recv_buffer
+
+          return # maybe next time
         elsif @recv_buffer.read(24) == CONNECTION_PREFACE_MAGIC
           # MAGIC is OK.  Send our settings
           @state = :waiting_connection_preface
           payload = @local_settings.reject { |k, v| v == SPEC_DEFAULT_CONNECTION_SETTINGS[k] }
           settings(payload)
         else
-          fail HandshakeError
+          raise HandshakeError
         end
       end
 
@@ -223,9 +223,7 @@ module HTTP2
         # Header blocks MUST be transmitted as a contiguous sequence of frames
         # with no interleaved frames of any other type, or from any other stream.
         unless @continuation.empty?
-          unless frame[:type] == :continuation && frame[:stream] == @continuation.first[:stream]
-            connection_error
-          end
+          connection_error unless frame[:type] == :continuation && frame[:stream] == @continuation.first[:stream]
 
           @continuation << frame
           next unless frame[:flags].include? :end_headers
@@ -253,7 +251,7 @@ module HTTP2
           when :headers
             # When server receives even-numbered stream identifier,
             # the endpoint MUST respond with a connection error of type PROTOCOL_ERROR.
-            connection_error if frame[:stream].even? && self.is_a?(Server)
+            connection_error if frame[:stream].even? && is_a?(Server)
 
             # The last frame in a sequence of HEADERS/CONTINUATION
             # frames MUST have the END_HEADERS flag set.
@@ -273,10 +271,10 @@ module HTTP2
             stream = @streams[frame[:stream]]
             if stream.nil?
               stream = activate_stream(
-                id:         frame[:stream],
-                weight:     frame[:weight] || DEFAULT_WEIGHT,
+                id: frame[:stream],
+                weight: frame[:weight] || DEFAULT_WEIGHT,
                 dependency: frame[:dependency] || 0,
-                exclusive:  frame[:exclusive] || false,
+                exclusive: frame[:exclusive] || false
               )
               verify_stream_order(stream.id)
               emit(:stream, stream)
@@ -314,7 +312,7 @@ module HTTP2
               return
             end
 
-            connection_error(msg: 'missing parent ID') if parent.nil?
+            connection_error(msg: "missing parent ID") if parent.nil?
 
             unless parent.state == :open || parent.state == :half_closed_local
               # An endpoint might receive a PUSH_PROMISE frame after it sends
@@ -351,10 +349,10 @@ module HTTP2
               # unused or closed parent stream.
               when :priority
                 stream = activate_stream(
-                  id:         frame[:stream],
-                  weight:     frame[:weight] || DEFAULT_WEIGHT,
+                  id: frame[:stream],
+                  weight: frame[:weight] || DEFAULT_WEIGHT,
                   dependency: frame[:dependency] || 0,
-                  exclusive:  frame[:exclusive] || false,
+                  exclusive: frame[:exclusive] || false
                 )
 
                 emit(:stream, stream)
@@ -367,7 +365,7 @@ module HTTP2
               # (see Section 5.1).
               when :window_update
                 stream = @streams_recently_closed[frame[:stream]]
-                connection_error(:protocol_error, 'sent window update on idle stream') unless stream
+                connection_error(:protocol_error, "sent window update on idle stream") unless stream
                 process_window_update(frame: frame, encode: true)
               else
                 # An endpoint that receives an unexpected stream identifier
@@ -378,9 +376,9 @@ module HTTP2
           end
         end
       end
-
     rescue StandardError => e
       raise if e.is_a?(Error::Error)
+
       connection_error(e: e)
     end
 
@@ -401,17 +399,16 @@ module HTTP2
       if frame[:type] == :data
         send_data(frame, true)
 
-      else
+      elsif frame[:type] == :rst_stream && frame[:error] == :protocol_error
         # An endpoint can end a connection at any time. In particular, an
         # endpoint MAY choose to treat a stream error as a connection error.
-        if frame[:type] == :rst_stream && frame[:error] == :protocol_error
-          goaway(frame[:error])
-        else
-          # HEADERS and PUSH_PROMISE may generate CONTINUATION. Also send
-          # RST_STREAM that are not protocol errors
-          frames = encode(frame)
-          frames.each { |f| emit(:frame, f) }
-        end
+
+        goaway(frame[:error])
+      else
+        # HEADERS and PUSH_PROMISE may generate CONTINUATION. Also send
+        # RST_STREAM that are not protocol errors
+        frames = encode(frame)
+        frames.each { |f| emit(:frame, f) }
       end
     end
 
@@ -421,10 +418,10 @@ module HTTP2
     # @return [Array of Buffer] encoded frame
     def encode(frame)
       frames = if frame[:type] == :headers || frame[:type] == :push_promise
-        encode_headers(frame) # HEADERS and PUSH_PROMISE may create more than one frame
-      else
-        [frame]               # otherwise one frame
-      end
+                 encode_headers(frame) # HEADERS and PUSH_PROMISE may create more than one frame
+               else
+                 [frame] # otherwise one frame
+               end
 
       frames.map { |f| @framer.generate(f) }
     end
@@ -474,9 +471,7 @@ module HTTP2
           # 4.  The ALTSVC HTTP/2 Frame
           # An ALTSVC frame on stream 0 with empty (length 0) "Origin"
           # information is invalid and MUST be ignored.
-          if frame[:origin] && !frame[:origin].empty?
-            emit(frame[:type], frame)
-          end
+          emit(frame[:type], frame) if frame[:origin] && !frame[:origin].empty?
         when :blocked
           emit(frame[:type], frame)
         else
@@ -525,9 +520,7 @@ module HTTP2
           when :client
             # Any value other than 0 or 1 MUST be treated as a
             # connection error (Section 5.4.1) of type PROTOCOL_ERROR.
-            unless v.zero? || v == 1
-              return ProtocolError.new("invalid #{key} value")
-            end
+            return ProtocolError.new("invalid #{key} value") unless v.zero? || v == 1
           end
         when :settings_max_concurrent_streams
           # Any value is valid
@@ -535,18 +528,14 @@ module HTTP2
           # Values above the maximum flow control window size of 2^31-1 MUST
           # be treated as a connection error (Section 5.4.1) of type
           # FLOW_CONTROL_ERROR.
-          unless v <= 0x7fffffff
-            return FlowControlError.new("invalid #{key} value")
-          end
+          return FlowControlError.new("invalid #{key} value") unless v <= 0x7fffffff
         when :settings_max_frame_size
           # The initial value is 2^14 (16,384) octets.  The value advertised
           # by an endpoint MUST be between this initial value and the maximum
           # allowed frame size (2^24-1 or 16,777,215 octets), inclusive.
           # Values outside this range MUST be treated as a connection error
           # (Section 5.4.1) of type PROTOCOL_ERROR.
-          unless v >= 16_384 && v <= 16_777_215
-            return ProtocolError.new("invalid #{key} value")
-          end
+          return ProtocolError.new("invalid #{key} value") unless v >= 16_384 && v <= 16_777_215
         when :settings_max_header_list_size
           # Any value is valid
           # else # ignore unknown settings
@@ -566,13 +555,13 @@ module HTTP2
       #   local: previously sent and pended our settings should be effective
       #   remote: just received peer settings should immediately be effective
       settings, side = if frame[:flags].include?(:ack)
-        # Process pending settings we have sent.
-        [@pending_settings.shift, :local]
-      else
-        check = validate_settings(@remote_role, frame[:payload])
-        connection_error(check) if check
-        [frame[:payload], :remote]
-      end
+                         # Process pending settings we have sent.
+                         [@pending_settings.shift, :local]
+                       else
+                         check = validate_settings(@remote_role, frame[:payload])
+                         connection_error(check) if check
+                         [frame[:payload], :remote]
+                       end
 
       settings.each do |key, v|
         case side
@@ -654,10 +643,7 @@ module HTTP2
     #
     # @param frame [Hash]
     def decode_headers(frame)
-      if frame[:payload].is_a? Buffer
-        frame[:payload] = @decompressor.decode(frame[:payload], frame)
-      end
-
+      frame[:payload] = @decompressor.decode(frame[:payload], frame) if frame[:payload].is_a? Buffer
     rescue CompressionError => e
       connection_error(:compression_error, e: e)
     rescue ProtocolError => e
@@ -692,7 +678,6 @@ module HTTP2
       end
 
       frames
-
     rescue StandardError => e
       connection_error(:compression_error, e: e)
       nil
@@ -706,9 +691,9 @@ module HTTP2
     # @param window [Integer]
     # @param parent [Stream]
     def activate_stream(id: nil, **args)
-      connection_error(msg: 'Stream ID already exists') if @streams.key?(id)
+      connection_error(msg: "Stream ID already exists") if @streams.key?(id)
 
-      fail StreamLimitExceeded if @active_stream_count >= @local_settings[:settings_max_concurrent_streams]
+      raise StreamLimitExceeded if @active_stream_count >= @local_settings[:settings_max_concurrent_streams]
 
       stream = Stream.new(connection: self, id: id, **args)
 
@@ -729,7 +714,7 @@ module HTTP2
         end
       end
 
-      stream.on(:promise, &method(:promise)) if self.is_a? Server
+      stream.on(:promise, &method(:promise)) if is_a? Server
       stream.on(:frame,   &method(:send))
 
       @streams[id] = stream
@@ -738,7 +723,7 @@ module HTTP2
     def verify_stream_order(id)
       return unless id.odd?
 
-      connection_error(msg: 'Stream ID smaller than previous') if @last_stream_id > id
+      connection_error(msg: "Stream ID smaller than previous") if @last_stream_id > id
       @last_stream_id = id
     end
 
@@ -756,11 +741,12 @@ module HTTP2
     def connection_error(error = :protocol_error, msg: nil, e: nil)
       goaway(error) unless @state == :closed || @state == :new
 
-      @state, @error = :closed, error
-      klass = error.to_s.split('_').map(&:capitalize).join
-      msg ||= e && e.message
-      backtrace = (e && e.backtrace) || []
-      fail Error.const_get(klass), msg, backtrace
+      @state = :closed
+      @error = error
+      klass = error.to_s.split("_").map(&:capitalize).join
+      msg ||= e.message
+      backtrace = e.backtrace || []
+      raise Error.const_get(klass), msg, backtrace
     end
     alias error connection_error
 
@@ -768,5 +754,5 @@ module HTTP2
       yield
     end
   end
-  # rubocop:enable ClassLength
+  # rubocop:enable Metrics/ClassLength
 end
