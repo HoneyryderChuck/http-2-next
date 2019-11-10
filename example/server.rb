@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
-require_relative 'helper'
+require_relative "helper"
 
 options = { port: 8080 }
 OptionParser.new do |opts|
-  opts.banner = 'Usage: server.rb [options]'
+  opts.banner = "Usage: server.rb [options]"
 
-  opts.on('-s', '--secure', 'HTTPS mode') do |v|
+  opts.on("-s", "--secure", "HTTPS mode") do |v|
     options[:secure] = v
   end
 
-  opts.on('-p', '--port [Integer]', 'listen port') do |v|
+  opts.on("-p", "--port [Integer]", "listen port") do |v|
     options[:port] = v
   end
 
-  opts.on('-u', '--push', 'Push message') do |_v|
+  opts.on("-u", "--push", "Push message") do |_v|
     options[:push] = true
   end
 end.parse!
@@ -24,28 +24,28 @@ server = TCPServer.new(options[:port])
 
 if options[:secure]
   ctx = OpenSSL::SSL::SSLContext.new
-  ctx.cert = OpenSSL::X509::Certificate.new(File.open('keys/server.crt'))
-  ctx.key = OpenSSL::PKey::RSA.new(File.open('keys/server.key'))
+  ctx.cert = OpenSSL::X509::Certificate.new(File.open("keys/server.crt"))
+  ctx.key = OpenSSL::PKey::RSA.new(File.open("keys/server.key"))
 
   ctx.ssl_version = :TLSv1_2
   ctx.options = OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:options]
   ctx.ciphers = OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:ciphers]
 
-  ctx.alpn_protocols = ['h2']
+  ctx.alpn_protocols = ["h2"]
 
   ctx.alpn_select_cb = lambda do |protocols|
     raise "Protocol #{DRAFT} is required" if protocols.index(DRAFT).nil?
     DRAFT
   end
 
-  ctx.ecdh_curves = 'P-256'
+  ctx.ecdh_curves = "P-256"
 
   server = OpenSSL::SSL::SSLServer.new(server, ctx)
 end
 
 loop do
   sock = server.accept
-  puts 'New TCP connection!'
+  puts "New TCP connection!"
 
   conn = HTTP2::Server.new
   conn.on(:frame) do |bytes|
@@ -62,10 +62,10 @@ loop do
   conn.on(:stream) do |stream|
     log = Logger.new(stream.id)
     req = {}
-    buffer = ''
+    buffer = ""
 
-    stream.on(:active) { log.info 'client opened new stream' }
-    stream.on(:close)  { log.info 'stream closed' }
+    stream.on(:active) { log.info "client opened new stream" }
+    stream.on(:close)  { log.info "stream closed" }
 
     stream.on(:headers) do |h|
       req = Hash[*h.flatten]
@@ -78,21 +78,21 @@ loop do
     end
 
     stream.on(:half_close) do
-      log.info 'client closed its end of the stream'
+      log.info "client closed its end of the stream"
 
       response = nil
-      if req[':method'] == 'POST'
+      if req[":method"] == "POST"
         log.info "Received POST request, payload: #{buffer}"
         response = "Hello HTTP 2.0! POST payload: #{buffer}"
       else
-        log.info 'Received GET request'
-        response = 'Hello HTTP 2.0! GET request'
+        log.info "Received GET request"
+        response = "Hello HTTP 2.0! GET request"
       end
 
       stream.headers({
-                       ':status' => '200',
-                       'content-length' => response.bytesize.to_s,
-                       'content-type' => 'text/plain'
+                       ":status" => "200",
+                       "content-length" => response.bytesize.to_s,
+                       "content-type" => "text/plain"
                      }, end_stream: false)
 
       if options[:push]
@@ -100,15 +100,15 @@ loop do
 
         # send 10 promises
         10.times do |i|
-          puts 'sending push'
+          puts "sending push"
 
-          head = { ':method' => 'GET',
-                   ':authority' => 'localhost',
-                   ':scheme' => 'https',
-                   ':path' => "/other_resource/#{i}" }
+          head = { ":method" => "GET",
+                   ":authority" => "localhost",
+                   ":scheme" => "https",
+                   ":path" => "/other_resource/#{i}" }
 
           stream.promise(head) do |push|
-            push.headers(':status' => '200', 'content-type' => 'text/plain', 'content-length' => '11')
+            push.headers(":status" => "200", "content-type" => "text/plain", "content-length" => "11")
             push_streams << push
           end
         end

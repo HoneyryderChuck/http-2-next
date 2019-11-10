@@ -16,67 +16,67 @@ module HTTP2
       # Static table
       # - http://tools.ietf.org/html/draft-ietf-httpbis-header-compression-10#appendix-A
       STATIC_TABLE = [
-        [':authority',                  ''],
-        [':method',                     'GET'],
-        [':method',                     'POST'],
-        [':path',                       '/'],
-        [':path',                       '/index.html'],
-        [':scheme',                     'http'],
-        [':scheme',                     'https'],
-        [':status',                     '200'],
-        [':status',                     '204'],
-        [':status',                     '206'],
-        [':status',                     '304'],
-        [':status',                     '400'],
-        [':status',                     '404'],
-        [':status',                     '500'],
-        ['accept-charset',              ''],
-        ['accept-encoding',             'gzip, deflate'],
-        ['accept-language',             ''],
-        ['accept-ranges',               ''],
-        ['accept',                      ''],
-        ['access-control-allow-origin', ''],
-        ['age',                         ''],
-        ['allow',                       ''],
-        ['authorization',               ''],
-        ['cache-control',               ''],
-        ['content-disposition',         ''],
-        ['content-encoding',            ''],
-        ['content-language',            ''],
-        ['content-length',              ''],
-        ['content-location',            ''],
-        ['content-range',               ''],
-        ['content-type',                ''],
-        ['cookie',                      ''],
-        ['date',                        ''],
-        ['etag',                        ''],
-        ['expect',                      ''],
-        ['expires',                     ''],
-        ['from',                        ''],
-        ['host',                        ''],
-        ['if-match',                    ''],
-        ['if-modified-since',           ''],
-        ['if-none-match',               ''],
-        ['if-range',                    ''],
-        ['if-unmodified-since',         ''],
-        ['last-modified',               ''],
-        ['link',                        ''],
-        ['location',                    ''],
-        ['max-forwards',                ''],
-        ['proxy-authenticate',          ''],
-        ['proxy-authorization',         ''],
-        ['range',                       ''],
-        ['referer',                     ''],
-        ['refresh',                     ''],
-        ['retry-after',                 ''],
-        ['server',                      ''],
-        ['set-cookie',                  ''],
-        ['strict-transport-security',   ''],
-        ['transfer-encoding',           ''],
-        ['user-agent',                  ''],
-        ['vary',                        ''],
-        ['via',                         ''],
-        ['www-authenticate',            '']
+        [":authority",                  ""],
+        [":method",                     "GET"],
+        [":method",                     "POST"],
+        [":path",                       "/"],
+        [":path",                       "/index.html"],
+        [":scheme",                     "http"],
+        [":scheme",                     "https"],
+        [":status",                     "200"],
+        [":status",                     "204"],
+        [":status",                     "206"],
+        [":status",                     "304"],
+        [":status",                     "400"],
+        [":status",                     "404"],
+        [":status",                     "500"],
+        ["accept-charset",              ""],
+        ["accept-encoding",             "gzip, deflate"],
+        ["accept-language",             ""],
+        ["accept-ranges",               ""],
+        ["accept",                      ""],
+        ["access-control-allow-origin", ""],
+        ["age",                         ""],
+        ["allow",                       ""],
+        ["authorization",               ""],
+        ["cache-control",               ""],
+        ["content-disposition",         ""],
+        ["content-encoding",            ""],
+        ["content-language",            ""],
+        ["content-length",              ""],
+        ["content-location",            ""],
+        ["content-range",               ""],
+        ["content-type",                ""],
+        ["cookie",                      ""],
+        ["date",                        ""],
+        ["etag",                        ""],
+        ["expect",                      ""],
+        ["expires",                     ""],
+        ["from",                        ""],
+        ["host",                        ""],
+        ["if-match",                    ""],
+        ["if-modified-since",           ""],
+        ["if-none-match",               ""],
+        ["if-range",                    ""],
+        ["if-unmodified-since",         ""],
+        ["last-modified",               ""],
+        ["link",                        ""],
+        ["location",                    ""],
+        ["max-forwards",                ""],
+        ["proxy-authenticate",          ""],
+        ["proxy-authorization",         ""],
+        ["range",                       ""],
+        ["referer",                     ""],
+        ["refresh",                     ""],
+        ["retry-after",                 ""],
+        ["server",                      ""],
+        ["set-cookie",                  ""],
+        ["strict-transport-security",   ""],
+        ["transfer-encoding",           ""],
+        ["user-agent",                  ""],
+        ["vary",                        ""],
+        ["via",                         ""],
+        ["www-authenticate",            ""]
       ].each { |pair| pair.each(&:freeze).freeze }.freeze
 
       # Current table of header key-value pairs.
@@ -134,7 +134,7 @@ module HTTP2
       def dereference(index)
         # NOTE: index is zero-based in this module.
         value = STATIC_TABLE[index] || @table[index - STATIC_TABLE.size]
-        raise CompressionError, 'Index too large' unless value
+        raise CompressionError, "Index too large" unless value
         value
       end
 
@@ -149,13 +149,13 @@ module HTTP2
 
         case cmd[:type]
         when :changetablesize
-          raise CompressionError, 'tried to change table size after adding elements to table' if @_table_updated
+          raise CompressionError, "tried to change table size after adding elements to table" if @_table_updated
 
           # we can receive multiple table size change commands inside a header frame. However,
           # we should blow up if we receive another frame where the new table size is bigger.
           table_size_updated = @limit != @options[:table_size]
 
-          raise CompressionError, 'dynamic table size update exceed limit' if !table_size_updated && cmd[:value] > @limit
+          raise CompressionError, "dynamic table size update exceed limit" if !table_size_updated && cmd[:value] > @limit
 
           self.table_size = cmd[:value]
 
@@ -217,7 +217,7 @@ module HTTP2
           # Literal header names MUST be translated to lowercase before
           # encoding and transmission.
           field = field.downcase
-          value = '/' if field == ':path' && value.empty?
+          value = "/" if field == ":path" && value.empty?
           cmd = addcmd(field, value)
           cmd[:type] = :noindex if noindex && cmd[:type] == :incremental
           commands << cmd
@@ -374,7 +374,7 @@ module HTTP2
       # @return [String] binary string
       def integer(i, n)
         limit = 2**n - 1
-        return [i].pack('C') if i < limit
+        return [i].pack("C") if i < limit
 
         bytes = []
         bytes.push limit unless n.zero?
@@ -386,7 +386,7 @@ module HTTP2
         end
 
         bytes.push i
-        bytes.pack('C*')
+        bytes.pack("C*")
       end
 
       # Encodes provided value via string literal representation.
@@ -467,7 +467,7 @@ module HTTP2
       # @return [Buffer]
       def encode(headers)
         buffer = Buffer.new
-        pseudo_headers, regular_headers = headers.partition { |f, _| f.start_with? ':' }
+        pseudo_headers, regular_headers = headers.partition { |f, _| f.start_with? ":" }
         headers = [*pseudo_headers, *regular_headers]
         commands = @cc.encode(headers)
         commands.each do |cmd|
@@ -527,11 +527,11 @@ module HTTP2
       # @return [String] UTF-8 encoded string
       # @raise [CompressionError] when input is malformed
       def string(buf)
-        raise CompressionError, 'invalid header block fragment' if buf.empty?
+        raise CompressionError, "invalid header block fragment" if buf.empty?
         huffman = (buf.readbyte(0) & 0x80) == 0x80
         len = integer(buf, 7)
         str = buf.read(len)
-        raise CompressionError, 'string too short' unless str.bytesize == len
+        raise CompressionError, "string too short" unless str.bytesize == len
         str = Huffman.new.decode(Buffer.new(str)) if huffman
         str.force_encoding(Encoding::UTF_8)
       end
@@ -585,19 +585,19 @@ module HTTP2
           until buf.empty?
             field, value = @cc.process(header(buf))
             next if field.nil?
-            is_pseudo_header = field.start_with? ':'
+            is_pseudo_header = field.start_with? ":"
             if !decoding_pseudo_headers && is_pseudo_header
-              raise ProtocolError, 'one or more pseudo headers encountered after regular headers'
+              raise ProtocolError, "one or more pseudo headers encountered after regular headers"
             end
             decoding_pseudo_headers = is_pseudo_header
             raise ProtocolError, "invalid header received: #{field}" if FORBIDDEN_HEADERS.include?(field)
             if frame
               case field
-              when ':method'
+              when ":method"
                 frame[:method] = value
-              when 'content-length'
+              when "content-length"
                 frame[:content_length] = Integer(value)
-              when 'trailer'
+              when "trailer"
                 (frame[:trailer] ||= []) << value
               end
             end

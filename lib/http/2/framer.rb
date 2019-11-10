@@ -93,9 +93,9 @@ module HTTP2
     RBIT  = 0x7fffffff
     RBYTE = 0x0fffffff
     EBIT  = 0x80000000
-    UINT32 = 'N'.freeze
-    UINT16 = 'n'.freeze
-    UINT8  = 'C'.freeze
+    UINT32 = "N".freeze
+    UINT16 = "n".freeze
+    UINT8  = "C".freeze
     HEADERPACK = (UINT8 + UINT16 + UINT8 + UINT8 + UINT32).freeze
     FRAME_LENGTH_HISHIFT = 16
     FRAME_LENGTH_LOMASK  = 0xFFFF
@@ -257,7 +257,7 @@ module HTTP2
         bytes << [frame[:max_age], frame[:port]].pack(UINT32 + UINT16)
         length += 6
         if frame[:proto]
-          raise CompressionError, 'Proto too long' if frame[:proto].bytesize > 255
+          raise CompressionError, "Proto too long" if frame[:proto].bytesize > 255
           bytes << [frame[:proto].bytesize].pack(UINT8)
           bytes << frame[:proto]
           length += 1 + frame[:proto].bytesize
@@ -266,7 +266,7 @@ module HTTP2
           length += 1
         end
         if frame[:host]
-          raise CompressionError, 'Host too long' if frame[:host].bytesize > 255
+          raise CompressionError, "Host too long" if frame[:host].bytesize > 255
           bytes << [frame[:host].bytesize].pack(UINT8)
           bytes << frame[:host]
           length += 1 + frame[:host].bytesize
@@ -317,7 +317,7 @@ module HTTP2
       frame = read_common_header(buf)
       return nil if buf.size < 9 + frame[:length]
 
-      raise ProtocolError, 'payload too large' if frame[:length] > DEFAULT_MAX_FRAME_SIZE
+      raise ProtocolError, "payload too large" if frame[:length] > DEFAULT_MAX_FRAME_SIZE
 
       buf.read(9)
       payload = buf.read(frame[:length])
@@ -334,7 +334,7 @@ module HTTP2
         if padded
           padlen = payload.read(1).unpack(UINT8).first
           frame[:padding] = padlen + 1
-          raise ProtocolError, 'padding too long' if padlen > payload.bytesize
+          raise ProtocolError, "padding too long" if padlen > payload.bytesize
           payload.slice!(-padlen, padlen) if padlen > 0
           frame[:length] -= frame[:padding]
           frame[:flags].delete(:padded)
@@ -366,7 +366,7 @@ module HTTP2
         # NOTE: frame[:length] might not match the number of frame[:payload]
         # because unknown extensions are ignored.
         frame[:payload] = []
-        raise ProtocolError, 'Invalid settings payload length' unless (frame[:length] % 6).zero?
+        raise ProtocolError, "Invalid settings payload length" unless (frame[:length] % 6).zero?
 
         raise ProtocolError, "Invalid stream ID (#{frame[:stream]})" if (frame[:stream]).nonzero?
 

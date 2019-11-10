@@ -2,7 +2,7 @@
 
 # https://github.com/rails/rails/blob/master/activesupport/lib/active_support/core_ext/object/deep_dup.rb
 
-require_relative 'duplicable'
+require_relative "duplicable"
 
 class Object
   # Returns a deep copy of object if it's duplicable. If it's

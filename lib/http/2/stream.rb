@@ -167,16 +167,16 @@ module HTTP2
       mandatory_headers = @id.odd? ? REQUEST_MANDATORY_HEADERS : RESPONSE_MANDATORY_HEADERS
       pseudo_headers = headers.take_while do |field, value|
         # use this loop to validate pseudo-headers
-        stream_error(:protocol_error, msg: 'path is empty') if field == ':path' && value.empty?
-        field.start_with?(':')
+        stream_error(:protocol_error, msg: "path is empty") if field == ":path" && value.empty?
+        field.start_with?(":")
       end.map(&:first)
       return if mandatory_headers.size == pseudo_headers.size &&
                 (mandatory_headers - pseudo_headers).empty?
-      stream_error(:protocol_error, msg: 'invalid pseudo-headers')
+      stream_error(:protocol_error, msg: "invalid pseudo-headers")
     end
 
     def verify_trailers(frame)
-      stream_error(:protocol_error, msg: 'trailer headers frame must close the stream') unless end_stream?(frame)
+      stream_error(:protocol_error, msg: "trailer headers frame must close the stream") unless end_stream?(frame)
       return unless @_trailers
       trailers = frame[:payload]
       return if trailers.is_a?(Buffer)
@@ -191,7 +191,7 @@ module HTTP2
       return unless @_content_length
       @_content_length -= data_length
       return if @_content_length >= 0
-      stream_error(:protocol_error, msg: 'received more data than what was defined in content-length')
+      stream_error(:protocol_error, msg: "received more data than what was defined in content-length")
     end
 
     # Processes outgoing HTTP 2.0 frames. Data frames may be automatically
@@ -227,13 +227,13 @@ module HTTP2
     def headers(headers, end_headers: true, end_stream: false)
       flags = []
       flags << :end_headers if end_headers
-      flags << :end_stream  if end_stream || @_method == 'HEAD'
+      flags << :end_stream  if end_stream || @_method == "HEAD"
 
       send(type: :headers, flags: flags, payload: headers)
     end
 
     def promise(headers, end_headers: true, &block)
-      raise ArgumentError, 'must provide callback' unless block_given?
+      raise ArgumentError, "must provide callback" unless block_given?
 
       flags = end_headers ? [:end_headers] : []
       emit(:promise, self, headers, flags, &block)
@@ -671,7 +671,7 @@ module HTTP2
       @error = error
       close(error) if @state != :closed
 
-      klass = error.to_s.split('_').map(&:capitalize).join
+      klass = error.to_s.split("_").map(&:capitalize).join
       raise Error.const_get(klass), msg
     end
     alias error stream_error

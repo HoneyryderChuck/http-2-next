@@ -114,7 +114,7 @@ module HTTP2
       raise ConnectionClosed if @state == :closed
       raise StreamLimitExceeded if @active_stream_count >= @remote_settings[:settings_max_concurrent_streams]
 
-      connection_error(:protocol_error, msg: 'id is smaller than previous') if @stream_id < @last_activated_stream
+      connection_error(:protocol_error, msg: "id is smaller than previous") if @stream_id < @last_activated_stream
 
       stream = activate_stream(id: @stream_id, **args)
       @last_activated_stream = stream.id
@@ -312,7 +312,7 @@ module HTTP2
               return
             end
 
-            connection_error(msg: 'missing parent ID') if parent.nil?
+            connection_error(msg: "missing parent ID") if parent.nil?
 
             unless parent.state == :open || parent.state == :half_closed_local
               # An endpoint might receive a PUSH_PROMISE frame after it sends
@@ -365,7 +365,7 @@ module HTTP2
               # (see Section 5.1).
               when :window_update
                 stream = @streams_recently_closed[frame[:stream]]
-                connection_error(:protocol_error, 'sent window update on idle stream') unless stream
+                connection_error(:protocol_error, "sent window update on idle stream") unless stream
                 process_window_update(frame: frame, encode: true)
               else
                 # An endpoint that receives an unexpected stream identifier
@@ -690,7 +690,7 @@ module HTTP2
     # @param window [Integer]
     # @param parent [Stream]
     def activate_stream(id: nil, **args)
-      connection_error(msg: 'Stream ID already exists') if @streams.key?(id)
+      connection_error(msg: "Stream ID already exists") if @streams.key?(id)
 
       raise StreamLimitExceeded if @active_stream_count >= @local_settings[:settings_max_concurrent_streams]
 
@@ -722,7 +722,7 @@ module HTTP2
     def verify_stream_order(id)
       return unless id.odd?
 
-      connection_error(msg: 'Stream ID smaller than previous') if @last_stream_id > id
+      connection_error(msg: "Stream ID smaller than previous") if @last_stream_id > id
       @last_stream_id = id
     end
 
@@ -742,7 +742,7 @@ module HTTP2
 
       @state = :closed
       @error = error
-      klass = error.to_s.split('_').map(&:capitalize).join
+      klass = error.to_s.split("_").map(&:capitalize).join
       msg ||= e && e.message
       backtrace = (e && e.backtrace) || []
       raise Error.const_get(klass), msg, backtrace

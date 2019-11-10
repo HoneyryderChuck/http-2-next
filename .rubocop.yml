@@ -4,14 +4,14 @@ AllCops:
   TargetRubyVersion: 2.1
   DisplayCopNames: true
   Exclude:
-    - 'bin/**'
-    - 'vendor/**/*'
-    - '**/huffman_statemachine.rb'
+    - "bin/**"
+    - "vendor/**/*"
+    - "**/huffman_statemachine.rb"
 
 Layout/IndentHeredoc:
   Exclude:
-    - 'lib/tasks/generate_huffman_table.rb'
-    - 'example/*'
+    - "lib/tasks/generate_huffman_table.rb"
+    - "example/*"
 
 Metrics/LineLength:
   Max: 121
@@ -19,14 +19,13 @@ Metrics/LineLength:
 Metrics/BlockLength:
   Max: 720
 
-Layout/EndAlignment:
-  EnforcedStyleAlignWith: variable
-
 Naming/UncommunicativeMethodParamName:
   Enabled: false
 
 Lint/EmptyWhen:
   Enabled: false
 
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
 
 
