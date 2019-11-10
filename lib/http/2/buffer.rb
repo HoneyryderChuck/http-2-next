@@ -12,7 +12,7 @@ module HTTP2
                    :size, :each_byte, :to_str, :to_s, :length, :inspect,
                    :[], :[]=, :empty?, :bytesize, :include?
 
-    UINT32 = "N".freeze
+    UINT32 = "N"
     private_constant :UINT32
 
     # Forces binary encoding on the string

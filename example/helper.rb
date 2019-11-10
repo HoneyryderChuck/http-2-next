@@ -8,7 +8,7 @@ require "openssl"
 require "http/2"
 require "uri"
 
-DRAFT = "h2".freeze
+DRAFT = "h2"
 
 class Logger
   def initialize(id)

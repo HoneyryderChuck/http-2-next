@@ -11,6 +11,13 @@ RSpec::Core::RakeTask.new(:spec) do |t|
   t.exclude_pattern = "./spec/hpack_test_spec.rb"
 end
 
+RUBY_MAJOR_MINOR = RUBY_VERSION.split(/\./).first(2).join(".")
+
+desc "Run rubocop"
+RuboCop::RakeTask.new(:rubocop) do |task|
+  task.options += %W[-c.rubocop-#{RUBY_MAJOR_MINOR}.yml]
+end
+
 RSpec::Core::RakeTask.new(:hpack) do |t|
   t.pattern = "./spec/hpack_test_spec.rb"
 end
@@ -23,7 +30,7 @@ task :h2spec_install do
                "h2spec_windows_amd64.zip"
              else
                "h2spec_linux_amd64.tar.gz"
-  end
+             end
   uri = "https://github.com/summerwind/h2spec/releases/download/v2.2.0/#{platform}"
 
   tar_location = File.join(__dir__, platform)

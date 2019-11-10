@@ -93,9 +93,9 @@ module HTTP2
     RBIT  = 0x7fffffff
     RBYTE = 0x0fffffff
     EBIT  = 0x80000000
-    UINT32 = "N".freeze
-    UINT16 = "n".freeze
-    UINT8  = "C".freeze
+    UINT32 = "N"
+    UINT16 = "n"
+    UINT8  = "C"
     HEADERPACK = (UINT8 + UINT16 + UINT8 + UINT8 + UINT32).freeze
     FRAME_LENGTH_HISHIFT = 16
     FRAME_LENGTH_LOMASK  = 0xFFFF

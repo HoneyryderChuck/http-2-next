@@ -1,7 +1,7 @@
 inherit_from: .rubocop_todo.yml
 
 AllCops:
-  TargetRubyVersion: 2.1
+  TargetRubyVersion: 2.3
   DisplayCopNames: true
   Exclude:
     - "bin/**"
@@ -27,5 +27,12 @@ Lint/EmptyWhen:
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes
+
+Style/NumericPredicate:
+  Enabled: false
+
+Gemspec/RequiredRubyVersion:
+  Enabled: false
+
 
 

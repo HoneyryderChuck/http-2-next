@@ -146,7 +146,7 @@ module FrameHelpers
 end
 
 def set_stream_id(bytes, id)
-  scheme = "CnCCN".freeze
+  scheme = "CnCCN"
   head = bytes.slice!(0, 9).unpack(scheme)
   head[4] = id
 
