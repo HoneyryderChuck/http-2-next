@@ -12,3 +12,6 @@ Layout/IndentHeredoc:
 
 Style/HashSyntax:
   Enabled: false
+
+Performance/TimesMap:
+  Enabled: false

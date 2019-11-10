@@ -4,7 +4,7 @@ inherit_from: .rubocop.yml
 Style/HashSyntax:
   Enabled: false
 
-Lint/SafeNavigation:
+Style/SafeNavigation:
   Enabled: false
 
 

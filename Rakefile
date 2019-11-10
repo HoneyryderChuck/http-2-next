@@ -14,7 +14,7 @@ end
 RUBY_MAJOR_MINOR = RUBY_VERSION.split(/\./).first(2).join(".")
 
 desc "Run rubocop"
-RuboCop::RakeTask.new(:rubocop) do |task|
+RuboCop::RakeTask.new(:cop) do |task|
   task.options += %W[-c.rubocop-#{RUBY_MAJOR_MINOR}.yml]
 end
 
@@ -79,5 +79,5 @@ end
 RuboCop::RakeTask.new
 YARD::Rake::YardocTask.new
 
-task default: %i[spec rubocop]
+task default: %i[spec cop]
 task all: %i[default hpack]
