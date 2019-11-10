@@ -3,7 +3,18 @@
 module HTTP2
   # Stream, connection, and compressor exceptions.
   module Error
-    class Error < StandardError; end
+    @types = {}
+    class << self
+      attr_reader :types
+    end
+
+    class Error < StandardError
+      def self.inherited(klass)
+        type = klass.name.split("::").last
+        type = type.gsub(/([^\^])([A-Z])/, '\1_\2').downcase.to_sym
+        HTTP2::Error.types[type] = klass
+      end
+    end
 
     # Raised if connection header is missing or invalid indicating that
     # this is an invalid HTTP 2.0 request - no frames are emitted and the

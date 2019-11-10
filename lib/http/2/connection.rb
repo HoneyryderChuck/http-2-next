@@ -743,10 +743,9 @@ module HTTP2
 
       @state = :closed
       @error = error
-      klass = error.to_s.split("_").map(&:capitalize).join
       msg ||= e.message
       backtrace = e.backtrace || []
-      raise Error.const_get(klass), msg, backtrace
+      raise Error.types[error], msg, backtrace
     end
     alias error connection_error
 

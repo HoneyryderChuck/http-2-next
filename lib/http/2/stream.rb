@@ -678,8 +678,7 @@ module HTTP2
       @error = error
       close(error) if @state != :closed
 
-      klass = error.to_s.split("_").map(&:capitalize).join
-      raise Error.const_get(klass), msg
+      raise Error.types[error], msg
     end
     alias error stream_error
 
