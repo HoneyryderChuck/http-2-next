@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'helper'
 
 options = { port: 8080 }
@@ -59,7 +61,8 @@ loop do
 
   conn.on(:stream) do |stream|
     log = Logger.new(stream.id)
-    req, buffer = {}, ''
+    req = {}
+    buffer = ''
 
     stream.on(:active) { log.info 'client opened new stream' }
     stream.on(:close)  { log.info 'stream closed' }
@@ -87,10 +90,10 @@ loop do
       end
 
       stream.headers({
-        ':status' => '200',
-        'content-length' => response.bytesize.to_s,
-        'content-type' => 'text/plain'
-      }, end_stream: false)
+                       ':status' => '200',
+                       'content-length' => response.bytesize.to_s,
+                       'content-type' => 'text/plain'
+                     }, end_stream: false)
 
       if options[:push]
         push_streams = []

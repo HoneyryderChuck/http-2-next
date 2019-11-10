@@ -72,7 +72,8 @@ module HTTP2
       while @remote_window > 0 && !@send_buffer.empty?
         frame = @send_buffer.shift
 
-        sent, frame_size = 0, frame[:payload].bytesize
+        sent = 0
+        frame_size = frame[:payload].bytesize
 
         if frame_size > @remote_window
           payload = frame.delete(:payload)

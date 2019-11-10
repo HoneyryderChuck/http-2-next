@@ -51,7 +51,8 @@ RESP
     @sock = sock
     @headers = request_header_hash
     @body = ''.b
-    @complete, @parsing = false, false
+    @complete = false
+    @parsing = false
     @parser = ::HTTP::Parser.new(self)
   end
 

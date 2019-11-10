@@ -410,7 +410,8 @@ module HTTP2
       # @param str [String]
       # @return [String] binary string
       def string(str)
-        plain, huffman = nil, nil
+        plain = nil
+        huffman = nil
         unless @cc.options[:huffman] == :always
           plain = integer(str.bytesize, 7) << str.dup.force_encoding(Encoding::BINARY)
         end

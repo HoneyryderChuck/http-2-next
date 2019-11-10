@@ -79,7 +79,7 @@ module HTTP2
         length: buf.bytesize,
         type: :settings,
         stream: 0,
-        flags: [],
+        flags: []
       )
       buf.prepend(header)
       receive(buf)
@@ -98,7 +98,7 @@ module HTTP2
       }
 
       if body.empty?
-        headers_frame.merge!(flags: [:end_stream])
+        headers_frame[:flags] = [:end_stream]
         stream << headers_frame
       else
         stream << headers_frame
@@ -126,7 +126,7 @@ module HTTP2
         flags: flags,
         stream: parent.id,
         promise_stream: promise.id,
-        payload: headers.to_a,
+        payload: headers.to_a
       )
 
       yield(promise)

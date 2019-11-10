@@ -128,7 +128,8 @@ RSpec.describe HTTP2::Connection do
     it 'should initialize stream with HEADERS priority value' do
       @conn << f.generate(settings_frame)
 
-      stream, headers = nil, headers_frame
+      stream = nil
+      headers = headers_frame
       headers[:weight] = 20
       headers[:dependency] = 0
       headers[:exclusive] = false
@@ -205,7 +206,8 @@ RSpec.describe HTTP2::Connection do
     end
 
     it 'should update connection and stream windows on SETTINGS' do
-      settings, data = settings_frame, data_frame
+      settings = settings_frame
+      data = data_frame
       settings[:payload] = [[:settings_initial_window_size, 1024]]
       data[:payload] = 'x' * 2048
 
@@ -230,7 +232,8 @@ RSpec.describe HTTP2::Connection do
     end
 
     it 'should observe connection flow control' do
-      settings, data = settings_frame, data_frame
+      settings = settings_frame
+      data = data_frame
       settings[:payload] = [[:settings_initial_window_size, 1000]]
 
       @conn << f.generate(settings)
@@ -252,7 +255,8 @@ RSpec.describe HTTP2::Connection do
     end
 
     it 'should update window when data received is over half of the maximum local window size' do
-      settings, data = settings_frame, data_frame
+      settings = settings_frame
+      data = data_frame
       conn = Client.new(settings_initial_window_size: 500)
 
       conn.receive f.generate(settings)
@@ -316,7 +320,8 @@ RSpec.describe HTTP2::Connection do
       ]
 
       cc = Compressor.new
-      h1, h2 = headers_frame, continuation_frame
+      h1 = headers_frame
+      h2 = continuation_frame
 
       # Header block fragment might not complete for decompression
       payload = cc.encode(req_headers)
@@ -385,7 +390,7 @@ RSpec.describe HTTP2::Connection do
       stream.headers(':method' => 'get',
                      ':scheme' => 'http',
                      ':authority' => 'www.example.org',
-                     ':path'   => '/resource')
+                     ':path' => '/resource')
     end
 
     it 'should generate CONTINUATION if HEADERS is too long' do
@@ -397,12 +402,12 @@ RSpec.describe HTTP2::Connection do
 
       stream = @conn.new_stream
       stream.headers({
-        ':method' => 'get',
-        ':scheme' => 'http',
-        ':authority' => 'www.example.org',
-        ':path'   => '/resource',
-        'custom' => 'q' * 44_000
-      }, end_stream: true)
+                       ':method' => 'get',
+                       ':scheme' => 'http',
+                       ':authority' => 'www.example.org',
+                       ':path' => '/resource',
+                       'custom' => 'q' * 44_000
+                     }, end_stream: true)
       expect(headers.size).to eq 3
       expect(headers[0][:type]).to eq :headers
       expect(headers[1][:type]).to eq :continuation
@@ -421,12 +426,12 @@ RSpec.describe HTTP2::Connection do
 
       stream = @conn.new_stream
       stream.headers({
-        ':method' => 'get',
-        ':scheme' => 'http',
-        ':authority' => 'www.example.org',
-        ':path'   => '/resource',
-        'custom' => 'q' * 18_682, # this number should be updated when Huffman table is changed
-      }, end_stream: true)
+                       ':method' => 'get',
+                       ':scheme' => 'http',
+                       ':authority' => 'www.example.org',
+                       ':path' => '/resource',
+                       'custom' => 'q' * 18_682, # this number should be updated when Huffman table is changed
+                     }, end_stream: true)
       expect(headers[0][:length]).to eq @conn.remote_settings[:settings_max_frame_size]
       expect(headers.size).to eq 1
       expect(headers[0][:type]).to eq :headers
@@ -443,12 +448,12 @@ RSpec.describe HTTP2::Connection do
 
       stream = @conn.new_stream
       stream.headers({
-        ':method' => 'get',
-        ':scheme' => 'http',
-        ':authority' => 'www.example.org',
-        ':path'   => '/resource',
-        'custom' => 'q' * 18_682, # this number should be updated when Huffman table is changed
-      }, end_stream: true)
+                       ':method' => 'get',
+                       ':scheme' => 'http',
+                       ':authority' => 'www.example.org',
+                       ':path' => '/resource',
+                       'custom' => 'q' * 18_682, # this number should be updated when Huffman table is changed
+                     }, end_stream: true)
       expect(headers[0][:length]).to eq @conn.remote_settings[:settings_max_frame_size]
       expect(headers.size).to eq 1
       expect(headers[0][:type]).to eq :headers
@@ -464,12 +469,12 @@ RSpec.describe HTTP2::Connection do
 
       stream = @conn.new_stream
       stream.headers({
-        ':method' => 'get',
-        ':scheme' => 'http',
-        ':authority' => 'www.example.org',
-        ':path'   => '/resource',
-        'custom' => 'q' * 18_683, # this number should be updated when Huffman table is changed
-      }, end_stream: true)
+                       ':method' => 'get',
+                       ':scheme' => 'http',
+                       ':authority' => 'www.example.org',
+                       ':path' => '/resource',
+                       'custom' => 'q' * 18_683, # this number should be updated when Huffman table is changed
+                     }, end_stream: true)
       expect(headers[0][:length]).to eq @conn.remote_settings[:settings_max_frame_size]
       expect(headers[1][:length]).to eq 1
       expect(headers.size).to eq 2
@@ -612,9 +617,9 @@ RSpec.describe HTTP2::Connection do
       expect(@conn).to receive(:send) do |frame|
         expect(frame[:type]).to eq :settings
         expect(frame[:payload]).to eq([
-          [:settings_max_concurrent_streams, 10],
-          [:settings_initial_window_size, 0x7fffffff]
-        ])
+                                        [:settings_max_concurrent_streams, 10],
+                                        [:settings_initial_window_size, 0x7fffffff]
+                                      ])
         expect(frame[:stream]).to eq 0
       end
 

@@ -17,35 +17,16 @@ Metrics/LineLength:
   Max: 121
 
 Metrics/BlockLength:
-  Max: 700
+  Max: 720
 
 Layout/EndAlignment:
   EnforcedStyleAlignWith: variable
 
-Layout/CaseIndentation:
-  EnforcedStyle: end
-
-Layout/IndentHash:
-  EnforcedStyle: consistent
-
-Layout/SpaceAroundOperators:
-  Enabled: false
-
 Naming/UncommunicativeMethodParamName:
-  Enabled: false
-
-Style/FrozenStringLiteralComment:
-  Enabled: false
-
-Style/ParallelAssignment:
   Enabled: false
 
 Lint/EmptyWhen:
   Enabled: false
 
-Style/TrailingCommaInArguments:
-  Enabled: false
 
-Style/TrailingUnderscoreVariable:
-  Enabled: false
 

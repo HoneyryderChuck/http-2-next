@@ -145,10 +145,10 @@ module HTTP2
     # @param payload [String]
     def goaway(error = :no_error, payload = nil)
       last_stream = if (max = @streams.max)
-        max.first
-      else
-        0
-      end
+                      max.first
+                    else
+                      0
+                    end
 
       send(type: :goaway, last_stream: last_stream,
            error: error, payload: payload)
@@ -193,11 +193,9 @@ module HTTP2
       # SETTINGS frame. Server connection header is SETTINGS frame only.
       if @state == :waiting_magic
         if @recv_buffer.size < 24
-          if !CONNECTION_PREFACE_MAGIC.start_with? @recv_buffer
-            raise HandshakeError
-          else
-            return # maybe next time
-          end
+          raise HandshakeError unless CONNECTION_PREFACE_MAGIC.start_with? @recv_buffer
+
+          return # maybe next time
         elsif @recv_buffer.read(24) == CONNECTION_PREFACE_MAGIC
           # MAGIC is OK.  Send our settings
           @state = :waiting_connection_preface
@@ -253,7 +251,7 @@ module HTTP2
           when :headers
             # When server receives even-numbered stream identifier,
             # the endpoint MUST respond with a connection error of type PROTOCOL_ERROR.
-            connection_error if frame[:stream].even? && self.is_a?(Server)
+            connection_error if frame[:stream].even? && is_a?(Server)
 
             # The last frame in a sequence of HEADERS/CONTINUATION
             # frames MUST have the END_HEADERS flag set.
@@ -276,7 +274,7 @@ module HTTP2
                 id:         frame[:stream],
                 weight:     frame[:weight] || DEFAULT_WEIGHT,
                 dependency: frame[:dependency] || 0,
-                exclusive:  frame[:exclusive] || false,
+                exclusive:  frame[:exclusive] || false
               )
               verify_stream_order(stream.id)
               emit(:stream, stream)
@@ -354,7 +352,7 @@ module HTTP2
                   id:         frame[:stream],
                   weight:     frame[:weight] || DEFAULT_WEIGHT,
                   dependency: frame[:dependency] || 0,
-                  exclusive:  frame[:exclusive] || false,
+                  exclusive:  frame[:exclusive] || false
                 )
 
                 emit(:stream, stream)
@@ -419,10 +417,10 @@ module HTTP2
     # @return [Array of Buffer] encoded frame
     def encode(frame)
       frames = if frame[:type] == :headers || frame[:type] == :push_promise
-        encode_headers(frame) # HEADERS and PUSH_PROMISE may create more than one frame
-      else
-        [frame] # otherwise one frame
-      end
+                 encode_headers(frame) # HEADERS and PUSH_PROMISE may create more than one frame
+               else
+                 [frame] # otherwise one frame
+               end
 
       frames.map { |f| @framer.generate(f) }
     end
@@ -556,13 +554,13 @@ module HTTP2
       #   local: previously sent and pended our settings should be effective
       #   remote: just received peer settings should immediately be effective
       settings, side = if frame[:flags].include?(:ack)
-        # Process pending settings we have sent.
-        [@pending_settings.shift, :local]
-      else
-        check = validate_settings(@remote_role, frame[:payload])
-        connection_error(check) if check
-        [frame[:payload], :remote]
-      end
+                         # Process pending settings we have sent.
+                         [@pending_settings.shift, :local]
+                       else
+                         check = validate_settings(@remote_role, frame[:payload])
+                         connection_error(check) if check
+                         [frame[:payload], :remote]
+                       end
 
       settings.each do |key, v|
         case side
@@ -715,7 +713,7 @@ module HTTP2
         end
       end
 
-      stream.on(:promise, &method(:promise)) if self.is_a? Server
+      stream.on(:promise, &method(:promise)) if is_a? Server
       stream.on(:frame,   &method(:send))
 
       @streams[id] = stream
@@ -742,7 +740,8 @@ module HTTP2
     def connection_error(error = :protocol_error, msg: nil, e: nil)
       goaway(error) unless @state == :closed || @state == :new
 
-      @state, @error = :closed, error
+      @state = :closed
+      @error = error
       klass = error.to_s.split('_').map(&:capitalize).join
       msg ||= e && e.message
       backtrace = (e && e.backtrace) || []

@@ -150,7 +150,7 @@ module HTTP2
       len_hi, len_lo, type, flags, stream = buf.slice(0, 9).unpack(HEADERPACK)
 
       frame[:length] = (len_hi << FRAME_LENGTH_HISHIFT) | len_lo
-      frame[:type], _ = FRAME_TYPES.find { |_t, pos| type == pos }
+      frame[:type], = FRAME_TYPES.find { |_t, pos| type == pos }
       if frame[:type]
         frame[:flags] = FRAME_FLAGS[frame[:type]].each_with_object([]) do |(name, pos), acc|
           acc << name if (flags & (1 << pos)) > 0
@@ -376,7 +376,7 @@ module HTTP2
 
           # Unsupported or unrecognized settings MUST be ignored.
           # Here we send it along.
-          name, _ = DEFINED_SETTINGS.find { |_name, v| v == id }
+          name, = DEFINED_SETTINGS.find { |_name, v| v == id }
           frame[:payload] << [name, val] if name
         end
       when :push_promise
@@ -406,7 +406,7 @@ module HTTP2
         len = payload.getbyte
         frame[:host] = payload.read(len) if len > 0
 
-        frame[:origin] = payload.read(payload.size) if payload.size > 0
+        frame[:origin] = payload.read(payload.size) unless payload.empty?
         # else # Unknown frame type is explicitly allowed
       end
 
@@ -426,7 +426,7 @@ module HTTP2
     end
 
     def unpack_error(error)
-      name, _ = DEFINED_ERRORS.find { |_name, v| v == error }
+      name, = DEFINED_ERRORS.find { |_name, v| v == error }
       name || error
     end
   end

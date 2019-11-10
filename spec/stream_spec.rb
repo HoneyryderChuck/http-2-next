@@ -158,7 +158,8 @@ RSpec.describe HTTP2::Stream do
 
       it 'should transition to half closed (local) if sending END_STREAM' do
         [data_frame, headers_frame].each do |frame|
-          s, f = @stream.dup, frame.deep_dup
+          s = @stream.dup
+          f = frame.deep_dup
           f[:flags] = [:end_stream]
 
           s.send f
@@ -168,7 +169,8 @@ RSpec.describe HTTP2::Stream do
 
       it 'should transition to half closed (remote) if receiving END_STREAM' do
         [data_frame, headers_frame].each do |frame|
-          s, f = @stream.dup, frame.dup
+          s = @stream.dup
+          f = frame.dup
           f[:flags] = [:end_stream]
 
           s.receive f
@@ -206,7 +208,8 @@ RSpec.describe HTTP2::Stream do
       end
 
       it 'should emit :active on open transition' do
-        openp, openr = false, false
+        openp = false
+        openr = false
         sp = @client.new_stream
         sr = @client.new_stream
         sp.on(:active) { openp = true }
@@ -220,7 +223,8 @@ RSpec.describe HTTP2::Stream do
       end
 
       it 'should not emit :active on transition from open' do
-        order, stream = [], @client.new_stream
+        order = []
+        stream = @client.new_stream
 
         stream.on(:active) { order << :active }
         stream.on(:half_close) { order << :half_close }
@@ -235,8 +239,10 @@ RSpec.describe HTTP2::Stream do
       end
 
       it 'should emit :close on close transition' do
-        closep, closer = false, false
-        sp, sr = @stream.dup, @stream.dup
+        closep = false
+        closer = false
+        sp = @stream.dup
+        sr = @stream.dup
 
         sp.on(:close) { closep = true }
         sr.on(:close) { closer = true }
@@ -249,7 +255,8 @@ RSpec.describe HTTP2::Stream do
       end
 
       it 'should emit :close after frame is processed' do
-        order, stream = [], @client.new_stream
+        order = []
+        stream = @client.new_stream
 
         stream.on(:active) { order << :active }
         stream.on(:data)   { order << :data }
@@ -294,7 +301,8 @@ RSpec.describe HTTP2::Stream do
 
       it 'should transition to closed on receipt of END_STREAM flag' do
         [data_frame, headers_frame, continuation_frame].each do |frame|
-          s, f = @stream.dup, frame.dup
+          s = @stream.dup
+          f = frame.dup
           f[:flags] = [:end_stream]
 
           s.receive f
@@ -373,7 +381,8 @@ RSpec.describe HTTP2::Stream do
 
       it 'should transition to closed if END_STREAM flag is sent' do
         [data_frame, headers_frame].each do |frame|
-          s, f = @stream.dup, frame.deep_dup
+          s = @stream.dup
+          f = frame.deep_dup
           f[:flags] = [:end_stream]
 
           s.on(:close) { expect(s.state).to eq :closed }
@@ -576,12 +585,13 @@ RSpec.describe HTTP2::Stream do
       @stream.receive window_update_frame
 
       expect(@stream.remote_window).to eq(
-        DEFAULT_FLOW_WINDOW - data_frame[:payload].bytesize + window_update_frame[:increment],
+        DEFAULT_FLOW_WINDOW - data_frame[:payload].bytesize + window_update_frame[:increment]
       )
     end
 
     it 'should observe session flow control' do
-      settings, data = settings_frame, data_frame
+      settings = settings_frame
+      data = data_frame
       settings[:payload] = [[:settings_initial_window_size, 1000]]
       settings[:stream] = 0
 
@@ -614,8 +624,8 @@ RSpec.describe HTTP2::Stream do
     end
 
     it 'should update window when data received is over half of the maximum local window size' do
-      data1 = data_frame.merge(payload: 'a'*16_384, flags: [])
-      data2 = data_frame.merge(payload: 'a'*16_384)
+      data1 = data_frame.merge(payload: 'a' * 16_384, flags: [])
+      data2 = data_frame.merge(payload: 'a' * 16_384)
       datalen = 16_384 * 2
       expect(@stream).to receive(:send) do |frame|
         expect(frame[:type]).to eq :window_update
@@ -753,7 +763,8 @@ RSpec.describe HTTP2::Stream do
     end
 
     it 'should emit received headers via on(:headers)' do
-      headers, recv = REQUEST_HEADERS, nil
+      headers = REQUEST_HEADERS
+      recv = nil
       @srv.on(:stream) do |stream|
         stream.on(:headers) { |h| recv = h }
       end
@@ -775,7 +786,8 @@ RSpec.describe HTTP2::Stream do
     end
 
     it 'should emit received priority parameters via on(:priority)' do
-      new_weight, new_dependency = 15, @client_stream.id + 2
+      new_weight = 15
+      new_dependency = @client_stream.id + 2
       callback_called = false
       @srv.on(:stream) do |stream|
         stream.on(:priority) do |pri|
@@ -836,7 +848,9 @@ RSpec.describe HTTP2::Stream do
         end
 
         it 'client: promise_headers > active > headers > .. > data > close' do
-          order, headers, promise_headers = [], [], []
+          order = []
+          headers = []
+          promise_headers = []
           @client.on(:promise) do |push|
             order << :reserved
 

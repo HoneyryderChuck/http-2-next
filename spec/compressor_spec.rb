@@ -60,8 +60,7 @@ RSpec.describe HTTP2::Header do
       context 'choosing shorter representation' do
         [['日本語', :plain],
          ['200', :huffman],
-         ['xq', :plain], # prefer plain if equal size
-        ].each do |string, choice|
+         ['xq', :plain]].each do |string, choice|
           before { @c = Compressor.new(huffman: :shorter) }
 
           it "should return #{choice} representation" do
@@ -156,7 +155,7 @@ RSpec.describe HTTP2::Header do
         ['no indexing', :noindex],
         ['never indexed', :neverindexed]
       ].each do |desc, type|
-        context "#{desc}" do
+        context desc.to_s do
           it 'should process indexed header with literal value' do
             original_table = @cc.table.dup
 
@@ -278,8 +277,7 @@ RSpec.describe HTTP2::Header do
           table: [
             [':authority', 'www.example.com']
           ],
-          table_size: 57
-        },
+          table_size: 57 },
         { wire: '8286 84be 5808 6e6f 2d63 6163 6865',
           emitted: [
             [':method', 'GET'],
@@ -292,8 +290,7 @@ RSpec.describe HTTP2::Header do
             ['cache-control', 'no-cache'],
             [':authority', 'www.example.com']
           ],
-          table_size: 110
-        },
+          table_size: 110 },
         { wire: "8287 85bf 400a 6375 7374 6f6d 2d6b 6579
                  0c63 7573 746f 6d2d 7661 6c75 65",
           emitted: [
@@ -308,10 +305,8 @@ RSpec.describe HTTP2::Header do
             ['cache-control', 'no-cache'],
             [':authority', 'www.example.com']
           ],
-          table_size: 164
-        }
-      ]
-    },
+          table_size: 164 }
+      ] },
     { title: 'D.4.  Request Examples with Huffman',
       type: :request,
       table_size: 4096,
@@ -327,8 +322,7 @@ RSpec.describe HTTP2::Header do
           table: [
             [':authority', 'www.example.com']
           ],
-          table_size: 57
-        },
+          table_size: 57 },
         { wire: '8286 84be 5886 a8eb 1064 9cbf',
           emitted: [
             [':method', 'GET'],
@@ -341,8 +335,7 @@ RSpec.describe HTTP2::Header do
             ['cache-control', 'no-cache'],
             [':authority', 'www.example.com']
           ],
-          table_size: 110
-        },
+          table_size: 110 },
         { wire: "8287 85bf 4088 25a8 49e9 5ba9 7d7f 8925
                  a849 e95b b8e8 b4bf",
           emitted: [
@@ -357,10 +350,8 @@ RSpec.describe HTTP2::Header do
             ['cache-control', 'no-cache'],
             [':authority', 'www.example.com']
           ],
-          table_size: 164
-        }
-      ]
-    },
+          table_size: 164 }
+      ] },
     { title: 'D.4.a.  Request Examples with Huffman - Client Handling of Improperly Ordered Headers',
       type: :request,
       table_size: 4096,
@@ -376,8 +367,7 @@ RSpec.describe HTTP2::Header do
           table: [
             [':authority', 'www.example.com']
           ],
-          table_size: 57
-        },
+          table_size: 57 },
         { wire: '8286 84be 5886 a8eb 1064 9cbf',
           emitted: [
             [':method', 'GET'],
@@ -390,8 +380,7 @@ RSpec.describe HTTP2::Header do
             ['cache-control', 'no-cache'],
             [':authority', 'www.example.com']
           ],
-          table_size: 110
-        },
+          table_size: 110 },
         { wire: "8287 85bf 4088 25a8 49e9 5ba9 7d7f 8925
                  a849 e95b b8e8 b4bf",
           emitted: [
@@ -406,10 +395,8 @@ RSpec.describe HTTP2::Header do
             ['cache-control', 'no-cache'],
             [':authority', 'www.example.com']
           ],
-          table_size: 164
-        }
-      ]
-    },
+          table_size: 164 }
+      ] },
     { title: 'D.4.b.  Request Examples with Huffman - Server Handling of Improperly Ordered Headers',
       type: :request,
       bypass_encoder: true,
@@ -429,10 +416,8 @@ RSpec.describe HTTP2::Header do
             [':authority', 'www.example.com']
           ],
           table_size: 111,
-          has_bad_headers: true
-        }
-      ]
-    },
+          has_bad_headers: true }
+      ] },
     { title: 'D.5.  Response Examples without Huffman',
       type: :response,
       table_size: 256,
@@ -455,8 +440,7 @@ RSpec.describe HTTP2::Header do
             ['cache-control', 'private'],
             [':status', '302']
           ],
-          table_size: 222
-        },
+          table_size: 222 },
         { wire: '4803 3330 37c1 c0bf',
           emitted: [
             [':status', '307'],
@@ -470,8 +454,7 @@ RSpec.describe HTTP2::Header do
             ['date', 'Mon, 21 Oct 2013 20:13:21 GMT'],
             ['cache-control', 'private']
           ],
-          table_size: 222
-        },
+          table_size: 222 },
         { wire: "88c1 611d 4d6f 6e2c 2032 3120 4f63 7420
                  3230 3133 2032 303a 3133 3a32 3220 474d
                  54c0 5a04 677a 6970 7738 666f 6f3d 4153
@@ -492,10 +475,8 @@ RSpec.describe HTTP2::Header do
             ['content-encoding', 'gzip'],
             ['date', 'Mon, 21 Oct 2013 20:13:22 GMT']
           ],
-          table_size: 215
-        }
-      ]
-    },
+          table_size: 215 }
+      ] },
     { title: 'D.6.  Response Examples with Huffman',
       type: :response,
       table_size: 256,
@@ -517,8 +498,7 @@ RSpec.describe HTTP2::Header do
             ['cache-control', 'private'],
             [':status', '302']
           ],
-          table_size: 222
-        },
+          table_size: 222 },
         { wire: '4883 640e ffc1 c0bf',
           emitted: [
             [':status', '307'],
@@ -532,8 +512,7 @@ RSpec.describe HTTP2::Header do
             ['date', 'Mon, 21 Oct 2013 20:13:21 GMT'],
             ['cache-control', 'private']
           ],
-          table_size: 222
-        },
+          table_size: 222 },
         { wire: "88c1 6196 d07a be94 1054 d444 a820 0595
                  040b 8166 e084 a62d 1bff c05a 839b d9ab
                  77ad 94e7 821d d7f2 e6c7 b335 dfdf cd5b
@@ -552,10 +531,8 @@ RSpec.describe HTTP2::Header do
             ['content-encoding', 'gzip'],
             ['date', 'Mon, 21 Oct 2013 20:13:22 GMT']
           ],
-          table_size: 215
-        }
-      ]
-    },
+          table_size: 215 }
+      ] },
     { title: 'D.6.a.  Response Examples with Huffman - dynamic table size updates should not trigger exceptions',
       type: :response,
       table_size: 4096,
@@ -568,10 +545,8 @@ RSpec.describe HTTP2::Header do
             ['server', 'nginx/1.15.2']
           ],
           table: [],
-          table_size: 0
-        }
-      ]
-    }
+          table_size: 0 }
+      ] }
   ]
 
   context 'decode' do

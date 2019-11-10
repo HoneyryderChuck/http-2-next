@@ -49,8 +49,10 @@ RESP
   attr_reader :complete, :headers, :body, :parsing
 
   def initialize(conn, sock)
-    @conn, @sock = conn, sock
-    @complete, @parsing = false, false
+    @conn = conn
+    @sock = sock
+    @complete = false
+    @parsing = false
     @headers = request_header_hash
     @body = ''
     @parser = ::HTTP::Parser.new(self)
@@ -137,10 +139,10 @@ loop do
         if req[':method'] != 'OPTIONS' # Don't respond to OPTIONS...
           response = 'Hello h2c world!'
           stream.headers({
-            ':status' => '200',
-            'content-length' => response.bytesize.to_s,
-            'content-type' => 'text/plain'
-          }, end_stream: false)
+                           ':status' => '200',
+                           'content-length' => response.bytesize.to_s,
+                           'content-type' => 'text/plain'
+                         }, end_stream: false)
           stream.data(response)
         end
       else
@@ -155,10 +157,10 @@ loop do
         end
 
         stream.headers({
-          ':status' => '200',
-          'content-length' => response.bytesize.to_s,
-          'content-type' => 'text/plain'
-        }, end_stream: false)
+                         ':status' => '200',
+                         'content-length' => response.bytesize.to_s,
+                         'content-type' => 'text/plain'
+                       }, end_stream: false)
 
         # split response into multiple DATA frames
         stream.data(response.slice!(0, 5), end_stream: false)
@@ -174,8 +176,7 @@ loop do
     # puts "Received bytes: #{data.unpack("H*").first}"
 
     begin
-      case
-      when !uh.parsing && !uh.complete
+      if !uh.parsing && !uh.complete
 
         if data.start_with?(*UpgradeHandler::VALID_UPGRADE_METHODS)
           uh << data
@@ -184,10 +185,10 @@ loop do
           conn << data
         end
 
-      when uh.parsing && !uh.complete
+      elsif uh.parsing && !uh.complete
         uh << data
 
-      when uh.complete
+      elsif uh.complete
         conn << data
       end
     rescue StandardError => e
