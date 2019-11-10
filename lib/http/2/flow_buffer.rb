@@ -104,10 +104,6 @@ module HTTP2
       end
     end
 
-    def adjust_window(new_size)
-      @remote_window = new_size - @remove_window
-    end
-
     def process_window_update(frame:, encode: false)
       return if frame[:ignore]
 

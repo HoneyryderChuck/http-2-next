@@ -51,7 +51,7 @@ loop do
   conn = HTTP2::Server.new
   conn.on(:frame) do |bytes|
     # puts "Writing bytes: #{bytes.unpack("H*").first}"
-    sock.is_a?(TCPSocket) ? sock.sendmsg(bytes) : sock.write(bytes)
+    sock.write(bytes)
   end
   conn.on(:frame_sent) do |frame|
     puts "Sent frame: #{frame.inspect}"
@@ -63,7 +63,7 @@ loop do
   conn.on(:stream) do |stream|
     log = Logger.new(stream.id)
     req = {}
-    buffer = ""
+    buffer = "".b
 
     stream.on(:active) { log.info "client opened new stream" }
     stream.on(:close)  { log.info "stream closed" }
@@ -116,8 +116,8 @@ loop do
       end
 
       # split response into multiple DATA frames
-      stream.data(response.slice!(0, 5), end_stream: false)
-      stream.data(response)
+      stream.data(response[0, 5], end_stream: false)
+      stream.data(response[5, -1] || "")
 
       if options[:push]
         push_streams.each_with_index do |push, i|

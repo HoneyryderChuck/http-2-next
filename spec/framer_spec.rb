@@ -319,6 +319,16 @@ RSpec.describe HTTP2::Framer do
       expect(bytes).to eq [0, 0x4, 0x8, 0x0, 0x0, 0xa].pack("CnCCNN")
       expect(f.parse(bytes)).to eq frame
     end
+
+    it "should break when the increment is too large" do
+      frame = {
+        length: 4,
+        type: :window_update,
+        increment: 0x7fffffff + 1
+      }
+
+      expect { f.generate(frame) }.to raise_error(CompressionError)
+    end
   end
 
   context "CONTINUATION" do
@@ -360,76 +370,70 @@ RSpec.describe HTTP2::Framer do
   end
 
   context "Padding" do
+    let(:frame) do
+      {
+        length: 12,
+        type: type,
+        stream: 1,
+        payload: "example data"
+      }
+    end
     %i[data headers push_promise].each do |type|
+      let(:type) { type }
+      if type == :push_promise
+        let(:frame) do
+          {
+            length: 12,
+            type: type,
+            stream: 1,
+            payload: "example data",
+            promise_stream: 2
+          }
+        end
+      end
       [1, 256].each do |padlen|
         context "generating #{type} frame padded #{padlen}" do
-          before do
-            @frame = {
-              length: 12,
-              type: type,
-              stream: 1,
-              payload: "example data"
-            }
-            @frame[:promise_stream] = 2 if type == :push_promise
-            @normal = f.generate(@frame)
-            @padded = f.generate(@frame.merge(padding: padlen))
-          end
+          let(:normal) { f.generate(frame) }
+          let(:padded) { f.generate(frame.merge(padding: padlen)) }
           it "should generate a frame with padding" do
-            expect(@padded.bytesize).to eq @normal.bytesize + padlen
+            expect(padded.bytesize).to eq normal.bytesize + padlen
           end
           it "should fill padded octets with zero" do
             trailer_len = padlen - 1
-            expect(@padded[-trailer_len, trailer_len]).to match(/\A\0*\z/)
+            expect(padded[-trailer_len, trailer_len]).to match(/\A\0*\z/)
           end
           it "should parse a frame with padding" do
-            expect(f.parse(Buffer.new(@padded))).to eq \
-              f.parse(Buffer.new(@normal)).merge(padding: padlen)
+            expect(f.parse(Buffer.new(padded))).to eq \
+              f.parse(Buffer.new(normal)).merge(padding: padlen)
           end
           it "should preserve payload" do
-            expect(f.parse(Buffer.new(@padded))[:payload]).to eq @frame[:payload]
+            expect(f.parse(Buffer.new(padded))[:payload]).to eq frame[:payload]
           end
         end
       end
     end
     context "generating with invalid padding length" do
-      before do
-        @frame = {
-          length: 12,
-          type: :data,
-          stream: 1,
-          payload: "example data"
-        }
-      end
       [0, 257, 1334].each do |padlen|
         it "should raise error on trying to generate data frame padded with invalid #{padlen}" do
           expect do
-            f.generate(@frame.merge(padding: padlen))
+            f.generate(frame.merge(padding: padlen))
           end.to raise_error(CompressionError, /padding/i)
         end
       end
       it "should raise error when adding a padding would make frame too large" do
-        @frame[:payload] = "q" * (f.max_frame_size - 200)
-        @frame[:length]  = @frame[:payload].size
-        @frame[:padding] = 210 # would exceed 4096
+        frame[:payload] = "q" * (f.max_frame_size - 200)
+        frame[:length]  = frame[:payload].size
+        frame[:padding] = 210 # would exceed 4096
         expect do
-          f.generate(@frame)
+          f.generate(frame)
         end.to raise_error(CompressionError, /padding/i)
       end
     end
     context "parsing frames with invalid paddings" do
-      before do
-        @frame = {
-          length: 12,
-          type: :data,
-          stream: 1,
-          payload: "example data"
-        }
-        @padlen = 123
-        @padded = f.generate(@frame.merge(padding: @padlen))
-      end
+      let(:padded) { f.generate(frame.merge(padding: 123)) }
       it "should raise exception when the given padding is longer than the payload" do
-        @padded.setbyte(9, 240)
-        expect { f.parse(Buffer.new(@padded)) }.to raise_error(ProtocolError, /padding/)
+        padded.setbyte(9, 240)
+        expect { f.parse(Buffer.new(padded)) }.to raise_error(ProtocolError, /padding/)
       end
     end
   end

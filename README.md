@@ -1,28 +1,26 @@
 # HTTP-2-Next
 
-
 [![Gem Version](https://badge.fury.io/rb/http-2.svg)](http://rubygems.org/gems/http-2)
-[![Build Status](https://travis-ci.org/igrigorik/http-2.svg?branch=master)](https://travis-ci.org/igrigorik/http-2)
-[![Coverage Status](https://coveralls.io/repos/igrigorik/http-2/badge.svg)](https://coveralls.io/r/igrigorik/http-2)
-[![Analytics](https://ga-beacon.appspot.com/UA-71196-10/http-2/readme)](https://github.com/igrigorik/ga-beacon)
+[![Build status](https://gitlab.com/honeyryderchuck/http-2-next/badges/master/pipeline.svg)](https://gitlab.com/honeyryderchuck/http-2-next/commits/master)
+[![coverage report](https://gitlab.com/honeyryderchuck/httpx/badges/master/coverage.svg)](https://honeyryderchuck.gitlab.io/http-2-next/coverage/#_AllFiles)
+
+**Attention!** This is a fork of the [http-2](https://github.com/igrigorik/http-2) gem.
 
 Pure Ruby, framework and transport agnostic, implementation of HTTP/2 protocol and HPACK header compression with support for:
+
 
 * [Binary framing](https://hpbn.co/http2/#binary-framing-layer) parsing and encoding
 * [Stream multiplexing](https://hpbn.co/http2/#streams-messages-and-frames) and [prioritization](https://hpbn.co/http2/#stream-prioritization)
 * Connection and stream [flow control](https://hpbn.co/http2/#flow-control)
 * [Header compression](https://hpbn.co/http2/#header-compression) and [server push](https://hpbn.co/http2/#server-push)
 * Connection and stream management
-* And more... see [API docs](http://www.rubydoc.info/github/igrigorik/http-2/frames)
+* And more... see [API docs](https://www.rubydoc.info/gems/http-2-next)
 
 Protocol specifications:
 
 * [Hypertext Transfer Protocol Version 2 (RFC 7540)](https://httpwg.github.io/specs/rfc7540.html)
 * [HPACK: Header Compression for HTTP/2 (RFC 7541)](https://httpwg.github.io/specs/rfc7541.html)
 
-## Fork
-
-This is a fork of the [http-2](https://github.com/igrigorik/http-2) gem.
 
 ## Getting started
 
@@ -48,12 +46,12 @@ while bytes = socket.read
 end
 ```
 
-Checkout provided [client](https://github.com/igrigorik/http-2/blob/master/example/client.rb) and [server](https://github.com/igrigorik/http-2/blob/master/example/server.rb) implementations for basic examples.
+Checkout provided [client](example/client.rb) and [server](example/server.rb) implementations for basic examples.
 
 
 ### Connection lifecycle management
 
-Depending on the role of the endpoint you must initialize either a [Client](http://www.rubydoc.info/github/igrigorik/http-2/HTTP2/Client) or a [Server](http://www.rubydoc.info/github/igrigorik/http-2/HTTP2/Server) object. Doing so picks the appropriate header compression / decompression algorithms and stream management logic. From there, you can subscribe to connection level events, or invoke appropriate APIs to allocate new streams and manage the lifecycle. For example:
+Depending on the role of the endpoint you must initialize either a [Client](lib/http/2/client.rb) or a [Server](lib/http/2/server.rb) object. Doing so picks the appropriate header compression / decompression algorithms and stream management logic. From there, you can subscribe to connection level events, or invoke appropriate APIs to allocate new streams and manage the lifecycle. For example:
 
 ```ruby
 HTTP2 = HTTP2Next
@@ -158,7 +156,7 @@ conn.on(:stream) do |stream|
 end
 ```
 
-Events emitted by the [Stream object](http://www.rubydoc.info/github/igrigorik/http-2/HTTP2/Stream):
+Events emitted by the [Stream object](lib/http/2/stream.rb):
 
 <table>
   <tr>

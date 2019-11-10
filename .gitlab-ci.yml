@@ -16,6 +16,7 @@ cache:
 jruby:
   variables:
     CI: 1
+    JRUBY_OPTS: "--debug"
   before_script: *before_script
   image: "jruby:9.2.9"
   script:
