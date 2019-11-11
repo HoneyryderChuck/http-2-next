@@ -577,6 +577,24 @@ RSpec.describe HTTP2::Connection do
       end.to raise_error(ProtocolError)
     end
 
+    it "should allow to change the frame size" do
+      buffer = []
+      conn.on(:frame) do |bytes|
+        buffer << bytes
+      end
+      stream1 = conn.new_stream
+      stream1.send headers_frame
+
+      # splits big data
+      expect { stream1.data("a" * 16_385) }.to change { buffer.size }.by(2)
+
+      conn << f.generate(settings_frame.merge(payload: [[:settings_max_frame_size, 65_536]]))
+
+      stream2 = conn.new_stream
+      stream2.send headers_frame
+      expect { stream2.data("a" * 16_385, end_stream: false) }.to change { buffer.size }.by(1)
+    end
+
     it "should not raise an error on frame for a closed stream ID" do
       srv = Server.new
       srv << CONNECTION_PREFACE_MAGIC
