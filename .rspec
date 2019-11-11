@@ -1,4 +1,3 @@
 autotest
 --color
 --order rand
---warnings

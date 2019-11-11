@@ -85,7 +85,7 @@ module HTTP2
       @streams_recently_closed = {}
       @pending_settings = []
 
-      @framer = Framer.new
+      @framer = Framer.new(@local_settings[:settings_max_frame_size])
 
       @local_window_limit = @local_settings[:settings_initial_window_size]
       @local_window = @local_window_limit
@@ -370,7 +370,7 @@ module HTTP2
               else
                 # An endpoint that receives an unexpected stream identifier
                 # MUST respond with a connection error of type PROTOCOL_ERROR.
-                connection_error
+                connection_error(msg: "stream does not exist")
               end
             end
           end
@@ -613,7 +613,7 @@ module HTTP2
           # nothing to do
 
         when :settings_max_frame_size
-          # nothing to do
+          @framer.remote_max_frame_size = v
 
           # else # ignore unknown settings
         end
@@ -743,8 +743,8 @@ module HTTP2
 
       @state = :closed
       @error = error
-      msg ||= e.message
-      backtrace = e.backtrace || []
+      msg ||= e ? e.message : "protocol error"
+      backtrace = e ? e.backtrace : nil
       raise Error.types[error], msg, backtrace
     end
     alias error connection_error

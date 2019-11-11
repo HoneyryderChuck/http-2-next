@@ -9,8 +9,8 @@ module HTTP2
     # Default value of max frame size (16384 bytes)
     DEFAULT_MAX_FRAME_SIZE = 2**14
 
-    # Current maximum frame size
-    attr_accessor :max_frame_size
+    # maximum frame size
+    attr_accessor :local_max_frame_size, :remote_max_frame_size
 
     # Maximum stream ID (2^31)
     MAX_STREAM_ID = 0x7fffffff
@@ -104,8 +104,10 @@ module HTTP2
 
     # Initializes new framer object.
     #
-    def initialize
-      @max_frame_size = DEFAULT_MAX_FRAME_SIZE
+    def initialize(local_max_frame_size = DEFAULT_MAX_FRAME_SIZE,
+                   remote_max_frame_size = DEFAULT_MAX_FRAME_SIZE)
+      @local_max_frame_size = local_max_frame_size
+      @remote_max_frame_size = remote_max_frame_size
     end
 
     # Generates common 9-byte frame header.
@@ -118,7 +120,7 @@ module HTTP2
 
       raise CompressionError, "Invalid frame type (#{frame[:type]})" unless FRAME_TYPES[frame[:type]]
 
-      raise CompressionError, "Frame size is too large: #{frame[:length]}" if frame[:length] > @max_frame_size
+      raise CompressionError, "Frame size is too large: #{frame[:length]}" if frame[:length] > @remote_max_frame_size
 
       raise CompressionError, "Frame size is invalid: #{frame[:length]}" if frame[:length] < 0
 
@@ -295,7 +297,7 @@ module HTTP2
 
         padlen = frame[:padding]
 
-        if padlen <= 0 || padlen > 256 || padlen + length > @max_frame_size
+        if padlen <= 0 || padlen > 256 || padlen + length > @remote_max_frame_size
           raise CompressionError, "Invalid padding #{padlen}"
         end
 
@@ -323,7 +325,7 @@ module HTTP2
       frame = read_common_header(buf)
       return nil if buf.size < 9 + frame[:length]
 
-      raise ProtocolError, "payload too large" if frame[:length] > DEFAULT_MAX_FRAME_SIZE
+      raise ProtocolError, "payload too large" if frame[:length] > @local_max_frame_size
 
       buf.read(9)
       payload = buf.read(frame[:length])

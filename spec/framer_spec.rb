@@ -27,7 +27,7 @@ RSpec.describe HTTP2::Framer do
 
     it "should generate a large frame" do
       f = Framer.new
-      f.max_frame_size = 2**24 - 1
+      f.remote_max_frame_size = 2**24 - 1
       frame = {
         length: 2**18 + 2**16 + 17,
         type: :headers,
@@ -421,7 +421,7 @@ RSpec.describe HTTP2::Framer do
         end
       end
       it "should raise error when adding a padding would make frame too large" do
-        frame[:payload] = "q" * (f.max_frame_size - 200)
+        frame[:payload] = "q" * (f.remote_max_frame_size - 200)
         frame[:length]  = frame[:payload].size
         frame[:padding] = 210 # would exceed 4096
         expect do
