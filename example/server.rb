@@ -136,7 +136,7 @@ loop do
       conn << data
     rescue StandardError => e
       puts "#{e.class} exception: #{e.message} - closing socket."
-      e.backtrace.each { |l| puts "\t" + l }
+      puts e.backtrace
       sock.close
     end
   end
