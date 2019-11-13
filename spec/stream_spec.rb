@@ -2,7 +2,7 @@
 
 require "helper"
 
-RSpec.describe HTTP2::Stream do
+RSpec.describe HTTP2Next::Stream do
   include FrameHelpers
   let(:client) { Client.new }
   let(:stream) { client.new_stream }

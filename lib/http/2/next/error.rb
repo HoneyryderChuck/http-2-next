@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module HTTP2
+module HTTP2Next
   # Stream, connection, and compressor exceptions.
   module Error
     @types = {}
@@ -12,7 +12,7 @@ module HTTP2
       def self.inherited(klass)
         type = klass.name.split("::").last
         type = type.gsub(/([^\^])([A-Z])/, '\1_\2').downcase.to_sym
-        HTTP2::Error.types[type] = klass
+        HTTP2Next::Error.types[type] = klass
       end
     end
 

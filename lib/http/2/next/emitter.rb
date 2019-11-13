@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module HTTP2
+module HTTP2Next
   # Basic event emitter implementation with support for persistent and
   # one-time event callbacks.
   #

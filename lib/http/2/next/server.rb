@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "base64"
-module HTTP2
+module HTTP2Next
   # HTTP 2.0 server connection class that implements appropriate header
   # compression / decompression algorithms and stream management logic.
   #
@@ -12,7 +12,7 @@ module HTTP2
   # @example
   #     socket = YourTransport.new
   #
-  #     conn = HTTP2::Server.new
+  #     conn = HTTP2Next::Server.new
   #     conn.on(:stream) do |stream|
   #       ...
   #     end
@@ -74,7 +74,7 @@ module HTTP2
       receive(CONNECTION_PREFACE_MAGIC)
 
       # Process received HTTP2-Settings payload
-      buf = HTTP2::Buffer.new Base64.urlsafe_decode64(settings.to_s)
+      buf = HTTP2Next::Buffer.new Base64.urlsafe_decode64(settings.to_s)
       header = @framer.common_header(
         length: buf.bytesize,
         type: :settings,

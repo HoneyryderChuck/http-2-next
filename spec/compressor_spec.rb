@@ -2,7 +2,7 @@
 
 require "helper"
 
-RSpec.describe HTTP2::Header do
+RSpec.describe HTTP2Next::Header do
   let(:c) { Compressor.new }
   let(:d) { Decompressor.new }
 
@@ -557,21 +557,21 @@ RSpec.describe HTTP2::Header do
               (0...nth).each do |i|
                 bytes = [ex[:streams][i][:wire].delete(" \n")].pack("H*")
                 if ex[:streams][i][:has_bad_headers]
-                  expect { dc.decode(HTTP2::Buffer.new(bytes)) }.to raise_error ProtocolError
+                  expect { dc.decode(HTTP2Next::Buffer.new(bytes)) }.to raise_error ProtocolError
                 else
-                  dc.decode(HTTP2::Buffer.new(bytes))
+                  dc.decode(HTTP2Next::Buffer.new(bytes))
                 end
               end
             end
             if ex[:streams][nth][:has_bad_headers]
               it "should raise CompressionError" do
                 bytes = [ex[:streams][nth][:wire].delete(" \n")].pack("H*")
-                expect { dc.decode(HTTP2::Buffer.new(bytes)) }.to raise_error ProtocolError
+                expect { dc.decode(HTTP2Next::Buffer.new(bytes)) }.to raise_error ProtocolError
               end
             else
               let!(:emitted) do
                 bytes = [ex[:streams][nth][:wire].delete(" \n")].pack("H*")
-                dc.decode(HTTP2::Buffer.new(bytes))
+                dc.decode(HTTP2Next::Buffer.new(bytes))
               end
               it "should emit expected headers" do
                 # partitioned compare

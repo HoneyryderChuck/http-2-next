@@ -6,7 +6,7 @@
 # The following task generates this file.
 #   rake generate_huffman_table
 
-module HTTP2
+module HTTP2Next
   module Header
     class Huffman
       # :nodoc:

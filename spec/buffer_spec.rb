@@ -2,7 +2,7 @@
 
 require "helper"
 
-RSpec.describe HTTP2::Buffer do
+RSpec.describe HTTP2Next::Buffer do
   let(:b) { Buffer.new("émalgré") }
 
   it "should force 8-bit encoding" do

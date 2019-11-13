@@ -2,7 +2,7 @@
 
 require "helper"
 
-RSpec.describe HTTP2::Framer do
+RSpec.describe HTTP2Next::Framer do
   let(:f) { Framer.new }
 
   context "common header" do

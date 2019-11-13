@@ -5,7 +5,7 @@ $LOAD_PATH << "lib" << "../lib"
 require "optparse"
 require "socket"
 require "openssl"
-require "http/2"
+require "http/2/next"
 require "uri"
 
 DRAFT = "h2"

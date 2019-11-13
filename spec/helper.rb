@@ -8,10 +8,10 @@ RSpec::Expectations.configuration.warn_about_potential_false_positives = false
 require "json"
 
 # rubocop: disable Style/MixinUsage
-require "http/2"
-include HTTP2
-include HTTP2::Header
-include HTTP2::Error
+require "http/2/next"
+include HTTP2Next
+include HTTP2Next::Header
+include HTTP2Next::Error
 # rubocop: enable Style/MixinUsage
 
 REQUEST_HEADERS = [%w[:scheme https],

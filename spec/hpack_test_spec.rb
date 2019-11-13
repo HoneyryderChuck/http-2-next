@@ -3,7 +3,7 @@
 require "helper"
 require "json"
 
-RSpec.describe HTTP2::Header do
+RSpec.describe HTTP2Next::Header do
   folders = %w[
     go-hpack
     haskell-http2-diff
@@ -39,7 +39,7 @@ RSpec.describe HTTP2::Header do
             @dc = Decompressor.new(table_size: table_size)
             cases.each do |c|
               wire = [c["wire"]].pack("H*").force_encoding(Encoding::BINARY)
-              @emitted = @dc.decode(HTTP2::Buffer.new(wire))
+              @emitted = @dc.decode(HTTP2Next::Buffer.new(wire))
               headers = c["headers"].flat_map(&:to_a)
               expect(@emitted).to eq headers
             end
@@ -60,7 +60,7 @@ RSpec.describe HTTP2::Header do
 
       ["", "H"].each do |huffman|
         encoding_mode = "#{mode}#{huffman}".to_sym
-        encoding_options = HTTP2::Header::EncodingContext.const_get(encoding_mode)
+        encoding_options = HTTP2Next::Header::EncodingContext.const_get(encoding_mode)
         [4096, 512].each do |table_size|
           options = { table_size: table_size }
           options.update(encoding_options)

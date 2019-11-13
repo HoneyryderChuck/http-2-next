@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module HTTP2
+module HTTP2Next
   # Performs encoding, decoding, and validation of binary HTTP/2 frames.
   #
   class Framer

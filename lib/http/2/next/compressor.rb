@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module HTTP2
+module HTTP2Next
   # Implementation of header compression for HTTP 2.0 (HPACK) format adapted
   # to efficiently represent HTTP headers in the context of HTTP 2.0.
   #
@@ -581,7 +581,7 @@ module HTTP2
       # Decodes and processes header commands within provided buffer.
       #
       # @param buf [Buffer]
-      # @param frame [HTTP2::Frame, nil]
+      # @param frame [HTTP2Next::Frame, nil]
       # @return [Array] +[[name, value], ...]
       def decode(buf, frame = nil)
         list = []

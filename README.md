@@ -51,7 +51,7 @@ Checkout provided [client](example/client.rb) and [server](example/server.rb) im
 
 ### Connection lifecycle management
 
-Depending on the role of the endpoint you must initialize either a [Client](lib/http/2/client.rb) or a [Server](lib/http/2/server.rb) object. Doing so picks the appropriate header compression / decompression algorithms and stream management logic. From there, you can subscribe to connection level events, or invoke appropriate APIs to allocate new streams and manage the lifecycle. For example:
+Depending on the role of the endpoint you must initialize either a [Client](lib/http/2/next/client.rb) or a [Server](lib/http/2/next/server.rb) object. Doing so picks the appropriate header compression / decompression algorithms and stream management logic. From there, you can subscribe to connection level events, or invoke appropriate APIs to allocate new streams and manage the lifecycle. For example:
 
 ```ruby
 HTTP2 = HTTP2Next
@@ -128,6 +128,7 @@ For sake of example, let's take a look at a simple server implementation:
 
 ```ruby
 HTTP2 = HTTP2Next
+
 conn = HTTP2::Server.new
 
 # emits new streams opened by the client
@@ -156,7 +157,7 @@ conn.on(:stream) do |stream|
 end
 ```
 
-Events emitted by the [Stream object](lib/http/2/stream.rb):
+Events emitted by the [Stream object](lib/http/2/next/stream.rb):
 
 <table>
   <tr>
@@ -196,6 +197,7 @@ Each HTTP/2 [stream has a priority value](https://hpbn.co/http2/#stream-prioriti
 
 ```ruby
 HTTP2 = HTTP2Next
+
 client = HTTP2::Client.new
 
 default_priority_stream = client.new_stream
@@ -233,6 +235,7 @@ An HTTP/2 server can [send multiple replies](https://hpbn.co/http2/#server-push)
 
 ```ruby
 HTTP2 = HTTP2Next
+
 conn = HTTP2::Server.new
 
 conn.on(:stream) do |stream|
@@ -273,6 +276,7 @@ When a new push promise stream is sent by the server, the client is notified via
 
 ```ruby
 HTTP2 = HTTP2Next
+
 conn = HTTP2::Client.new
 conn.on(:promise) do |push|
   # process push stream

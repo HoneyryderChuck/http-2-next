@@ -2,7 +2,7 @@
 
 require "forwardable"
 
-module HTTP2
+module HTTP2Next
   # Binary buffer wraps String.
   #
   class Buffer
