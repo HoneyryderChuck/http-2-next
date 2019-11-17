@@ -122,21 +122,6 @@ RSpec.describe HTTP2Next::Connection do
       expect { conn.new_stream }.to raise_error(StreamLimitExceeded)
     end
 
-    it "should initialize stream with HEADERS priority value" do
-      conn << f.generate(settings_frame)
-
-      stream = nil
-      headers = headers_frame
-      headers[:weight] = 20
-      headers[:dependency] = 0
-      headers[:exclusive] = false
-
-      conn.on(:stream) { |s| stream = s }
-      conn << f.generate(headers)
-
-      expect(stream.weight).to eq 20
-    end
-
     it "should initialize idle stream on PRIORITY frame" do
       conn << f.generate(settings_frame)
 
@@ -292,12 +277,12 @@ RSpec.describe HTTP2Next::Connection do
 
     it "should decompress header blocks regardless of stream state" do
       req_headers = [
-        %w[content-length 20],
+        %w[:status 200],
         %w[x-my-header first]
       ]
 
       cc = Compressor.new
-      headers = headers_frame
+      headers = headers_frame.merge(stream: 2)
       headers[:payload] = cc.encode(req_headers)
 
       conn << f.generate(settings_frame)
@@ -312,7 +297,7 @@ RSpec.describe HTTP2Next::Connection do
 
     it "should decode non-contiguous header blocks" do
       req_headers = [
-        %w[content-length 15],
+        %w[:status 200],
         %w[x-my-header first]
       ]
 
@@ -323,11 +308,11 @@ RSpec.describe HTTP2Next::Connection do
       # Header block fragment might not complete for decompression
       payload = cc.encode(req_headers)
       h1[:payload] = payload.slice!(0, payload.size / 2) # first half
-      h1[:stream] = 5
+      h1[:stream] = 2
       h1[:flags] = []
 
       h2[:payload] = payload # the remaining
-      h2[:stream] = 5
+      h2[:stream] = 2
 
       conn << f.generate(settings_frame)
       conn.on(:stream) do |stream|
@@ -559,16 +544,6 @@ RSpec.describe HTTP2Next::Connection do
       expect { conn << f.generate(goaway_frame) }.to raise_error(ProtocolError)
     end
 
-    it "should process connection management frames after GOAWAY" do
-      conn << f.generate(settings_frame)
-      conn << f.generate(headers_frame)
-      conn << f.generate(goaway_frame)
-      conn << f.generate(headers_frame.merge(stream: 7))
-      conn << f.generate(push_promise_frame)
-
-      expect(conn.active_stream_count).to eq 1
-    end
-
     it "should raise error on frame for invalid stream ID" do
       conn << f.generate(settings_frame)
 
@@ -651,19 +626,6 @@ RSpec.describe HTTP2Next::Connection do
       conn.ping("somedata")
     end
 
-    it ".goaway should generate GOAWAY frame with last processed stream ID" do
-      conn << f.generate(settings_frame)
-      conn << f.generate(headers_frame.merge(stream: 17))
-
-      expect(conn).to receive(:send) do |frame|
-        expect(frame[:type]).to eq :goaway
-        expect(frame[:last_stream]).to eq 17
-        expect(frame[:error]).to eq :internal_error
-        expect(frame[:payload]).to eq "payload"
-      end
-
-      conn.goaway(:internal_error, "payload")
-    end
     it ".window_update should emit WINDOW_UPDATE frames" do
       expect(conn).to receive(:send) do |frame|
         expect(frame[:type]).to eq :window_update

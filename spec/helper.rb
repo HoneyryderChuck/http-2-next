@@ -75,7 +75,7 @@ module FrameHelpers
       flags: [:end_headers],
       stream: 1,
       promise_stream: 2,
-      payload: Compressor.new.encode([%w[a b]])
+      payload: Compressor.new.encode(REQUEST_HEADERS)
     }
   end
 

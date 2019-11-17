@@ -48,4 +48,48 @@ RSpec.describe HTTP2Next::Server do
     client.new_stream
     client.send headers_frame
   end
+
+  context "stream management" do
+    it "should initialize stream with HEADERS priority value" do
+      srv << CONNECTION_PREFACE_MAGIC
+      srv << f.generate(settings_frame)
+
+      stream = nil
+      headers = headers_frame
+      headers[:weight] = 20
+      headers[:dependency] = 0
+      headers[:exclusive] = false
+
+      srv.on(:stream) { |s| stream = s }
+      srv << f.generate(headers)
+
+      expect(stream.weight).to eq 20
+    end
+
+    it "should process connection management frames after GOAWAY" do
+      srv << CONNECTION_PREFACE_MAGIC
+      srv << f.generate(settings_frame)
+      srv << f.generate(headers_frame)
+      srv << f.generate(goaway_frame)
+      srv << f.generate(headers_frame.merge(stream: 3))
+      expect(srv.active_stream_count).to eq 1
+    end
+  end
+
+  context "API" do
+    it ".goaway should generate GOAWAY frame with last processed stream ID" do
+      srv << CONNECTION_PREFACE_MAGIC
+      srv << f.generate(settings_frame)
+      srv << f.generate(headers_frame)
+
+      expect(srv).to receive(:send) do |frame|
+        expect(frame[:type]).to eq :goaway
+        expect(frame[:last_stream]).to eq 1
+        expect(frame[:error]).to eq :internal_error
+        expect(frame[:payload]).to eq "payload"
+      end
+
+      srv.goaway(:internal_error, "payload")
+    end
+  end
 end

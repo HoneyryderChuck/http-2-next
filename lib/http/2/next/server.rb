@@ -114,6 +114,10 @@ module HTTP2Next
 
     private
 
+    def verify_pseudo_headers(frame, mandatory_headers = REQUEST_MANDATORY_HEADERS)
+      super(frame, mandatory_headers)
+    end
+
     # Handle locally initiated server-push event emitted by the stream.
     #
     # @param args [Array]

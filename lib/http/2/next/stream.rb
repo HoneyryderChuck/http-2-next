@@ -116,7 +116,8 @@ module HTTP2Next
         # stream error (Section 5.4.2) of type STREAM_CLOSED.
         stream_error(:stream_closed) unless @state == :open ||
                                             @state == :half_closed_local ||
-                                            @state == :half_closing || @state == :closing
+                                            @state == :half_closing || @state == :closing ||
+                                            (@state == :closed && @closed == :local_rst)
         @received_data = true
         calculate_content_length(frame[:length])
         update_local_window(frame)
@@ -124,21 +125,22 @@ module HTTP2Next
         emit(:data, frame[:payload]) unless frame[:ignore]
         calculate_window_update(@local_window_max_size)
       when :headers
-        stream_error(:stream_closed) if @state == :closed || @state == :remote_closed
+        stream_error(:stream_closed) if (@state == :closed && @closed != :local_rst) ||
+                                        @state == :remote_closed
         @_method ||= frame[:method]
         @_content_length ||= frame[:content_length]
         @_trailers ||= frame[:trailer]
         if @_waiting_on_trailers
           verify_trailers(frame)
-        else
-          verify_pseudo_headers(frame)
+        elsif @received_data
+          stream_error(:protocol_error, msg: "already received data")
         end
         emit(:headers, frame[:payload]) unless frame[:ignore]
         @_waiting_on_trailers = !@_trailers.nil?
       when :push_promise
         emit(:promise_headers, frame[:payload]) unless frame[:ignore]
       when :continuation
-        stream_error(:stream_closed) if @state == :closed || @state == :remote_closed
+        stream_error(:stream_closed) if (@state == :closed && @closed != :local_rst) || @state == :remote_closed
         stream_error(:protocol_error) if @received_data
       when :priority
         process_priority(frame)
@@ -157,25 +159,6 @@ module HTTP2Next
       complete_transition(frame)
     end
     alias << receive
-
-    REQUEST_MANDATORY_HEADERS = %w[:scheme :method :authority :path].freeze
-    RESPONSE_MANDATORY_HEADERS = %w[:status].freeze
-
-    def verify_pseudo_headers(frame)
-      headers = frame[:payload]
-      return if headers.is_a?(Buffer)
-
-      mandatory_headers = @id.odd? ? REQUEST_MANDATORY_HEADERS : RESPONSE_MANDATORY_HEADERS
-      pseudo_headers = headers.take_while do |field, value|
-        # use this loop to validate pseudo-headers
-        stream_error(:protocol_error, msg: "path is empty") if field == ":path" && value.empty?
-        field.start_with?(":")
-      end.map(&:first)
-      return if mandatory_headers.size == pseudo_headers.size &&
-                (mandatory_headers - pseudo_headers).empty?
-
-      stream_error(:protocol_error, msg: "invalid pseudo-headers")
-    end
 
     def verify_trailers(frame)
       stream_error(:protocol_error, msg: "trailer headers frame must close the stream") unless end_stream?(frame)
@@ -675,6 +658,8 @@ module HTTP2Next
     end
 
     def stream_error(error = :internal_error, msg: nil)
+      # if the stream already broke with an error, ignore subsequent
+
       @error = error
       close(error) if @state != :closed
 
