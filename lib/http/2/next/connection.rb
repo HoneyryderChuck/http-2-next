@@ -35,6 +35,9 @@ module HTTP2Next
   # Default connection "fast-fail" preamble string as defined by the spec.
   CONNECTION_PREFACE_MAGIC = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
 
+  REQUEST_MANDATORY_HEADERS = %w[:scheme :method :authority :path].freeze
+  RESPONSE_MANDATORY_HEADERS = %w[:status].freeze
+
   # Connection encapsulates all of the connection, stream, flow-control,
   # error management, and other processing logic required for a well-behaved
   # HTTP 2.0 endpoint.
@@ -270,6 +273,8 @@ module HTTP2Next
 
             stream = @streams[frame[:stream]]
             if stream.nil?
+              verify_pseudo_headers(frame)
+
               stream = activate_stream(
                 id: frame[:stream],
                 weight: frame[:weight] || DEFAULT_WEIGHT,
@@ -329,6 +334,7 @@ module HTTP2Next
               end
             end
 
+            verify_pseudo_headers(frame, REQUEST_MANDATORY_HEADERS)
             stream = activate_stream(id: pid, parent: parent)
             verify_stream_order(stream.id)
             emit(:promise, stream)
@@ -725,6 +731,21 @@ module HTTP2Next
 
       connection_error(msg: "Stream ID smaller than previous") if @last_stream_id > id
       @last_stream_id = id
+    end
+
+    def verify_pseudo_headers(frame, mandatory_headers)
+      headers = frame[:payload]
+      return if headers.is_a?(Buffer)
+
+      pseudo_headers = headers.take_while do |field, value|
+        # use this loop to validate pseudo-headers
+        connection_error(:protocol_error, msg: "path is empty") if field == ":path" && value.empty?
+        field.start_with?(":")
+      end.map(&:first)
+      return if mandatory_headers.size == pseudo_headers.size &&
+                (mandatory_headers - pseudo_headers).empty?
+
+      connection_error(:protocol_error, msg: "invalid pseudo-headers")
     end
 
     # Emit GOAWAY error indicating to peer that the connection is being

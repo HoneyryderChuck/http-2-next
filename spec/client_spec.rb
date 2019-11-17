@@ -184,4 +184,30 @@ RSpec.describe HTTP2Next::Client do
       end
     end
   end
+
+  context "stream management" do
+    it "should process connection management frames after GOAWAY" do
+      stream = client.new_stream
+      stream.send headers_frame
+      client << f.generate(goaway_frame)
+      client << f.generate(push_promise_frame)
+      expect(client.active_stream_count).to eq 1
+    end
+  end
+
+  context "API" do
+    it ".goaway should generate GOAWAY frame with last processed stream ID" do
+      stream = client.new_stream
+      stream.send headers_frame
+
+      expect(client).to receive(:send) do |frame|
+        expect(frame[:type]).to eq :goaway
+        expect(frame[:last_stream]).to eq 1
+        expect(frame[:error]).to eq :internal_error
+        expect(frame[:payload]).to eq "payload"
+      end
+
+      client.goaway(:internal_error, "payload")
+    end
+  end
 end

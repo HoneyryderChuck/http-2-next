@@ -68,5 +68,11 @@ module HTTP2Next
       frame = Framer.new.generate(type: :settings, stream: 0, payload: settings)
       Base64.urlsafe_encode64(frame[9..-1])
     end
+
+    private
+
+    def verify_pseudo_headers(frame, mandatory_headers = RESPONSE_MANDATORY_HEADERS)
+      super(frame, mandatory_headers)
+    end
   end
 end
