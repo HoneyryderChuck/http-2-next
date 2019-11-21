@@ -201,7 +201,9 @@ RSpec.describe HTTP2Next::Connection do
       expect(conn.remote_window).to eq(DEFAULT_FLOW_WINDOW - 2048)
 
       conn << f.generate(settings)
-      expect(conn.remote_window).to eq(-1024)
+
+      # connection window size can only be updated through WINDOW_UPDATE
+      expect(conn.remote_window).to eq(DEFAULT_FLOW_WINDOW - 2048)
       expect(stream.remote_window).to eq(-1024)
     end
 
@@ -216,18 +218,18 @@ RSpec.describe HTTP2Next::Connection do
     it "should observe connection flow control" do
       settings = settings_frame
       data = data_frame
-      settings[:payload] = [[:settings_initial_window_size, 1000]]
+      settings[:payload] = [[:settings_max_frame_size, 65_535]]
 
       conn << f.generate(settings)
       s1 = conn.new_stream
       s2 = conn.new_stream
 
       s1.send headers_frame
-      s1.send data.merge(payload: "x" * 900)
-      expect(conn.remote_window).to eq 100
+      s1.send data.merge(payload: "x" * 65_000)
+      expect(conn.remote_window).to eq 535
 
       s2.send headers_frame
-      s2.send data.merge(payload: "x" * 200)
+      s2.send data.merge(payload: "x" * 635)
       expect(conn.remote_window).to eq 0
       expect(conn.buffered_amount).to eq 100
 
@@ -263,16 +265,15 @@ RSpec.describe HTTP2Next::Connection do
   context "framing" do
     it "should buffer incomplete frames" do
       settings = settings_frame
-      settings[:payload] = [[:settings_initial_window_size, 1000]]
       conn << f.generate(settings)
 
       frame = f.generate(window_update_frame.merge(stream: 0, increment: 1000))
       conn << frame
-      expect(conn.remote_window).to eq 2000
+      expect(conn.remote_window).to eq DEFAULT_FLOW_WINDOW + 1000
 
       conn << frame.slice!(0, 1)
       conn << frame
-      expect(conn.remote_window).to eq 3000
+      expect(conn.remote_window).to eq DEFAULT_FLOW_WINDOW + 2000
     end
 
     it "should decompress header blocks regardless of stream state" do

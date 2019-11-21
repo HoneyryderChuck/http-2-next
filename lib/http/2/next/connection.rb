@@ -597,7 +597,10 @@ module HTTP2Next
 
             @local_window_limit = v
           when :remote
-            @remote_window = @remote_window - @remote_window_limit + v
+            # can adjust the initial window size for new streams by including a
+            # value for SETTINGS_INITIAL_WINDOW_SIZE in the SETTINGS frame.
+            # The connection flow-control window can only be changed using
+            # WINDOW_UPDATE frames.
             @streams.each_value do |stream|
               # Event name is :window, not :remote_window
               stream.emit(:window, stream.remote_window - @remote_window_limit + v)
