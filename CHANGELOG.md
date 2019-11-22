@@ -9,3 +9,7 @@
 
 * fixing pseudo headers verification
 * do not close stream when receiving frames from streams we've refused locally
+
+## 0.1.2
+
+* bugfix: do not update connection remote window on SETTINGS frame (aka the Cloudfront issue)
