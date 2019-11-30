@@ -33,24 +33,24 @@ task :h2spec_install do
              else
                "h2spec_linux_amd64.tar.gz"
              end
-  # uri = "https://github.com/summerwind/h2spec/releases/download/v2.3.0/#{platform}"
+  uri = "https://github.com/summerwind/h2spec/releases/download/v2.3.0/#{platform}"
 
   tar_location = File.join(__dir__, "h2spec-releases", platform)
-  # require "net/http"
-  # File.open(tar_location, "wb") do |file|
-  #   response = nil
-  #   loop do
-  #     uri = URI(uri)
-  #     http = Net::HTTP.new(uri.host, uri.port)
-  #     http.use_ssl = true
-  #     # http.set_debug_output($stderr)
-  #     response = http.get(uri.request_uri)
-  #     break unless response.is_a?(Net::HTTPRedirection)
+  require "net/http"
+  File.open(tar_location, "wb") do |file|
+    response = nil
+    loop do
+      uri = URI(uri)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      # http.set_debug_output($stderr)
+      response = http.get(uri.request_uri)
+      break unless response.is_a?(Net::HTTPRedirection)
 
-  #     uri = response["location"]
-  #   end
-  #   file.write(response.body)
-  # end
+      uri = response["location"]
+    end
+    file.write(response.body)
+  end
 
   case RUBY_PLATFORM
   when /cygwin|mswin|mingw|bccwin|wince|emx/
