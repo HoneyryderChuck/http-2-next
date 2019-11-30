@@ -25,18 +25,16 @@ ruby21:
   variables:
     CI: 1
   before_script:
-    - apk --update add g++ make
     - *before_script
-  image: "ruby:2.1-alpine"
+  image: "ruby:2.1"
   script:
     - *test
 ruby22:
   variables:
     CI: 1
   before_script:
-    - apk --update add g++ make
     - *before_script
-  image: "ruby:2.2-alpine"
+  image: "ruby:2.2"
   only:
     - master
   script:
@@ -45,9 +43,8 @@ ruby23:
   variables:
     CI: 1
   before_script:
-    - apk --update add g++ make
     - *before_script
-  image: "ruby:2.3-alpine"
+  image: "ruby:2.3"
   only:
     - master
   script:
@@ -56,9 +53,8 @@ ruby24:
   variables:
     CI: 1
   before_script:
-    - apk --update add g++ make
     - *before_script
-  image: "ruby:2.4-alpine"
+  image: "ruby:2.4"
   only:
     - master
   script:
@@ -67,9 +63,8 @@ ruby25:
   variables:
     CI: 1
   before_script:
-    - apk --update add g++ make
     - *before_script
-  image: "ruby:2.5-alpine"
+  image: "ruby:2.5"
   only:
     - master
   script:
@@ -78,9 +73,8 @@ ruby26:
   variables:
     CI: 1
   before_script:
-    - apk --update add g++ make
     - *before_script
-  image: "ruby:2.6-alpine"
+  image: "ruby:2.6"
   script:
     - *test
 
