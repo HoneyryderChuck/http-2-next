@@ -22,6 +22,8 @@ module HTTP2Next
   #     end
   #
   class Server < Connection
+    attr_reader :origin_set
+
     # Initialize new HTTP 2.0 server object.
     def initialize(**settings)
       @stream_id    = 2
@@ -29,6 +31,9 @@ module HTTP2Next
 
       @local_role   = :server
       @remote_role  = :client
+
+      @origin_set = []
+      @origins_sent = true
 
       super
     end
@@ -112,7 +117,19 @@ module HTTP2Next
       @state = :waiting_magic
     end
 
+    def origin_set=(origins)
+      @origin_set = Array(origins).map(&:to_s)
+      @origins_sent = @origin_set.empty?
+    end
+
     private
+
+    def connection_settings(frame)
+      super
+      return unless frame[:flags].include?(:ack) && !@origins_sent
+
+      send(type: :origin, stream: 0, payload: @origin_set)
+    end
 
     def verify_pseudo_headers(frame, mandatory_headers = REQUEST_MANDATORY_HEADERS)
       super(frame, mandatory_headers)

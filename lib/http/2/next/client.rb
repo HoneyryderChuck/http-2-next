@@ -47,10 +47,13 @@ module HTTP2Next
 
     # sends the preface and initializes the first stream in half-closed state
     def upgrade
+      @h2c_upgrade = :start
       raise ProtocolError unless @stream_id == 1
 
       send_connection_preface
-      new_stream(state: :half_closed_local)
+      stream = new_stream(state: :half_closed_local)
+      @h2c_upgrade = :finished
+      stream
     end
 
     # Emit the connection preface if not yet
