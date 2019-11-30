@@ -49,6 +49,19 @@ RSpec.describe HTTP2Next::Server do
     client.send headers_frame
   end
 
+  it "should allow to send supported origins" do
+    srv.origin_set = %w[https://www.youtube.com]
+    origins = []
+    client = Client.new
+    client.on(:frame) { |bytes| srv << bytes }
+    client.on(:origin) { |origin| origins << origin }
+    srv.on(:frame) { |bytes| client << bytes }
+
+    client.new_stream
+    client.send headers_frame
+    expect(origins).to eq(%w[https://www.youtube.com])
+  end
+
   context "stream management" do
     it "should initialize stream with HEADERS priority value" do
       srv << CONNECTION_PREFACE_MAGIC

@@ -185,6 +185,56 @@ RSpec.describe HTTP2Next::Client do
     end
   end
 
+  context "origin" do
+    let(:orig_frame) { origin_frame.merge(payload: %w[https://www.google.com https://www.youtube.com]) }
+    context "received in the connection" do
+      it "should emit :origin when receiving one" do
+        client << f.generate(settings_frame)
+        origins = []
+        client.on(:origin) do |origin|
+          origins << origin
+        end
+        client << f.generate(orig_frame)
+        expect(origins).to include("https://www.google.com")
+        expect(origins).to include("https://www.youtube.com")
+      end
+      context "initialized as h2c" do
+        it "should be ignored" do
+          client.upgrade
+          origins = []
+          client.on(:origin) do |origin|
+            origins << origin
+          end
+          client << f.generate(orig_frame)
+          expect(origins).to be_empty
+        end
+      end
+      context "when receiving a reserved flag" do
+        let(:orig_frame) { origin_frame.merge(flags: [:reserved]) }
+        it "should be ignored" do
+          client << f.generate(settings_frame)
+          origins = []
+          client.on(:origin) do |origin|
+            origins << origin
+          end
+          client << f.generate(orig_frame)
+          expect(origins).to be_empty
+        end
+      end
+    end
+    context "received in a stream" do
+      it "should be ignored" do
+        s = client.new_stream
+        s.send headers_frame
+        s.close
+
+        expect do
+          client << set_stream_id(f.generate(orig_frame), s.id)
+        end.not_to raise_error
+      end
+    end
+  end
+
   context "stream management" do
     it "should process connection management frames after GOAWAY" do
       stream = client.new_stream
