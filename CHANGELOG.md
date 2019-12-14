@@ -13,3 +13,7 @@
 ## 0.1.2
 
 * bugfix: do not update connection remote window on SETTINGS frame (aka the Cloudfront issue)
+
+## 0.2.0
+
+* support for the ORIGIN frame
