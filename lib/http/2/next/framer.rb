@@ -30,7 +30,8 @@ module HTTP2Next
       goaway: 0x7,
       window_update: 0x8,
       continuation: 0x9,
-      altsvc: 0xa
+      altsvc: 0xa,
+      origin: 0xc
     }.freeze
 
     FRAME_TYPES_WITH_PADDING = %i[data headers push_promise].freeze
@@ -59,7 +60,13 @@ module HTTP2Next
       goaway: {},
       window_update: {},
       continuation: { end_headers: 2 },
-      altsvc: {}
+      altsvc: {},
+      origin: {
+        reserved: 1,
+        reserved2: 2,
+        reserved3: 4,
+        reserved4: 8
+      }
     }.each_value(&:freeze).freeze
 
     # Default settings as defined by the spec
@@ -285,6 +292,14 @@ module HTTP2Next
           bytes << frame[:origin]
           length += frame[:origin].bytesize
         end
+
+      when :origin
+        frame[:payload].each do |origin|
+          bytes << [origin.bytesize].pack(UINT16)
+          bytes << origin
+          length += 2 + origin.bytesize
+        end
+
       end
 
       # Process padding.
@@ -419,6 +434,16 @@ module HTTP2Next
         frame[:host] = payload.read(len) if len > 0
 
         frame[:origin] = payload.read(payload.size) unless payload.empty?
+
+      when :origin
+        origins = []
+
+        until payload.empty?
+          len = payload.read(2).unpack(UINT16).first
+          origins << payload.read(len)
+        end
+
+        frame[:payload] = origins
         # else # Unknown frame type is explicitly allowed
       end
 

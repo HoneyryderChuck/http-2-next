@@ -131,6 +131,13 @@ module FrameHelpers
     }
   end
 
+  def origin_frame
+    {
+      type: :origin,
+      payload: %w[https://www.example.com https://www.example.org]
+    }
+  end
+
   DATA_FRAMES = %w[headers continuation push_promise data].freeze
 
   def control_frames

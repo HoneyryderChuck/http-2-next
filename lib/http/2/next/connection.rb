@@ -478,6 +478,12 @@ module HTTP2Next
           # An ALTSVC frame on stream 0 with empty (length 0) "Origin"
           # information is invalid and MUST be ignored.
           emit(frame[:type], frame) if frame[:origin] && !frame[:origin].empty?
+        when :origin
+          return if @h2c_upgrade || !frame[:flags].empty?
+
+          frame[:payload].each do |origin|
+            emit(frame[:type], origin)
+          end
         when :blocked
           emit(frame[:type], frame)
         else
