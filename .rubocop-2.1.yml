@@ -15,3 +15,17 @@ Style/HashSyntax:
 
 Performance/TimesMap:
   Enabled: false
+
+Layout/IndentHeredoc:
+  Exclude:
+    - "lib/tasks/generate_huffman_table.rb"
+    - "example/*"
+
+Naming/UncommunicativeMethodParamName:
+  Enabled: false
+
+Metrics/LineLength:
+  Max: 128
+
+Style/BracesAroundHashParameters:
+  Enabled: false

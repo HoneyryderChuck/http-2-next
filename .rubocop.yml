@@ -8,19 +8,9 @@ AllCops:
     - "vendor/**/*"
     - "**/huffman_statemachine.rb"
 
-Layout/IndentHeredoc:
-  Exclude:
-    - "lib/tasks/generate_huffman_table.rb"
-    - "example/*"
-
-Metrics/LineLength:
-  Max: 121
 
 Metrics/BlockLength:
   Max: 720
-
-Naming/UncommunicativeMethodParamName:
-  Enabled: false
 
 Lint/EmptyWhen:
   Enabled: false

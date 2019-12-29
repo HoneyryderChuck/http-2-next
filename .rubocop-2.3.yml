@@ -7,4 +7,16 @@ Style/HashSyntax:
 Style/SafeNavigation:
   Enabled: false
 
+Layout/HeredocIndentation:
+  Exclude:
+    - "lib/tasks/generate_huffman_table.rb"
+    - "example/*"
 
+Naming/MethodParameterName:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 128
+
+Style/BracesAroundHashParameters:
+  Enabled: false

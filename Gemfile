@@ -17,7 +17,7 @@ rubocop_version = if RUBY_VERSION.start_with?("2.1")
                   elsif RUBY_VERSION.start_with?("2.2")
                     "0.68.1"
                   else
-                    "0.76.0"
+                    "0.78.0"
                   end
 
 gem "rubocop", rubocop_version, require: false
