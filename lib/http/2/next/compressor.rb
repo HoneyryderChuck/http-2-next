@@ -414,9 +414,7 @@ module HTTP2Next
       def string(str)
         plain = nil
         huffman = nil
-        unless @cc.options[:huffman] == :always
-          plain = integer(str.bytesize, 7) << str.dup.force_encoding(Encoding::BINARY)
-        end
+        plain = integer(str.bytesize, 7) << str.dup.force_encoding(Encoding::BINARY) unless @cc.options[:huffman] == :always
         unless @cc.options[:huffman] == :never
           huffman = Huffman.new.encode(str)
           huffman = integer(huffman.bytesize, 7) << huffman

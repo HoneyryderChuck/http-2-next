@@ -240,9 +240,7 @@ module HTTP2Next
         length += 4 + frame[:payload].bytesize
 
       when :ping
-        if frame[:payload].bytesize != 8
-          raise CompressionError, "Invalid payload size (#{frame[:payload].size} != 8 bytes)"
-        end
+        raise CompressionError, "Invalid payload size (#{frame[:payload].size} != 8 bytes)" if frame[:payload].bytesize != 8
 
         bytes << frame[:payload]
         length += 8
