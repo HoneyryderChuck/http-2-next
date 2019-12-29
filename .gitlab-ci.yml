@@ -83,6 +83,15 @@ ruby26:
   image: "ruby:2.6-alpine"
   script:
     - *test
+ruby27:
+  variables:
+    CI: 1
+  before_script:
+    - apk --update add g++ make
+    - *before_script
+  image: "ruby:2.7-alpine"
+  script:
+    - *test
 
 
 
