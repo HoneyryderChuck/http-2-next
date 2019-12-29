@@ -96,7 +96,7 @@ module HTTP2Next
       #   :table_size  Integer  maximum dynamic table size in bytes
       #   :huffman     Symbol   :always, :never, :shorter
       #   :index       Symbol   :all, :static, :never
-      def initialize(**options)
+      def initialize(options = {})
         default_options = {
           huffman: :shorter,
           index: :all,
@@ -349,7 +349,7 @@ module HTTP2Next
     # Responsible for encoding header key-value pairs using HPACK algorithm.
     class Compressor
       # @param options [Hash] encoding options
-      def initialize(**options)
+      def initialize(options = {})
         @cc = EncodingContext.new(options)
       end
 
@@ -491,7 +491,7 @@ module HTTP2Next
       include Error
 
       # @param options [Hash] decoding options.  Only :table_size is effective.
-      def initialize(**options)
+      def initialize(options = {})
         @cc = EncodingContext.new(options)
       end
 

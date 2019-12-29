@@ -74,7 +74,7 @@ module HTTP2Next
 
     # Initializes new connection object.
     #
-    def initialize(**settings)
+    def initialize(settings = {})
       @local_settings  = DEFAULT_CONNECTION_SETTINGS.merge(settings)
       @remote_settings = SPEC_DEFAULT_CONNECTION_SETTINGS.dup
 
