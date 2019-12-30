@@ -20,7 +20,7 @@ module HTTP2Next
   #
   class Client < Connection
     # Initialize new HTTP 2.0 client object.
-    def initialize(**settings)
+    def initialize(settings = {})
       @stream_id    = 1
       @state        = :waiting_connection_preface
 
@@ -67,7 +67,7 @@ module HTTP2Next
       settings(payload)
     end
 
-    def self.settings_header(**settings)
+    def self.settings_header(settings)
       frame = Framer.new.generate(type: :settings, stream: 0, payload: settings)
       Base64.urlsafe_encode64(frame[9..-1])
     end

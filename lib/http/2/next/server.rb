@@ -25,7 +25,7 @@ module HTTP2Next
     attr_reader :origin_set
 
     # Initialize new HTTP 2.0 server object.
-    def initialize(**settings)
+    def initialize(settings = {})
       @stream_id    = 2
       @state        = :waiting_magic
 
