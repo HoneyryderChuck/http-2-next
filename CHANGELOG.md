@@ -17,3 +17,7 @@
 ## 0.2.0
 
 * support for the ORIGIN frame
+
+## 0.2.1
+
+* updated syntax to be ruby 2.7 compliant and warning free
