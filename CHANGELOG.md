@@ -21,3 +21,7 @@
 ## 0.2.1
 
 * updated syntax to be ruby 2.7 compliant and warning free
+
+## 0.2.2
+
+* hotfix: the connection window was being updated when receiving WINDOW_UPDATEs for a stream.
