@@ -67,14 +67,20 @@ module HTTP2Next
     def send_data(frame = nil, encode = false)
       @send_buffer.push frame unless frame.nil?
 
-      # FIXME: Frames with zero length with the END_STREAM flag set (that
-      # is, an empty DATA frame) MAY be sent if there is no available space
-      # in either flow control window.
-      while @remote_window > 0 && !@send_buffer.empty?
-        frame = @send_buffer.shift
+      until @send_buffer.empty?
+        frame = @send_buffer.first
+
+        frame_size = frame[:payload].bytesize
+        end_stream = frame[:flags].include? :end_stream
+
+        # Frames with zero length with the END_STREAM flag set (that
+        # is, an empty DATA frame) MAY be sent if there is no available space
+        # in either flow control window.
+        break if @remote_window == 0 && !(frame_size == 0 && end_stream)
+
+        @send_buffer.shift
 
         sent = 0
-        frame_size = frame[:payload].bytesize
 
         if frame_size > @remote_window
           payload = frame.delete(:payload)

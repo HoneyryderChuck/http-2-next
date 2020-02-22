@@ -10,7 +10,7 @@ AllCops:
 
 
 Metrics/BlockLength:
-  Max: 720
+  Enabled: false
 
 Lint/EmptyWhen:
   Enabled: false
