@@ -67,12 +67,14 @@ module HTTP2Next
     # Ensures that data that is added is binary encoded as well,
     # otherwise this could lead to the Buffer instance changing its encoding.
     %i[<< prepend].each do |mutating_method|
-      define_method(mutating_method) do |string|
+      class_eval(<<-METH, __FILE__, __LINE__ + 1)
+      def #{mutating_method}(string)
         string = string.dup if string.frozen?
-        @buffer.send mutating_method, string.force_encoding(Encoding::BINARY)
+        @buffer.send __method__, string.force_encoding(Encoding::BINARY)
 
         self
       end
+      METH
     end
   end
 end
