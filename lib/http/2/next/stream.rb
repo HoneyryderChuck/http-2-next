@@ -89,7 +89,6 @@ module HTTP2Next
       @state  = state
       @error  = false
       @closed = false
-      @send_buffer = []
       @_method = @_content_length = nil
       @_waiting_on_trailers = false
       @received_data = false

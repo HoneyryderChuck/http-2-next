@@ -96,7 +96,6 @@ module HTTP2Next
       @remote_window = @remote_window_limit
 
       @recv_buffer = Buffer.new
-      @send_buffer = []
       @continuation = []
       @error = nil
 

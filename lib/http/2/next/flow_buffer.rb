@@ -14,7 +14,7 @@ module HTTP2Next
     #
     # @return [Integer]
     def buffered_amount
-      @send_buffer.map { |f| f[:length] }.reduce(0, :+)
+      send_buffer.map { |f| f[:length] }.reduce(0, :+)
     end
 
     def flush
@@ -22,6 +22,10 @@ module HTTP2Next
     end
 
     private
+
+    def send_buffer
+      @send_buffer ||= []
+    end
 
     def update_local_window(frame)
       frame_size = frame[:payload].bytesize
@@ -65,10 +69,10 @@ module HTTP2Next
     # @param frame [Hash]
     # @param encode [Boolean] set to true by co
     def send_data(frame = nil, encode = false)
-      @send_buffer.push frame unless frame.nil?
+      send_buffer.push frame unless frame.nil?
 
-      until @send_buffer.empty?
-        frame = @send_buffer.first
+      until send_buffer.empty?
+        frame = send_buffer.first
 
         frame_size = frame[:payload].bytesize
         end_stream = frame[:flags].include? :end_stream
@@ -78,7 +82,7 @@ module HTTP2Next
         # in either flow control window.
         break if @remote_window == 0 && !(frame_size == 0 && end_stream)
 
-        @send_buffer.shift
+        send_buffer.shift
 
         sent = 0
 
@@ -96,7 +100,7 @@ module HTTP2Next
           # if no longer last frame in sequence...
           frame[:flags] -= [:end_stream] if frame[:flags].include? :end_stream
 
-          @send_buffer.unshift chunk
+          send_buffer.unshift chunk
           sent = @remote_window
         else
           sent = frame_size

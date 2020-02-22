@@ -21,12 +21,8 @@ REQUEST_HEADERS = [%w[:scheme https],
                    %w[a b]].freeze
 RESPONSE_HEADERS = [%w[:status 200]].freeze
 
-module BufferHelpers
-  attr_reader :send_buffer
-end
-
-HTTP2Next::Connection.__send__(:include, BufferHelpers)
-HTTP2Next::Stream.__send__(:include, BufferHelpers)
+HTTP2Next::Connection.__send__ :public, :send_buffer
+HTTP2Next::Stream.__send__ :public, :send_buffer
 
 module FrameHelpers
   def data_frame
