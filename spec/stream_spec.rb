@@ -92,6 +92,11 @@ RSpec.describe HTTP2Next::Stream do
         expect { stream.receive window_update_frame }.to_not raise_error
         expect(stream.remote_window).to eq DEFAULT_FLOW_WINDOW + window_update_frame[:increment]
       end
+
+      it "should not increment connection remote_window on received WINDOW_UPDATE" do
+        expect { stream.receive window_update_frame }.to_not raise_error
+        expect(client.remote_window).to eq DEFAULT_FLOW_WINDOW
+      end
     end
 
     context "reserved (remote)" do
