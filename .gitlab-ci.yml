@@ -81,6 +81,8 @@ ruby26:
     - apk --update add g++ make
     - *before_script
   image: "ruby:2.6-alpine"
+  only:
+    - master
   script:
     - *test
 ruby27:
