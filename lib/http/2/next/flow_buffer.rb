@@ -14,7 +14,7 @@ module HTTP2Next
     #
     # @return [Integer]
     def buffered_amount
-      send_buffer.map { |f| f[:length] }.reduce(0, :+)
+      send_buffer.bytesize
     end
 
     def flush
@@ -24,7 +24,7 @@ module HTTP2Next
     private
 
     def send_buffer
-      @send_buffer ||= []
+      @send_buffer ||= FrameBuffer.new
     end
 
     def update_local_window(frame)
@@ -69,7 +69,7 @@ module HTTP2Next
     # @param frame [Hash]
     # @param encode [Boolean] set to true by co
     def send_data(frame = nil, encode = false)
-      send_buffer.push frame unless frame.nil?
+      send_buffer << frame unless frame.nil?
 
       until send_buffer.empty?
         frame = send_buffer.first
@@ -124,6 +124,39 @@ module HTTP2Next
         error(:flow_control_error, msg: "window size too large") if @remote_window > MAX_WINDOW_SIZE
       end
       send_data(nil, encode)
+    end
+  end
+
+  class FrameBuffer
+    attr_reader :bytesize
+
+    def initialize
+      @buffer = []
+      @bytesize = 0
+    end
+
+    def first
+      @buffer.first
+    end
+
+    def <<(frame)
+      @buffer << frame
+      @bytesize += frame[:payload].bytesize
+    end
+
+    def empty?
+      @bytesize == 0
+    end
+
+    def shift
+      frame = @buffer.shift
+      @bytesize -= frame[:payload].bytesize
+      frame
+    end
+
+    def unshift(frame)
+      @buffer.unshift(frame)
+      @bytesize += frame[:payload].bytesize
     end
   end
 end
