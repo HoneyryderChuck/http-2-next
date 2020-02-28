@@ -14,7 +14,7 @@ module HTTP2Next
     #
     # @return [Integer]
     def buffered_amount
-      @send_buffer.map { |f| f[:length] }.reduce(0, :+)
+      send_buffer.bytesize
     end
 
     def flush
@@ -22,6 +22,10 @@ module HTTP2Next
     end
 
     private
+
+    def send_buffer
+      @send_buffer ||= FrameBuffer.new
+    end
 
     def update_local_window(frame)
       frame_size = frame[:payload].bytesize
@@ -63,42 +67,20 @@ module HTTP2Next
     # Buffered DATA frames are emitted in FIFO order.
     #
     # @param frame [Hash]
-    # @param encode [Boolean] set to true by co
+    # @param encode [Boolean] set to true by connection
     def send_data(frame = nil, encode = false)
-      @send_buffer.push frame unless frame.nil?
+      send_buffer << frame unless frame.nil?
 
-      # FIXME: Frames with zero length with the END_STREAM flag set (that
-      # is, an empty DATA frame) MAY be sent if there is no available space
-      # in either flow control window.
-      while @remote_window > 0 && !@send_buffer.empty?
-        frame = @send_buffer.shift
+      while (frame = send_buffer.retrieve(@remote_window))
 
-        sent = 0
-        frame_size = frame[:payload].bytesize
-
-        if frame_size > @remote_window
-          payload = frame.delete(:payload)
-          chunk   = frame.dup
-
-          # Split frame so that it fits in the window
-          # TODO: consider padding!
-          frame[:payload] = payload.slice!(0, @remote_window)
-          frame[:length] = frame[:payload].bytesize
-          chunk[:length]  = payload.bytesize
-          chunk[:payload] = payload
-
-          # if no longer last frame in sequence...
-          frame[:flags] -= [:end_stream] if frame[:flags].include? :end_stream
-
-          @send_buffer.unshift chunk
-          sent = @remote_window
-        else
-          sent = frame_size
-        end
+        sent = frame[:payload].bytesize
 
         manage_state(frame) do
-          frames = encode ? encode(frame) : [frame]
-          frames.each { |f| emit(:frame, f) }
+          if encode
+            encode(frame).each { |f| emit(:frame, f) }
+          else
+            emit(:frame, frame)
+          end
           @remote_window -= sent
         end
       end
@@ -114,6 +96,61 @@ module HTTP2Next
         error(:flow_control_error, msg: "window size too large") if @remote_window > MAX_WINDOW_SIZE
       end
       send_data(nil, encode)
+    end
+  end
+
+  class FrameBuffer
+    attr_reader :bytesize
+
+    def initialize
+      @buffer = []
+      @bytesize = 0
+    end
+
+    def <<(frame)
+      @buffer << frame
+      @bytesize += frame[:payload].bytesize
+    end
+
+    def empty?
+      @bytesize == 0
+    end
+
+    def retrieve(window_size)
+      return if @buffer.empty?
+
+      frame = @buffer.first
+
+      frame_size = frame[:payload].bytesize
+      end_stream = frame[:flags].include? :end_stream
+
+      # Frames with zero length with the END_STREAM flag set (that
+      # is, an empty DATA frame) MAY be sent if there is no available space
+      # in either flow control window.
+      return if window_size == 0 && !(frame_size == 0 && end_stream)
+
+      @buffer.shift
+
+      if frame_size > window_size
+        payload = frame.delete(:payload)
+        chunk   = frame.dup
+
+        # Split frame so that it fits in the window
+        # TODO: consider padding!
+        frame[:payload] = payload.slice!(0, window_size)
+        frame[:length] = frame[:payload].bytesize
+        chunk[:length]  = payload.bytesize
+        chunk[:payload] = payload
+
+        # if no longer last frame in sequence...
+        frame[:flags] -= [:end_stream] if end_stream
+
+        @buffer.unshift(chunk)
+        @bytesize -= window_size
+      else
+        @bytesize -= frame_size
+      end
+      frame
     end
   end
 end

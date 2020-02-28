@@ -92,6 +92,11 @@ RSpec.describe HTTP2Next::Stream do
         expect { stream.receive window_update_frame }.to_not raise_error
         expect(stream.remote_window).to eq DEFAULT_FLOW_WINDOW + window_update_frame[:increment]
       end
+
+      it "should not increment connection remote_window on received WINDOW_UPDATE" do
+        expect { stream.receive window_update_frame }.to_not raise_error
+        expect(client.remote_window).to eq DEFAULT_FLOW_WINDOW
+      end
     end
 
     context "reserved (remote)" do
@@ -628,6 +633,29 @@ RSpec.describe HTTP2Next::Stream do
       stream.receive headers_frame
       stream.receive data1
       stream.receive data2
+    end
+
+    it "should send a DATA frame with size 0 when there is no window, as long as end_stream flag is set" do
+      settings = settings_frame
+      data = data_frame
+      settings[:payload] = [[:settings_initial_window_size, 1000]]
+      settings[:stream] = 0
+
+      framer = Framer.new
+      client << framer.generate(settings)
+
+      s1 = client.new_stream
+      s1.send headers_frame
+      s1.send data.merge(payload: "x" * 1000, flags: [])
+
+      # check if window is exhausted
+      expect(s1.remote_window).to be(0)
+      expect(s1.send_buffer).to be_empty
+
+      s1.send data.merge(payload: "", flags: [:end_stream])
+
+      expect(s1.remote_window).to be(0)
+      expect(s1.send_buffer).to be_empty
     end
   end
 
