@@ -1,8 +1,8 @@
 # HTTP-2-Next
 
-[![Gem Version](https://badge.fury.io/rb/http-2.svg)](http://rubygems.org/gems/http-2)
+[![Gem Version](https://badge.fury.io/rb/http-2-next.svg)](http://rubygems.org/gems/http-2-next)
 [![Build status](https://gitlab.com/honeyryderchuck/http-2-next/badges/master/pipeline.svg)](https://gitlab.com/honeyryderchuck/http-2-next/commits/master)
-[![coverage report](https://gitlab.com/honeyryderchuck/httpx/badges/master/coverage.svg)](https://honeyryderchuck.gitlab.io/http-2-next/coverage/#_AllFiles)
+[![coverage report](https://gitlab.com/honeyryderchuck/http-2-next/badges/master/coverage.svg)](https://honeyryderchuck.gitlab.io/http-2-next/coverage/#_AllFiles)
 
 **Attention!** This is a fork of the [http-2](https://github.com/igrigorik/http-2) gem.
 
