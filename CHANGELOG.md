@@ -25,3 +25,9 @@
 ## 0.2.2
 
 * hotfix: the connection window was being updated when receiving WINDOW_UPDATEs for a stream.
+
+## 0.2.3
+
+* bugfix: allow stream to send empty end-stream DATA frame even if remote window is exhausted.
+* avoid needless header downcase calls.
+* using class_eval instead of define_method for performant lookups.
