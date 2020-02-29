@@ -94,6 +94,9 @@ ruby27:
   image: "ruby:2.7-alpine"
   script:
     - *test
+  artifacts:
+    paths:
+      - "www/coverage/"
 
 
 
