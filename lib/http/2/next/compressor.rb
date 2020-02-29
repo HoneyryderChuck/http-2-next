@@ -12,6 +12,10 @@ module HTTP2Next
     class EncodingContext
       include Error
 
+      using Extensions
+
+      UPPER = /[[:upper:]]/.freeze
+
       # @private
       # Static table
       # - http://tools.ietf.org/html/draft-ietf-httpbis-header-compression-10#appendix-A
@@ -188,7 +192,7 @@ module HTTP2Next
             cmd[:index] ||= cmd[:name]
             cmd[:value] ||= v
             cmd[:name] = k
-          elsif cmd[:name] != cmd[:name].downcase
+          elsif UPPER.match?(cmd[:name])
             raise ProtocolError, "Invalid uppercase key: #{cmd[:name]}"
           end
 
@@ -217,7 +221,7 @@ module HTTP2Next
         headers.each do |field, value|
           # Literal header names MUST be translated to lowercase before
           # encoding and transmission.
-          field = field.downcase
+          field = field.downcase if UPPER.match?(field)
           value = "/" if field == ":path" && value.empty?
           cmd = addcmd(field, value)
           cmd[:type] = :noindex if noindex && cmd[:type] == :incremental

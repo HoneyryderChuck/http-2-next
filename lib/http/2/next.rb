@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "http/2/next/version"
+require "http/2/next/extensions"
 require "http/2/next/error"
 require "http/2/next/emitter"
 require "http/2/next/buffer"
