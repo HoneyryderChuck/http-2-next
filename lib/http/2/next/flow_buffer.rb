@@ -127,7 +127,7 @@ module HTTP2Next
       # Frames with zero length with the END_STREAM flag set (that
       # is, an empty DATA frame) MAY be sent if there is no available space
       # in either flow control window.
-      return if window_size == 0 && !(frame_size == 0 && end_stream)
+      return if window_size <= 0 && !(frame_size == 0 && end_stream)
 
       @buffer.shift
 
