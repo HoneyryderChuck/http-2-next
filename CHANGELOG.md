@@ -31,3 +31,7 @@
 * bugfix: allow stream to send empty end-stream DATA frame even if remote window is exhausted.
 * avoid needless header downcase calls.
 * using class_eval instead of define_method for performant lookups.
+
+## 0.2.4
+
+* bugfix: wrong window update accounting check causing random flow control errors.
