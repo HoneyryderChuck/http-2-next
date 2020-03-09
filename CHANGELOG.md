@@ -35,3 +35,7 @@
 ## 0.2.4
 
 * bugfix: wrong window update accounting check causing random flow control errors.
+
+## 0.2.5
+
+* bugfix: fixed bookkeeping of recently-closed streams.
