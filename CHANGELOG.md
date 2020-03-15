@@ -39,3 +39,7 @@
 ## 0.2.5
 
 * bugfix: fixed bookkeeping of recently-closed streams.
+
+## 0.2.6
+
+* feature: Connection#max_streams=(int); this way one can set the max number of streams, thereby bypassing the limits established in the handshake. A lot of servers treat MAX_CONCURRENT_STREAMS not as the limit of allowed streams, but the number of inflight streams. By setting this to Float::INFINITY, users can take advantage of it.
