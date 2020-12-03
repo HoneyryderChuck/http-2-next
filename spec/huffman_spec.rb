@@ -3,6 +3,7 @@
 require "helper"
 
 RSpec.describe HTTP2Next::Header::Huffman do
+  using HTTP2Next::StringExtensions
   huffman_examples = [ # plain, encoded
     ["www.example.com", "f1e3c2e5f23a6ba0ab90f4ff"],
     %w[no-cache a8eb10649cbf],

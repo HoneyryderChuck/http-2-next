@@ -10,7 +10,7 @@ module HTTP2Next
 
     using StringExtensions
 
-    def_delegators :@buffer, :ord, :encoding, :setbyte, :unpack, :unpack1,
+    def_delegators :@buffer, :ord, :encoding, :setbyte, :unpack,
                    :size, :each_byte, :to_str, :to_s, :length, :inspect,
                    :[], :[]=, :empty?, :bytesize, :include?
 
@@ -28,6 +28,10 @@ module HTTP2Next
     # @param n [Integer] number of bytes to slice from the buffer
     def read(n)
       Buffer.new(@buffer.slice!(0, n))
+    end
+
+    def unpack1(*arg)
+      @buffer.unpack1(*arg)
     end
 
     # Emulate StringIO#getbyte: slice first byte from buffer.

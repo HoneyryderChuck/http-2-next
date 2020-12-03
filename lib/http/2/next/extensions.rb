@@ -14,8 +14,8 @@ module HTTP2Next
   module StringExtensions
     unless String.method_defined?(:unpack1)
       refine String do
-        def unpack1(*args)
-          unpack(*args).first
+        def unpack1(format)
+          unpack(format).first
         end
       end
     end
