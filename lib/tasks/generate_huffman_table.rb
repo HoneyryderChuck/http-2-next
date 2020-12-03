@@ -13,9 +13,8 @@ module HuffmanTable
   EOS          = 256
 
   class Node
-    attr_accessor :next, :emit, :final, :depth
-    attr_accessor :transitions
-    attr_accessor :id
+    attr_accessor :next, :emit, :final, :depth, :transitions, :id
+
     @@id = 0 # rubocop:disable Style/ClassVars
     def initialize(depth)
       @next = [nil, nil]
@@ -38,6 +37,7 @@ module HuffmanTable
 
     class Transition
       attr_accessor :emit, :node
+
       def initialize(emit, node)
         @emit = emit
         @node = node

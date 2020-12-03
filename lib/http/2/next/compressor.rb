@@ -185,14 +185,15 @@ module HTTP2Next
           # o  The header field is added to the decoded header list.
           # o  The header field is inserted at the beginning of the dynamic table.
 
-          if cmd[:name].is_a? Integer
+          case cmd[:name]
+          when Integer
             k, v = dereference(cmd[:name])
 
             cmd = cmd.dup
             cmd[:index] ||= cmd[:name]
             cmd[:value] ||= v
             cmd[:name] = k
-          elsif UPPER.match?(cmd[:name])
+          when UPPER
             raise ProtocolError, "Invalid uppercase key: #{cmd[:name]}"
           end
 

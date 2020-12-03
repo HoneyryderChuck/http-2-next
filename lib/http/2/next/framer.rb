@@ -221,7 +221,7 @@ module HTTP2Next
         raise CompressionError, "Invalid stream ID (#{frame[:stream]})" if (frame[:stream]).nonzero?
 
         frame[:payload].each do |(k, v)|
-          if k.is_a? Integer
+          if k.is_a? Integer # rubocop:disable Style/GuardClause
             DEFINED_SETTINGS.value?(k) || next
           else
             k = DEFINED_SETTINGS[k]
@@ -353,7 +353,7 @@ module HTTP2Next
       if FRAME_TYPES_WITH_PADDING.include?(frame[:type])
         padded = frame[:flags].include?(:padded)
         if padded
-          padlen = payload.read(1).unpack(UINT8).first
+          padlen = payload.read(1).unpack1(UINT8)
           frame[:padding] = padlen + 1
           raise ProtocolError, "padding too long" if padlen > payload.bytesize
 
@@ -395,7 +395,7 @@ module HTTP2Next
         raise ProtocolError, "Invalid stream ID (#{frame[:stream]})" if (frame[:stream]).nonzero?
 
         (frame[:length] / 6).times do
-          id  = payload.read(2).unpack(UINT16).first
+          id  = payload.read(2).unpack1(UINT16)
           val = payload.read_uint32
 
           # Unsupported or unrecognized settings MUST be ignored.
@@ -437,7 +437,7 @@ module HTTP2Next
         origins = []
 
         until payload.empty?
-          len = payload.read(2).unpack(UINT16).first
+          len = payload.read(2).unpack1(UINT16)
           origins << payload.read(len)
         end
 

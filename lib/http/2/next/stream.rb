@@ -51,11 +51,10 @@ module HTTP2Next
 
     # Stream priority as set by initiator.
     attr_reader :weight
-    attr_reader :dependency
+    attr_reader :dependency, :remote_window
 
     # Size of current stream flow control window.
     attr_reader :local_window
-    attr_reader :remote_window
     alias window local_window
 
     # Reason why connection was closed.

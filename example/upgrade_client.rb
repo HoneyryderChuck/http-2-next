@@ -48,6 +48,7 @@ Accept: */*
 RESP
 
   attr_reader :complete, :parsing
+
   def initialize(conn, sock)
     @conn = conn
     @sock = sock
@@ -151,7 +152,7 @@ while !sock.closed? && !sock.eof?
     end
   rescue StandardError => e
     puts "#{e.class} exception: #{e.message} - closing socket."
-    e.backtrace.each { |l| puts "\t" + l }
+    e.backtrace.each { |l| puts "\t#{l}" }
     conn.close
     sock.close
   end

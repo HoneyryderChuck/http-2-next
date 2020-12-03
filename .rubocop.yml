@@ -1,7 +1,7 @@
 inherit_from: .rubocop_todo.yml
 
 AllCops:
-  TargetRubyVersion: 2.3
+  TargetRubyVersion: 2.4
   DisplayCopNames: true
   Exclude:
     - "bin/**"
@@ -23,6 +23,3 @@ Style/NumericPredicate:
 
 Gemspec/RequiredRubyVersion:
   Enabled: false
-
-
-

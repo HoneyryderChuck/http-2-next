@@ -319,7 +319,7 @@ module HTTP2Next
         [0x3fffffff, 30]
       ].each(&:freeze).freeze
 
-      ENCODE_TABLE = CODES.map { |c, l| [c].pack("N").unpack("B*").first[-l..-1] }.each(&:freeze).freeze
+      ENCODE_TABLE = CODES.map { |c, l| [c].pack("N").unpack1("B*")[-l..-1] }.each(&:freeze).freeze
     end
   end
 end

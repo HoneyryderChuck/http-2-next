@@ -57,12 +57,11 @@ module HTTP2Next
     # Size of current connection flow control window (by default, set to
     # infinity, but is automatically updated on receipt of peer settings).
     attr_reader :local_window
-    attr_reader :remote_window
+    attr_reader :remote_window, :remote_settings
     alias window local_window
 
     # Current settings value for local and peer
     attr_reader :local_settings
-    attr_reader :remote_settings
 
     # Pending settings value
     #  Sent but not ack'ed settings

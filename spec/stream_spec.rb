@@ -724,7 +724,7 @@ RSpec.describe HTTP2Next::Stream do
         end
       end
 
-      stream.data(data + "x")
+      stream.data("#{data}x")
     end
 
     it ".data should split large multibyte DATA frames" do
@@ -745,7 +745,7 @@ RSpec.describe HTTP2Next::Stream do
         end
       end
 
-      stream.data(data + "x")
+      stream.data("#{data}x")
     end
 
     it ".cancel should reset stream with cancel error code" do
