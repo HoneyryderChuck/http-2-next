@@ -12,7 +12,7 @@ module HTTP2Next
     class EncodingContext
       include Error
 
-      using Extensions
+      using RegexpExtensions
 
       UPPER = /[[:upper:]]/.freeze
 

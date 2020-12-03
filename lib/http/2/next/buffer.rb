@@ -8,6 +8,8 @@ module HTTP2Next
   class Buffer
     extend Forwardable
 
+    using StringExtensions
+
     def_delegators :@buffer, :ord, :encoding, :setbyte, :unpack, :unpack1,
                    :size, :each_byte, :to_str, :to_s, :length, :inspect,
                    :[], :[]=, :empty?, :bytesize, :include?

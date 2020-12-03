@@ -26,3 +26,7 @@ Style/HashTransformKeys:
 
 Style/HashTransformValues:
   Enabled: true
+
+Lint/SuppressedException:
+  Exclude:
+    - Rakefile

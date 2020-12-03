@@ -21,6 +21,9 @@ jruby:
   image: "jruby:9.2.9"
   script:
     - *test
+  artifacts:
+    paths:
+      - coverage
 ruby21:
   variables:
     CI: 1
@@ -30,6 +33,9 @@ ruby21:
   image: "ruby:2.1-alpine"
   script:
     - *test
+  artifacts:
+    paths:
+      - coverage
 ruby22:
   variables:
     CI: 1
@@ -96,7 +102,35 @@ ruby27:
     - *test
   artifacts:
     paths:
-      - "www/coverage/"
+      - coverage
+ruby30:
+  variables:
+    CI: 1
+  before_script:
+    - apk --update add g++ make
+    - *before_script
+  image: "ruby:3.0-rc-alpine"
+  script:
+    - *test
+  artifacts:
+    paths:
+      - coverage
 
-
-
+coverage:
+  stage: deploy
+  dependencies:
+    - jruby
+    - ruby21
+    - ruby27
+  image: "ruby:2.7-alpine"
+  before_script:
+    - apk --update add g++ make
+    - gem install simplecov --no-doc
+  script:
+    - find coverage -name "*resultset.json" -exec sed -i 's?/home?'`pwd`'?' {} \;
+    - rake coverage:report
+    - mv coverage public
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days

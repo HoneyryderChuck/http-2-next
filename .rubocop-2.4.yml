@@ -17,6 +17,3 @@ Style/HashTransformValues:
 Lint/ConstantDefinitionInBlock:
   Exclude:
     - 'spec/**/*'
-
-Bundler/DuplicatedGem:
-  Enabled: false

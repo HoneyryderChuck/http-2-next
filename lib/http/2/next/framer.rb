@@ -4,6 +4,8 @@ module HTTP2Next
   # Performs encoding, decoding, and validation of binary HTTP/2 frames.
   #
   class Framer
+    using StringExtensions
+
     include Error
 
     # Default value of max frame size (16384 bytes)

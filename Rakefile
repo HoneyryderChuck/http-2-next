@@ -2,26 +2,45 @@
 
 require "English"
 require "bundler/gem_tasks"
-require "rspec/core/rake_task"
-require "rubocop/rake_task"
 require "yard"
 require "open3"
 require_relative "lib/tasks/generate_huffman_table"
 
-RSpec::Core::RakeTask.new(:spec) do |t|
-  t.exclude_pattern = "./spec/hpack_test_spec.rb"
+begin
+  require "rspec/core/rake_task"
+  RSpec::Core::RakeTask.new(:spec) do |t|
+    t.exclude_pattern = "./spec/hpack_test_spec.rb"
+  end
+rescue LoadError
 end
 
 RUBY_MAJOR_MINOR = RUBY_VERSION.split(/\./).first(2).join(".")
 
-desc "Run rubocop"
-RuboCop::RakeTask.new(:cop) do |task|
-  task.options += %W[-c.rubocop-#{RUBY_MAJOR_MINOR}.yml]
+begin
+  require "rubocop/rake_task"
+  desc "Run rubocop"
+  RuboCop::RakeTask.new(:cop) do |task|
+    task.options += %W[-c.rubocop-#{RUBY_MAJOR_MINOR}.yml]
+  end
+rescue LoadError
 end
 
 RSpec::Core::RakeTask.new(:hpack) do |t|
   t.pattern = "./spec/hpack_test_spec.rb"
 end
+
+namespace :coverage do
+  desc "Aggregates coverage reports"
+  task :report do
+    return unless ENV.key?("CI")
+
+    require "simplecov"
+
+    SimpleCov.collate Dir["coverage/**/.resultset.json"]
+  end
+end
+
+task :"test:ci" => (RUBY_ENGINE == "ruby" ? %i[test rubocop] : %i[test])
 
 desc "install h2spec"
 task :h2spec_install do
@@ -73,7 +92,7 @@ task :h2spec do
   end
 
   server_pid = Process.spawn("ruby example/server.rb -p 9000", out: File::NULL)
-  sleep RUBY_ENGINE == "jruby" ? 20 : 1
+  sleep RUBY_ENGINE == "jruby" ? 20 : 5
   system("#{h2spec} -p 9000 -o 1 --strict")
   Process.kill("TERM", server_pid)
   exit($CHILD_STATUS.exitstatus)

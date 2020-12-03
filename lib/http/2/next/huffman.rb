@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "error"
+require_relative "extensions"
 
 module HTTP2Next
   # Implementation of huffman encoding for HPACK
@@ -9,6 +10,8 @@ module HTTP2Next
   module Header
     # Huffman encoder/decoder
     class Huffman
+      using StringExtensions
+
       include Error
 
       BITS_AT_ONCE = 4
