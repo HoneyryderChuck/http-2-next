@@ -10,7 +10,7 @@ RSpec.describe HTTP2Next::Connection do
   context "initialization and settings" do
     it "should raise error if first frame is not settings" do
       (frame_types - [settings_frame]).each do |frame|
-        expect { conn << frame }.to raise_error(ProtocolError)
+        expect { conn << f.generate(frame) }.to raise_error(ProtocolError)
         expect(conn).to be_closed
       end
     end
