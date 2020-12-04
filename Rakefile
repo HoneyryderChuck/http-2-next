@@ -2,19 +2,22 @@
 
 require "English"
 require "bundler/gem_tasks"
-require "yard"
 require "open3"
 require_relative "lib/tasks/generate_huffman_table"
+
+RUBY_MAJOR_MINOR = RUBY_VERSION.split(/\./).first(2).join(".")
 
 begin
   require "rspec/core/rake_task"
   RSpec::Core::RakeTask.new(:spec) do |t|
     t.exclude_pattern = "./spec/hpack_test_spec.rb"
   end
+
+  RSpec::Core::RakeTask.new(:hpack) do |t|
+    t.pattern = "./spec/hpack_test_spec.rb"
+  end
 rescue LoadError
 end
-
-RUBY_MAJOR_MINOR = RUBY_VERSION.split(/\./).first(2).join(".")
 
 begin
   require "rubocop/rake_task"
@@ -25,8 +28,10 @@ begin
 rescue LoadError
 end
 
-RSpec::Core::RakeTask.new(:hpack) do |t|
-  t.pattern = "./spec/hpack_test_spec.rb"
+begin
+  require "yard"
+  YARD::Rake::YardocTask.new
+rescue LoadError
 end
 
 namespace :coverage do
@@ -98,12 +103,8 @@ task :h2spec do
   exit($CHILD_STATUS.exitstatus)
 end
 
-RuboCop::RakeTask.new
-YARD::Rake::YardocTask.new
-
-if ENV["CI"]
-  task default: %i[spec cop h2spec_install h2spec]
-else
-  task default: %i[spec cop]
-end
+default_tasks = %i[spec]
+default_tasks << :cop unless RUBY_ENGINE == "jruby"
+default_tasks += %i[h2spec_install h2spec] if ENV.key?("CI")
+task default: default_tasks
 task all: %i[default hpack]
