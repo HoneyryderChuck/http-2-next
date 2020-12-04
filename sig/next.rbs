@@ -1,0 +1,23 @@
+module HTTP2Next
+  DEFAULT_FLOW_WINDOW: Integer
+
+  DEFAULT_HEADER_SIZE: Integer
+
+  DEFAULT_MAX_CONCURRENT_STREAMS: Integer
+
+  SPEC_DEFAULT_CONNECTION_SETTINGS: Hash[Symbol, Integer]
+
+  DEFAULT_CONNECTION_SETTINGS: Hash[Symbol, Integer]
+
+  DEFAULT_WEIGHT: Integer
+
+  CONNECTION_PREFACE_MAGIC: String
+
+  REQUEST_MANDATORY_HEADERS: Array[Symbol]
+
+  RESPONSE_MANDATORY_HEADERS: Array[Symbol]
+
+  type frame_key = :type | :flags | :stream | :increment | :length | :payload | :padding
+  type frame_value = Integer | Symbol | Array[Symbol] | String | Buffer
+  type frame = Hash[frame_key, frame_value]
+end

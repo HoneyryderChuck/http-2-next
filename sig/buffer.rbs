@@ -1,0 +1,19 @@
+module HTTP2Next
+  class Buffer
+
+    def getbyte: () -> Integer
+
+    def readbyte: (Integer) -> Integer
+
+    def read_uint32: () -> Integer
+
+    def <<: (string) -> void
+
+    def prepend: (string) -> void
+
+    private
+
+    def initialize: () -> untyped
+                  | (string) -> untyped
+  end
+end

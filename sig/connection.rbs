@@ -1,0 +1,5 @@
+module HTTP2Next
+  class Connection
+    include FlowBuffer
+  end
+end
