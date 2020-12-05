@@ -104,6 +104,7 @@ module HTTP2Next
 
       @h2c_upgrade = nil
       @closed_since = nil
+      @received_frame = false
     end
 
     def closed?
@@ -212,6 +213,11 @@ module HTTP2Next
       end
 
       while (frame = @framer.parse(@recv_buffer))
+        if is_a?(Client) && !@received_frame
+          connection_error(:protocol_error, msg: "didn't receive settings") if frame[:type] != :settings
+          @received_frame = true
+        end
+
         # Implementations MUST discard frames
         # that have unknown or unsupported types.
         if frame[:type].nil?
