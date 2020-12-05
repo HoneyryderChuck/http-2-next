@@ -1,6 +1,8 @@
 module HTTP2Next
   class Buffer
 
+    def read: (Integer) -> Buffer
+
     def getbyte: () -> Integer
 
     def readbyte: (Integer) -> Integer

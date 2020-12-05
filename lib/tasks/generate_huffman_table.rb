@@ -5,7 +5,7 @@ task :generate_table do
   HuffmanTable::Node.generate_state_table
 end
 
-require_relative "../http/2/next/huffman"
+require_relative "../http/2/next/header/huffman"
 
 # @private
 module HuffmanTable

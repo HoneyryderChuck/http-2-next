@@ -1,0 +1,22 @@
+module HTTP2Next
+  module Header
+    class Decompressor
+      @cc: EncodingContext
+
+      def table_size=: (Integer) -> void
+
+      def integer: (Buffer, Integer) -> Integer
+
+      def string: (Buffer) -> String
+
+      def header: (Buffer) -> header_command
+
+      def decode: (Buffer, frame?) -> Array[header_pair]
+                | (Buffer) -> Array[header_pair]
+      private
+
+      def initialize: (context_hash options) -> untyped
+                    | () -> untyped
+    end
+  end
+end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "error"
-require_relative "extensions"
+require_relative "../error"
+require_relative "../extensions"
 
 module HTTP2Next
   # Implementation of huffman encoding for HPACK
