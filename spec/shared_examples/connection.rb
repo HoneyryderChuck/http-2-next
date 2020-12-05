@@ -284,14 +284,6 @@ RSpec.shared_examples "a connection" do
       end
     end
 
-    it "should raise compression error on encode of invalid frame" do
-      stream = conn.new_stream
-
-      expect do
-        stream.headers({ "name" => Float::INFINITY })
-      end.to raise_error(CompressionError)
-    end
-
     it "should raise connection error on decode of invalid frame" do
       frame = f.generate(data_frame) # Receiving DATA on unopened stream 1 is an error.
       # Connection errors emit protocol error frames
