@@ -74,7 +74,7 @@ module HTTP2Next
     # @param parent [Stream]
     # @param state [Symbol]
     def initialize(connection:, id:, weight: 16, dependency: 0, exclusive: false, parent: nil, state: :idle)
-      stream_error(:protocol_error, "stream can't depend on itself") if id == dependency
+      stream_error(:protocol_error, msg: "stream can't depend on itself") if id == dependency
 
       @connection = connection
       @id = id
@@ -173,7 +173,7 @@ module HTTP2Next
     end
 
     def calculate_content_length(data_length)
-      return unless @_content_length
+      return unless @_content_length && data_length
 
       @_content_length -= data_length
       return if @_content_length >= 0

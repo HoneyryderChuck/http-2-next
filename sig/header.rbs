@@ -11,7 +11,5 @@ module HTTP2Next
     type context_hash = Hash[Symbol, Symbol | Integer]
 
     type header_command = Hash[header_key, header_value]
-
-    type header_pair = [String, String]
   end
 end

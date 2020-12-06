@@ -17,6 +17,8 @@ module HTTP2Next
 
   RESPONSE_MANDATORY_HEADERS: Array[Symbol]
 
+  type header_pair = [String, String]
+
   type frame_key = :type | :flags | :stream | :padding | :ignore |
                    # headers
                    :method | :trailer | :content_length |
@@ -43,6 +45,7 @@ module HTTP2Next
                      Array[String] |
                      Array[Buffer] |
                      Array[[Symbol | Integer, Integer]] |
+                     Enumerable[header_pair] |
                      nil
 
   type frame = Hash[frame_key, frame_value]
