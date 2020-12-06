@@ -1,5 +1,5 @@
 module HTTP2Next
-  class Connection
+  class Stream
     include FlowBuffer
     include Emitter 
   end

@@ -1,0 +1,4 @@
+module HTTP2Next
+  class Server < Connection
+  end
+end

@@ -9,19 +9,18 @@ module HTTP2Next
     #
     # @param event [Symbol]
     # @param block [Proc] callback function
-    def add_listener(event, &block)
+    def on(event, &block)
       raise ArgumentError, "must provide callback" unless block_given?
 
       listeners(event.to_sym).push block
     end
-    alias on add_listener
 
     # Subscribe to next event (at most once) for specified type.
     #
     # @param event [Symbol]
     # @param block [Proc] callback function
     def once(event, &block)
-      add_listener(event) do |*args, &callback|
+      on(event) do |*args, &callback|
         block.call(*args, &callback)
         :delete
       end
