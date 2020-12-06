@@ -106,8 +106,8 @@ RSpec.shared_examples "a connection" do
         expect(frame[:stream]).to eq 0
         expect(frame[:increment]).to eq 400
       end
-      conn.receive f.generate(data.merge(payload: "x" * 200, end_stream: false, stream: s1.id))
-      conn.receive f.generate(data.merge(payload: "x" * 200, end_stream: false, stream: s2.id))
+      conn.receive f.generate(data.merge(payload: "x" * 200, stream: s1.id))
+      conn.receive f.generate(data.merge(payload: "x" * 200, stream: s2.id))
       expect(s1.local_window).to eq 300
       expect(s2.local_window).to eq 300
       expect(conn.local_window).to eq 500
