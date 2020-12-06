@@ -17,9 +17,34 @@ module HTTP2Next
 
   RESPONSE_MANDATORY_HEADERS: Array[Symbol]
 
-  type frame_key = :type | :flags | :stream | :increment | :length | :payload | :padding | :promise_stream | :method | :dependency | :exclusive | :weight | :trailer | :content_length | :ignore | :origin | :error
+  type frame_key = :type | :flags | :stream | :padding | :ignore |
+                   # headers
+                   :method | :trailer | :content_length |
+                   # data, settings, ping
+                   :payload | :length |
+                   # promise
+                   :promise_stream |
+                   # window_update
+                   :increment |
+                   # priority
+                   :dependency | :exclusive | :weight |
+                   # altsvc
+                   :max_age | :port | :proto | :host |
+                   # origin
+                   :origin |
+                   # goaway
+                   :last_stream | :error
 
-  type frame_value = top # Integer | Symbol | Array[Symbol] | String | Buffer | bool | Array[String] | Error
+  type frame_value = Integer |
+                     Symbol | # type (:data, :headers)
+                     Array[Symbol] |
+                     String | Buffer |
+                     bool |
+                     Array[String] |
+                     Array[Buffer] |
+                     Array[[Symbol | Integer, Integer]] |
+                     Error |
+                     nil
 
   type frame = Hash[frame_key, frame_value]
 end

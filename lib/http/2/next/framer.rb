@@ -156,6 +156,7 @@ module HTTP2Next
     # Decodes common 9-byte header.
     #
     # @param buf [Buffer]
+    # @return [Hash] the corresponding frame
     def read_common_header(buf)
       frame = {}
       len_hi, len_lo, type, flags, stream = buf.slice(0, 9).unpack(HEADERPACK)
@@ -335,10 +336,10 @@ module HTTP2Next
     #
     # @param buf [Buffer]
     def parse(buf)
-      return nil if buf.size < 9
+      return if buf.size < 9
 
       frame = read_common_header(buf)
-      return nil if buf.size < 9 + frame[:length]
+      return if buf.size < 9 + frame[:length]
 
       raise ProtocolError, "payload too large" if frame[:length] > @local_max_frame_size
 
@@ -454,17 +455,16 @@ module HTTP2Next
 
     def pack_error(e)
       unless e.is_a? Integer
-        raise CompressionError, "Unknown error ID for #{e}" if DEFINED_ERRORS[e].nil?
-
         e = DEFINED_ERRORS[e]
+
+        raise CompressionError, "Unknown error ID for #{e}" unless e
       end
 
       [e].pack(UINT32)
     end
 
     def unpack_error(error)
-      name, = DEFINED_ERRORS.find { |_name, v| v == error }
-      name || error
+      DEFINED_ERRORS.key(error) || error
     end
   end
 end

@@ -475,7 +475,7 @@ RSpec.describe HTTP2Next::Framer do
     frame = { type: :headers, stream: 1, payload: "headers" }
     bytes = f.generate(frame)
 
-    expect(f.parse(bytes[0...-1])).to be_nil
+    expect(f.parse(bytes.slice(0...-1))).to be_nil
     expect(f.parse(bytes)).to eq frame
     expect(bytes).to be_empty
   end
