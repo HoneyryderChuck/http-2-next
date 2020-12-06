@@ -43,7 +43,6 @@ module HTTP2Next
                      Array[String] |
                      Array[Buffer] |
                      Array[[Symbol | Integer, Integer]] |
-                     Error |
                      nil
 
   type frame = Hash[frame_key, frame_value]
