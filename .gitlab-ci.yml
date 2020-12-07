@@ -122,8 +122,19 @@ coverage:
   script:
     - find coverage -name "*resultset.json" -exec sed -i 's?/home?'`pwd`'?' {} \;
     - rake coverage:report
+  artifacts:
+    paths:
+      - coverage
+
+pages:
+  stage: deploy
+  dependencies:
+    - coverage
+  script:
     - mv coverage public
   artifacts:
     paths:
       - public
     expire_in: 30 days
+  only:
+    - master
