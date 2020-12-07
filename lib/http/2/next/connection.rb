@@ -718,7 +718,7 @@ module HTTP2Next
     # @param priority [Integer]
     # @param window [Integer]
     # @param parent [Stream]
-    def activate_stream(id: nil, **args)
+    def activate_stream(id:, **args)
       connection_error(msg: "Stream ID already exists") if @streams.key?(id)
 
       raise StreamLimitExceeded if @active_stream_count >= (@max_streams || @local_settings[:settings_max_concurrent_streams])

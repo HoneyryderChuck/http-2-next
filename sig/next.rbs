@@ -5,9 +5,13 @@ module HTTP2Next
 
   DEFAULT_MAX_CONCURRENT_STREAMS: Integer
 
-  SPEC_DEFAULT_CONNECTION_SETTINGS: Hash[Symbol, Integer]
+  type settings_hash = Hash[Symbol, Integer]
 
-  DEFAULT_CONNECTION_SETTINGS: Hash[Symbol, Integer]
+  type settings_enum = Enumerable[Symbol, Integer]
+
+  SPEC_DEFAULT_CONNECTION_SETTINGS: settings_hash
+
+  DEFAULT_CONNECTION_SETTINGS: settings_hash
 
   DEFAULT_WEIGHT: Integer
 
