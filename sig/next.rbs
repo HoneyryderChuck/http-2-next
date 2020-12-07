@@ -52,5 +52,84 @@ module HTTP2Next
                      Enumerable[header_pair] |
                      nil
 
-  type frame = Hash[frame_key, frame_value]
+  # type frame = Hash[frame_key, frame_value]
+
+  # exhaustive list of possible frame records
+
+  type bla = { type: 1 }
+
+  type data_frame = {
+    type: :data,
+    payload: Buffer,
+    length: Integer,
+    flags: Array[Symbol],
+    ?padding: Integer
+  }
+
+  type headers_frame = {
+    type: :headers,
+    flags: Array[Symbol],
+    payload: Enumerable[header_pair],
+    flags: Array[Symbol],
+  }
+  
+  type priority_frame = {
+    type: :priority,
+    dependency: Integer,
+    exclusive: bool,
+    weight: Integer,
+    flags: Array[Symbol],
+  }
+  
+  type rst_frame = {
+    type: :rst_stream,
+    error: Integer?
+  }
+  
+  type settings_frame = {
+    type: :settings,
+    payload: Array[[Symbol | Integer, Integer]]
+  }
+  
+  type promise_frame = {
+    type: :push_promise,
+    promise_stream: Integer,
+    payload: Enumerable[header_pair]
+  }
+  
+  type goaway_frame = {
+    type: :goaway,
+    last_stream: Integer,
+    error: Integer?
+  }
+  
+  type window_frame = {
+    type: :window_update,
+    increment: Integer
+  }
+  
+  type continuation_frame = {
+    type: :continuation,
+    flags: Array[Symbol],
+    payload: Enumerable[header_pair],
+    flags: Array[Symbol],
+  }
+  
+  type altsvc_frame = {
+    type: :altsvc,
+    max_age: Integer,
+    port: Integer,
+    proto: String,
+    host: String,
+    origin: String
+  }
+
+  type origin_frame = {
+    type: :origin,
+    payload: Array[String]
+  }
+
+  type frame = (data_frame | headers_frame | priority_frame | rst_frame | settings_frame |
+    promise_frame | goaway_frame | window_frame | continuation_frame | altsvc_frame | origin_frame) &
+    { stream: Integer }
 end
