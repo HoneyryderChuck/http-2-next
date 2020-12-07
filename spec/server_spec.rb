@@ -65,14 +65,23 @@ RSpec.describe HTTP2Next::Server do
     client.send headers_frame
   end
 
-  it "should allow upgrade" do
-    settings = Client.settings_header(settings_frame[:payload])
+  context "should allow upgrade" do
+    let(:settings) { Client.settings_header(settings_frame[:payload]) }
 
-    expect(srv.active_stream_count).to eq(0)
+    it "for bodyless responses" do
+      expect(srv.active_stream_count).to eq(0)
 
-    srv.upgrade(settings, RESPONSE_HEADERS, "")
+      srv.upgrade(settings, RESPONSE_HEADERS, "")
 
-    expect(srv.active_stream_count).to eq(1)
+      expect(srv.active_stream_count).to eq(1)
+    end
+
+    it "for responses with body" do
+      expect(srv.active_stream_count).to eq(0)
+      srv.upgrade(settings, RESPONSE_HEADERS + [[:content_length, 4]], "bang")
+
+      expect(srv.active_stream_count).to eq(1)
+    end
   end
 
   it "should allow to send supported origins" do
