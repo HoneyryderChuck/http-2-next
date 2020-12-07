@@ -57,12 +57,11 @@ module HTTP2Next
     # Size of current connection flow control window (by default, set to
     # infinity, but is automatically updated on receipt of peer settings).
     attr_reader :local_window
-    attr_reader :remote_window
+    attr_reader :remote_window, :remote_settings
     alias window local_window
 
     # Current settings value for local and peer
     attr_reader :local_settings
-    attr_reader :remote_settings
 
     # Pending settings value
     #  Sent but not ack'ed settings
@@ -105,6 +104,7 @@ module HTTP2Next
 
       @h2c_upgrade = nil
       @closed_since = nil
+      @received_frame = false
     end
 
     def closed?
@@ -176,7 +176,7 @@ module HTTP2Next
     # @param settings [Array or Hash]
     def settings(payload)
       payload = payload.to_a
-      connection_error if validate_settings(@local_role, payload)
+      validate_settings(@local_role, payload)
       @pending_settings << payload
       send(type: :settings, stream: 0, payload: payload)
       @pending_settings << payload
@@ -213,6 +213,11 @@ module HTTP2Next
       end
 
       while (frame = @framer.parse(@recv_buffer))
+        if is_a?(Client) && !@received_frame
+          connection_error(:protocol_error, msg: "didn't receive settings") if frame[:type] != :settings
+          @received_frame = true
+        end
+
         # Implementations MUST discard frames
         # that have unknown or unsupported types.
         if frame[:type].nil?
@@ -521,8 +526,6 @@ module HTTP2Next
     def validate_settings(role, settings)
       settings.each do |key, v|
         case key
-        when :settings_header_table_size
-          # Any value is valid
         when :settings_enable_push
           case role
           when :server
@@ -530,32 +533,41 @@ module HTTP2Next
             # Clients MUST reject any attempt to change the
             # SETTINGS_ENABLE_PUSH setting to a value other than 0 by treating the
             # message as a connection error (Section 5.4.1) of type PROTOCOL_ERROR.
-            return ProtocolError.new("invalid #{key} value") unless v.zero?
+            next if v.zero?
+
+            connection_error(:protocol_error, msg: "invalid #{key} value")
           when :client
             # Any value other than 0 or 1 MUST be treated as a
             # connection error (Section 5.4.1) of type PROTOCOL_ERROR.
-            return ProtocolError.new("invalid #{key} value") unless v.zero? || v == 1
+            next if v.zero? || v == 1
+
+            connection_error(:protocol_error, msg: "invalid #{key} value")
           end
-        when :settings_max_concurrent_streams
-          # Any value is valid
         when :settings_initial_window_size
           # Values above the maximum flow control window size of 2^31-1 MUST
           # be treated as a connection error (Section 5.4.1) of type
           # FLOW_CONTROL_ERROR.
-          return FlowControlError.new("invalid #{key} value") unless v <= 0x7fffffff
+          next if v <= 0x7fffffff
+
+          connection_error(:flow_control_error, msg: "invalid #{key} value")
         when :settings_max_frame_size
           # The initial value is 2^14 (16,384) octets.  The value advertised
           # by an endpoint MUST be between this initial value and the maximum
           # allowed frame size (2^24-1 or 16,777,215 octets), inclusive.
           # Values outside this range MUST be treated as a connection error
           # (Section 5.4.1) of type PROTOCOL_ERROR.
-          return ProtocolError.new("invalid #{key} value") unless v >= 16_384 && v <= 16_777_215
-        when :settings_max_header_list_size
+          next if v >= 16_384 && v <= 16_777_215
+
+          connection_error(:protocol_error, msg: "invalid #{key} value")
+          # when :settings_max_concurrent_streams
+          # Any value is valid
+          # when :settings_header_table_size
+          # Any value is valid
+          # when :settings_max_header_list_size
           # Any value is valid
           # else # ignore unknown settings
         end
       end
-      nil
     end
 
     # Update connection settings based on parameters set by the peer.
@@ -572,8 +584,7 @@ module HTTP2Next
                          # Process pending settings we have sent.
                          [@pending_settings.shift, :local]
                        else
-                         check = validate_settings(@remote_role, frame[:payload])
-                         connection_error(check) if check
+                         validate_settings(@remote_role, frame[:payload])
                          [frame[:payload], :remote]
                        end
 
@@ -707,7 +718,7 @@ module HTTP2Next
     # @param priority [Integer]
     # @param window [Integer]
     # @param parent [Stream]
-    def activate_stream(id: nil, **args)
+    def activate_stream(id:, **args)
       connection_error(msg: "Stream ID already exists") if @streams.key?(id)
 
       raise StreamLimitExceeded if @active_stream_count >= (@max_streams || @local_settings[:settings_max_concurrent_streams])

@@ -620,7 +620,7 @@ RSpec.describe HTTP2Next::Header do
               end
             end
             it "should emit expected bytes on wire" do
-              expect(subject.unpack("H*").first).to eq ex[:streams][nth][:wire].delete(" \n")
+              expect(subject.unpack1("H*")).to eq ex[:streams][nth][:wire].delete(" \n")
             end
             unless ex[:streams][nth][:has_bad_headers]
               it "should update header table" do

@@ -5,9 +5,14 @@ cache:
     - vendor/ruby
     - vendor/jruby
 
+variables:
+  BUNDLE_JOBS: 10
+  BUNDLE_PATH: vendor
+  CI: 1
+
 .before_script: &before_script
   - ruby -v
-  - bundle install -j 4 --path vendor
+  - bundle install
 
 .test: &test
 - bundle exec rake
@@ -15,24 +20,25 @@ cache:
 
 jruby:
   variables:
-    CI: 1
     JRUBY_OPTS: "--debug"
   before_script: *before_script
   image: "jruby:9.2.9"
   script:
     - *test
+  artifacts:
+    paths:
+      - coverage
 ruby21:
-  variables:
-    CI: 1
   before_script:
     - apk --update add g++ make
     - *before_script
   image: "ruby:2.1-alpine"
   script:
     - *test
+  artifacts:
+    paths:
+      - coverage
 ruby22:
-  variables:
-    CI: 1
   before_script:
     - apk --update add g++ make
     - *before_script
@@ -42,8 +48,6 @@ ruby22:
   script:
     - *test
 ruby23:
-  variables:
-    CI: 1
   before_script:
     - apk --update add g++ make
     - *before_script
@@ -53,8 +57,6 @@ ruby23:
   script:
     - *test
 ruby24:
-  variables:
-    CI: 1
   before_script:
     - apk --update add g++ make
     - *before_script
@@ -64,8 +66,6 @@ ruby24:
   script:
     - *test
 ruby25:
-  variables:
-    CI: 1
   before_script:
     - apk --update add g++ make
     - *before_script
@@ -75,8 +75,6 @@ ruby25:
   script:
     - *test
 ruby26:
-  variables:
-    CI: 1
   before_script:
     - apk --update add g++ make
     - *before_script
@@ -86,8 +84,6 @@ ruby26:
   script:
     - *test
 ruby27:
-  variables:
-    CI: 1
   before_script:
     - apk --update add g++ make
     - *before_script
@@ -96,7 +92,38 @@ ruby27:
     - *test
   artifacts:
     paths:
-      - "www/coverage/"
+      - coverage
+ruby30:
+  before_script:
+    - apk --update add g++ make git
+    - *before_script
+    - export RUBYOPT="-rbundler/setup -rrbs/test/setup"
+    - export RBS_TEST_RAISE="true"
+    - export RBS_TEST_LOGLEVEL="error"
+    - export RBS_TEST_OPT="-Isig"
+    - export RBS_TEST_TARGET="HTTP2Next*"
+  image: "ruby:3.0-rc-alpine"
+  script:
+    - *test
+  artifacts:
+    paths:
+      - coverage
 
-
-
+coverage:
+  stage: deploy
+  dependencies:
+    - jruby
+    - ruby21
+    - ruby27
+  image: "ruby:2.7-alpine"
+  before_script:
+    - apk --update add g++ make
+    - gem install simplecov --no-doc
+  script:
+    - find coverage -name "*resultset.json" -exec sed -i 's?/home?'`pwd`'?' {} \;
+    - rake coverage:report
+    - mv coverage public
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days

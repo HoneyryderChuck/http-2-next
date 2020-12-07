@@ -1,0 +1,56 @@
+module HTTP2Next
+  DEFAULT_FLOW_WINDOW: Integer
+
+  DEFAULT_HEADER_SIZE: Integer
+
+  DEFAULT_MAX_CONCURRENT_STREAMS: Integer
+
+  type settings_hash = Hash[Symbol, Integer]
+
+  type settings_enum = Enumerable[Symbol, Integer]
+
+  SPEC_DEFAULT_CONNECTION_SETTINGS: settings_hash
+
+  DEFAULT_CONNECTION_SETTINGS: settings_hash
+
+  DEFAULT_WEIGHT: Integer
+
+  CONNECTION_PREFACE_MAGIC: String
+
+  REQUEST_MANDATORY_HEADERS: Array[Symbol]
+
+  RESPONSE_MANDATORY_HEADERS: Array[Symbol]
+
+  type header_pair = [String, String]
+
+  type frame_key = :type | :flags | :stream | :padding | :ignore |
+                   # headers
+                   :method | :trailer | :content_length |
+                   # data, settings, ping
+                   :payload | :length |
+                   # promise
+                   :promise_stream |
+                   # window_update
+                   :increment |
+                   # priority
+                   :dependency | :exclusive | :weight |
+                   # altsvc
+                   :max_age | :port | :proto | :host |
+                   # origin
+                   :origin |
+                   # goaway
+                   :last_stream | :error
+
+  type frame_value = Integer |
+                     Symbol | # type (:data, :headers)
+                     Array[Symbol] |
+                     String | Buffer |
+                     bool |
+                     Array[String] |
+                     Array[Buffer] |
+                     Array[[Symbol | Integer, Integer]] |
+                     Enumerable[header_pair] |
+                     nil
+
+  type frame = Hash[frame_key, frame_value]
+end

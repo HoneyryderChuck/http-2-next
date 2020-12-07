@@ -5,7 +5,7 @@ task :generate_table do
   HuffmanTable::Node.generate_state_table
 end
 
-require_relative "../http/2/next/huffman"
+require_relative "../http/2/next/header/huffman"
 
 # @private
 module HuffmanTable
@@ -13,9 +13,8 @@ module HuffmanTable
   EOS          = 256
 
   class Node
-    attr_accessor :next, :emit, :final, :depth
-    attr_accessor :transitions
-    attr_accessor :id
+    attr_accessor :next, :emit, :final, :depth, :transitions, :id
+
     @@id = 0 # rubocop:disable Style/ClassVars
     def initialize(depth)
       @next = [nil, nil]
@@ -38,6 +37,7 @@ module HuffmanTable
 
     class Transition
       attr_accessor :emit, :node
+
       def initialize(emit, node)
         @emit = emit
         @node = node

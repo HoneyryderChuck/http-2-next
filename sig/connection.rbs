@@ -1,0 +1,73 @@
+module HTTP2Next
+  class Connection
+    include FlowBuffer
+    include Emitter
+
+    attr_reader state: Symbol
+
+    attr_reader local_window: Integer
+    attr_reader remote_window: Integer
+
+    alias window local_window
+
+    attr_reader remote_settings: settings_hash
+    attr_reader local_settings: settings_hash
+    attr_reader pending_settings: settings_hash
+
+    attr_reader active_stream_count: Integer
+
+    attr_writer max_streams: Integer
+
+    def closed?: () -> bool
+
+    def new_stream: (
+      ?weight: Integer,
+      ?dependency: Integer,
+      ?exclusive: bool,
+      ?parent: Stream?,
+      ?state: Symbol
+    ) -> Stream
+
+    def ping: (String) -> void
+            | (String) { () -> void } -> void
+
+    def goaway: (Symbol, String?) -> void
+              | (Symbol) -> void
+              | () -> void
+
+    def window_update: (Integer increment) -> void
+
+    def settings: (settings_enum) -> void
+
+    def receive: (string data) -> void
+    alias << receive
+
+    private
+
+    def initialize: (settings_hash) -> untyped
+
+    def send: (frame) -> void
+
+    def encode: (frame) -> Array[Buffer]
+
+    def connection_frame?: (frame) -> bool
+
+    def connection_management: (frame) -> void
+
+    def ping_management: (frame) -> void
+
+    def validate_settings: (:client | :server, settings_enum) -> void
+
+    def connection_settings: (frame) -> void
+
+    def decode_headers: (frame) -> void
+
+    def encode_headers: (frame) -> Array[frame]
+
+    def activate_stream: (id: Integer, **untyped) -> void
+
+    def verify_stream_order: (Integer id) -> void
+
+    def verify_pseudo_headers: (frame, Array[String]) -> void
+  end
+end

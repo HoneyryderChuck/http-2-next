@@ -73,7 +73,7 @@ RSpec.describe HTTP2Next::Header do
               it "should encode #{file}" do
                 story = JSON.parse(File.read("#{path}/#{file}"))
                 cases = story["cases"]
-                @cc = Compressor  .new(options)
+                @cc = Compressor.new(options)
                 @dc = Decompressor.new(options)
                 cases.each do |c|
                   headers = c["headers"].flat_map(&:to_a)

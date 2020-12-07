@@ -454,7 +454,7 @@ RSpec.describe HTTP2Next::Framer do
 
     frames.each do |(frame, size)|
       bytes = f.generate(frame)
-      expect(bytes.slice(1, 2).unpack("n").first).to eq size
+      expect(bytes.slice(1, 2).unpack1("n")).to eq size
       expect(bytes.readbyte(0)).to eq 0
     end
   end
@@ -475,7 +475,7 @@ RSpec.describe HTTP2Next::Framer do
     frame = { type: :headers, stream: 1, payload: "headers" }
     bytes = f.generate(frame)
 
-    expect(f.parse(bytes[0...-1])).to be_nil
+    expect(f.parse(bytes.slice(0...-1))).to be_nil
     expect(f.parse(bytes)).to eq frame
     expect(bytes).to be_empty
   end
@@ -483,7 +483,7 @@ RSpec.describe HTTP2Next::Framer do
   it "should ignore unknown extension frames" do
     frame = { type: :headers, stream: 1, payload: "headers" }
     bytes = f.generate(frame)
-    bytes = Buffer.new(bytes + bytes) # Two HEADERS frames in bytes
+    bytes = Buffer.new("#{bytes}#{bytes}") # Two HEADERS frames in bytes
     bytes.setbyte(3, 42) # Make the first unknown type 42
 
     expect(f.parse(bytes)[:type]).to be_nil

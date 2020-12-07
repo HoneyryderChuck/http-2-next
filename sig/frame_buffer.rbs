@@ -1,0 +1,13 @@
+module HTTP2Next
+  class FrameBuffer
+    attr_reader bytesize: Integer
+
+    @buffer: Array[String]
+
+    def <<: (frame) -> void
+
+    def empty?: () -> bool
+
+    def retrieve: (Integer) -> frame? 
+  end
+end

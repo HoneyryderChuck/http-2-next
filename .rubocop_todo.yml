@@ -40,7 +40,7 @@ Metrics/ParameterLists:
 
 # Offense count: 10
 Metrics/PerceivedComplexity:
-  Max: 46
+  Max: 50
 
 # Offense count: 4
 Style/Documentation:

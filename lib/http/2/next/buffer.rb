@@ -8,6 +8,8 @@ module HTTP2Next
   class Buffer
     extend Forwardable
 
+    using StringExtensions
+
     def_delegators :@buffer, :ord, :encoding, :setbyte, :unpack,
                    :size, :each_byte, :to_str, :to_s, :length, :inspect,
                    :[], :[]=, :empty?, :bytesize, :include?
@@ -26,6 +28,10 @@ module HTTP2Next
     # @param n [Integer] number of bytes to slice from the buffer
     def read(n)
       Buffer.new(@buffer.slice!(0, n))
+    end
+
+    def unpack1(*arg)
+      @buffer.unpack1(*arg)
     end
 
     # Emulate StringIO#getbyte: slice first byte from buffer.
@@ -61,7 +67,7 @@ module HTTP2Next
     # Slice unsigned 32-bit integer from buffer.
     # @return [Integer]
     def read_uint32
-      read(4).unpack(UINT32).first
+      read(4).unpack1(UINT32)
     end
 
     # Ensures that data that is added is binary encoded as well,

@@ -1,0 +1,25 @@
+module HTTP2Next
+  class Framer
+    attr_accessor local_max_frame_size: Integer
+    
+    attr_accessor remote_max_frame_size: Integer
+
+    def common_header: (frame) -> String
+
+    def read_common_frame: (Buffer) -> frame
+
+    def generate: (frame) -> Buffer
+
+    def parse: (Buffer) -> frame?
+
+    private
+
+    def initialize: (Integer, Integer) -> untyped
+                  | (Integer) -> untyped
+                  | () -> untyped
+
+    def pack_error: (Integer | Symbol e) -> String
+
+    def unpack_error: (Integer) -> (Symbol | Integer)
+  end
+end

@@ -29,3 +29,10 @@ Metrics/LineLength:
 
 Style/BracesAroundHashParameters:
   Enabled: false
+
+Lint/UnneededCopDisableDirective:
+  Enabled: false
+
+Lint/HandleExceptions:
+  Exclude:
+    - Rakefile

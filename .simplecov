@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 SimpleCov.start do
   command_name "Minitest"
   add_filter "/.bundle/"

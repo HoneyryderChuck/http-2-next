@@ -137,10 +137,11 @@ module HTTP2Next
 
     # Handle locally initiated server-push event emitted by the stream.
     #
-    # @param args [Array]
+    # @param parent [Stream]
+    # @param headers [Enumerable[String, String]]
+    # @param flags [Array[Symbol]]
     # @param callback [Proc]
-    def promise(*args)
-      parent, headers, flags = *args
+    def promise(parent, headers, flags)
       promise = new_stream(parent: parent)
       promise.send(
         type: :push_promise,

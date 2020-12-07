@@ -73,6 +73,7 @@ module HTTP2Next
 
       while (frame = send_buffer.retrieve(@remote_window))
 
+        # puts "#{self.class} -> #{@remote_window}"
         sent = frame[:payload].bytesize
 
         manage_state(frame) do

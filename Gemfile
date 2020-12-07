@@ -12,12 +12,16 @@ gem "pry"
 gem "pry-byebug", platform: :mri
 gem "rspec", "~> 3.4.0"
 
-rubocop_version = if RUBY_VERSION.start_with?("2.1")
-                    "0.57.2"
-                  elsif RUBY_VERSION.start_with?("2.2")
-                    "0.68.1"
-                  else
-                    "0.80.0"
-                  end
+if RUBY_VERSION.start_with?("2.1")
+  gem "rubocop", "0.57.2"
+elsif RUBY_VERSION.start_with?("2.2")
+  gem "rubocop", "0.68.1"
+elsif RUBY_VERSION.start_with?("2.3")
+  gem "rubocop", "~> 0.81.0"
+  gem "rubocop-performance", "~> 1.5.2"
+else
+  gem "rubocop", "~> 1.0.0"
+  gem "rubocop-performance", "~> 1.5.2"
+end
 
-gem "rubocop", rubocop_version, require: false
+gem "rbs", git: "https://github.com/ruby/rbs.git", branch: "master" if RUBY_VERSION >= "3.0"

@@ -1,13 +1,43 @@
 # frozen_string_literal: true
 
 require "helper"
+require "shared_examples/connection"
 
 RSpec.describe HTTP2Next::Client do
   include FrameHelpers
-  let(:client) { Client.new }
+
   let(:f) { Framer.new }
+  let(:client) do
+    client = Client.new
+    client << f.generate(settings_frame)
+    client
+  end
+
+  it_behaves_like "a connection" do
+    let(:connected_conn) { client }
+  end
 
   context "initialization and settings" do
+    let(:client) { Client.new }
+    it "should raise error if first frame is not settings" do
+      (frame_types - [settings_frame]).each do |frame|
+        conn = Client.new
+        expect { conn << f.generate(frame) }.to raise_error(ProtocolError)
+        expect(conn).to be_closed
+      end
+    end
+
+    it "should not raise error if first frame is SETTINGS" do
+      expect { client << f.generate(settings_frame) }.to_not raise_error
+      expect(client.state).to eq :connected
+      expect(client).to_not be_closed
+    end
+
+    it "should raise error if SETTINGS stream != 0" do
+      frame = set_stream_id(f.generate(settings_frame), 0x1)
+      expect { client << frame }.to raise_error(ProtocolError)
+    end
+
     it "should return odd stream IDs" do
       expect(client.new_stream.id).not_to be_even
     end
@@ -43,6 +73,20 @@ RSpec.describe HTTP2Next::Client do
       ack_frame = f.parse(frames[2])
       expect(ack_frame[:type]).to eq :settings
       expect(ack_frame[:flags]).to include(:ack)
+    end
+  end
+
+  context "settings synchronization" do
+    let(:client) { Client.new }
+    it "should reflect outgoing settings when ack is received" do
+      expect(client.local_settings[:settings_header_table_size]).to eq 4096
+      client.settings(settings_header_table_size: 256)
+      expect(client.local_settings[:settings_header_table_size]).to eq 4096
+
+      ack = { type: :settings, stream: 0, payload: [], flags: [:ack] }
+      client << f.generate(ack)
+
+      expect(client.local_settings[:settings_header_table_size]).to eq 256
     end
   end
 
@@ -235,6 +279,26 @@ RSpec.describe HTTP2Next::Client do
     end
   end
 
+  context "connection management" do
+    let(:conn) { Client.new }
+    it "should send GOAWAY frame on connection error" do
+      stream = conn.new_stream
+
+      expect(conn).to receive(:encode) do |frame|
+        expect(frame[:type]).to eq :settings
+        [frame]
+      end
+      expect(conn).to receive(:encode) do |frame|
+        expect(frame[:type]).to eq :goaway
+        expect(frame[:last_stream]).to eq stream.id
+        expect(frame[:error]).to eq :protocol_error
+        [frame]
+      end
+
+      expect { conn << f.generate(data_frame) }.to raise_error(ProtocolError)
+    end
+  end
+
   context "stream management" do
     it "should process connection management frames after GOAWAY" do
       stream = client.new_stream
@@ -242,6 +306,66 @@ RSpec.describe HTTP2Next::Client do
       client << f.generate(goaway_frame)
       client << f.generate(push_promise_frame)
       expect(client.active_stream_count).to eq 1
+    end
+  end
+
+  context "framing" do
+    it "should buffer incomplete frames" do
+      frame = f.generate(window_update_frame.merge(stream: 0, increment: 1000))
+      client << frame
+      expect(client.remote_window).to eq DEFAULT_FLOW_WINDOW + 1000
+
+      client << frame.slice!(0, 1)
+      client << frame
+      expect(client.remote_window).to eq DEFAULT_FLOW_WINDOW + 2000
+    end
+
+    it "should decompress header blocks regardless of stream state" do
+      req_headers = [
+        %w[:status 200],
+        %w[x-my-header first]
+      ]
+
+      cc = Compressor.new
+      headers = headers_frame.merge(stream: 2)
+      headers[:payload] = cc.encode(req_headers)
+
+      client.on(:stream) do |stream|
+        expect(stream).to receive(:<<) do |frame|
+          expect(frame[:payload]).to eq req_headers
+        end
+      end
+
+      client << f.generate(headers)
+    end
+
+    it "should decode non-contiguous header blocks" do
+      req_headers = [
+        %w[:status 200],
+        %w[x-my-header first]
+      ]
+
+      cc = Compressor.new
+      h1 = headers_frame
+      h2 = continuation_frame
+
+      # Header block fragment might not complete for decompression
+      payload = cc.encode(req_headers)
+      h1[:payload] = payload.slice!(0, payload.size / 2) # first half
+      h1[:stream] = 2
+      h1[:flags] = []
+
+      h2[:payload] = payload # the remaining
+      h2[:stream] = 2
+
+      client.on(:stream) do |stream|
+        expect(stream).to receive(:<<) do |frame|
+          expect(frame[:payload]).to eq req_headers
+        end
+      end
+
+      client << f.generate(h1)
+      client << f.generate(h2)
     end
   end
 

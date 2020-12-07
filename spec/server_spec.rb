@@ -1,9 +1,25 @@
 # frozen_string_literal: true
 
 require "helper"
+require "shared_examples/connection"
 
 RSpec.describe HTTP2Next::Server do
   include FrameHelpers
+
+  it_behaves_like "a connection" do
+    let(:conn) do
+      srv = Server.new
+      srv << CONNECTION_PREFACE_MAGIC
+      srv
+    end
+    let(:connected_conn) do
+      srv = Server.new
+      srv << CONNECTION_PREFACE_MAGIC
+      srv << f.generate(settings_frame)
+      srv
+    end
+  end
+
   let(:srv) { Server.new }
   let(:f) { Framer.new }
 
@@ -60,6 +76,33 @@ RSpec.describe HTTP2Next::Server do
     client.new_stream
     client.send headers_frame
     expect(origins).to eq(%w[https://www.youtube.com])
+  end
+
+  context "connection management" do
+    it "should raise error on invalid connection header" do
+      srv = Server.new
+      expect { srv << f.generate(settings_frame) }.to raise_error(HandshakeError)
+
+      srv = Server.new
+      expect do
+        srv << CONNECTION_PREFACE_MAGIC
+        srv << f.generate(settings_frame)
+      end.to_not raise_error
+    end
+
+    it "should not raise an error on frame for a closed stream ID" do
+      srv = Server.new
+      srv << CONNECTION_PREFACE_MAGIC
+
+      stream = srv.new_stream
+      stream.send headers_frame
+      stream.send data_frame
+      stream.close
+
+      expect do
+        srv << f.generate(rst_stream_frame.merge(stream: stream.id))
+      end.to_not raise_error
+    end
   end
 
   context "stream management" do

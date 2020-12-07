@@ -3,6 +3,7 @@
 require "helper"
 
 RSpec.describe HTTP2Next::Header::Huffman do
+  using HTTP2Next::StringExtensions
   huffman_examples = [ # plain, encoded
     ["www.example.com", "f1e3c2e5f23a6ba0ab90f4ff"],
     %w[no-cache a8eb10649cbf],
@@ -12,7 +13,7 @@ RSpec.describe HTTP2Next::Header::Huffman do
     let(:encoder) { HTTP2Next::Header::Huffman.new }
     huffman_examples.each do |plain, encoded|
       it "should encode #{plain} into #{encoded}" do
-        expect(encoder.encode(plain).unpack("H*").first).to eq encoded
+        expect(encoder.encode(plain).unpack1("H*")).to eq encoded
       end
     end
   end

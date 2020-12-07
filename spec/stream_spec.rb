@@ -4,6 +4,7 @@ require "helper"
 
 RSpec.describe HTTP2Next::Stream do
   include FrameHelpers
+  let(:f) { Framer.new }
   let(:client) { Client.new }
   let(:stream) { client.new_stream }
 
@@ -411,6 +412,7 @@ RSpec.describe HTTP2Next::Stream do
           data = data.merge(flags: [:end_stream]) if stream.remote_window < 16_384
           stream.send data.merge(payload: "x" * 16_384)
         end
+        client << f.generate(settings_frame)
         client << Framer.new.generate(type: :window_update, stream: stream.id, increment: 16_384)
       end
 
@@ -724,7 +726,7 @@ RSpec.describe HTTP2Next::Stream do
         end
       end
 
-      stream.data(data + "x")
+      stream.data("#{data}x")
     end
 
     it ".data should split large multibyte DATA frames" do
@@ -745,7 +747,7 @@ RSpec.describe HTTP2Next::Stream do
         end
       end
 
-      stream.data(data + "x")
+      stream.data("#{data}x")
     end
 
     it ".cancel should reset stream with cancel error code" do
