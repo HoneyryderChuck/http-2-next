@@ -384,4 +384,11 @@ RSpec.describe HTTP2Next::Client do
       client.goaway(:internal_error, "payload")
     end
   end
+
+  context ".settings_header" do
+    it "encodes the settings frame in base64" do
+      settings_header = described_class.settings_header(settings_frame[:payload])
+      expect(f.generate(settings_frame)).to end_with(Base64.urlsafe_decode64(settings_header))
+    end
+  end
 end

@@ -65,6 +65,16 @@ RSpec.describe HTTP2Next::Server do
     client.send headers_frame
   end
 
+  it "should allow upgrade" do
+    settings = Client.settings_header(settings_frame[:payload])
+
+    expect(srv.active_stream_count).to eq(0)
+
+    srv.upgrade(settings, RESPONSE_HEADERS, "")
+
+    expect(srv.active_stream_count).to eq(1)
+  end
+
   it "should allow to send supported origins" do
     srv.origin_set = %w[https://www.youtube.com]
     origins = []
