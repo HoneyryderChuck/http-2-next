@@ -128,8 +128,6 @@ coverage:
 
 pages:
   stage: deploy
-  dependencies:
-    - coverage
   script:
     - mv coverage public
   artifacts:
