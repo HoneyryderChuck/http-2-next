@@ -1,3 +1,8 @@
+stages:
+  - test
+  - prepare
+  - deploy
+
 # Cache gems in between builds
 cache:
   key: ${CI_COMMIT_REF_SLUG}
@@ -110,7 +115,7 @@ ruby30:
       - coverage
 
 coverage:
-  stage: deploy
+  stage: prepare
   dependencies:
     - jruby
     - ruby21
@@ -124,15 +129,18 @@ coverage:
     - rake coverage:report
   artifacts:
     paths:
-      - coverage
+      - "coverage/"
 
 pages:
   stage: deploy
+  dependencies:
+    - coverage
   script:
-    - mv coverage public
+    - mkdir public
+    - mv coverage public/coverage
+  only:
+    - master
   artifacts:
     paths:
       - public
     expire_in: 30 days
-  only:
-    - master
