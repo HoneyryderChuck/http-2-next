@@ -1,30 +1,18 @@
-## 0.1.0
+## 0.3.0
 
-* first release
-* change namespace to move away from forked project
-* make it fully compliant with h2spec
-* allow frame size negotiation
+No significant API changes. The main "features" are the RBS type signatures for the library modules.
 
-## 0.1.1
+## 0.2.6
 
-* fixing pseudo headers verification
-* do not close stream when receiving frames from streams we've refused locally
+* feature: Connection#max_streams=(int); this way one can set the max number of streams, thereby bypassing the limits established in the handshake. A lot of servers treat MAX_CONCURRENT_STREAMS not as the limit of allowed streams, but the number of inflight streams. By setting this to Float::INFINITY, users can take advantage of it.
 
-## 0.1.2
+## 0.2.5
 
-* bugfix: do not update connection remote window on SETTINGS frame (aka the Cloudfront issue)
+* bugfix: fixed bookkeeping of recently-closed streams.
 
-## 0.2.0
+## 0.2.4
 
-* support for the ORIGIN frame
-
-## 0.2.1
-
-* updated syntax to be ruby 2.7 compliant and warning free
-
-## 0.2.2
-
-* hotfix: the connection window was being updated when receiving WINDOW_UPDATEs for a stream.
+* bugfix: wrong window update accounting check causing random flow control errors.
 
 ## 0.2.3
 
@@ -32,14 +20,30 @@
 * avoid needless header downcase calls.
 * using class_eval instead of define_method for performant lookups.
 
-## 0.2.4
+## 0.2.2
 
-* bugfix: wrong window update accounting check causing random flow control errors.
+* hotfix: the connection window was being updated when receiving WINDOW_UPDATEs for a stream.
 
-## 0.2.5
+## 0.2.1
 
-* bugfix: fixed bookkeeping of recently-closed streams.
+* updated syntax to be ruby 2.7 compliant and warning free
 
-## 0.2.6
+## 0.2.0
 
-* feature: Connection#max_streams=(int); this way one can set the max number of streams, thereby bypassing the limits established in the handshake. A lot of servers treat MAX_CONCURRENT_STREAMS not as the limit of allowed streams, but the number of inflight streams. By setting this to Float::INFINITY, users can take advantage of it.
+* support for the ORIGIN frame
+
+## 0.1.2
+
+* bugfix: do not update connection remote window on SETTINGS frame (aka the Cloudfront issue)
+
+## 0.1.1
+
+* fixing pseudo headers verification
+* do not close stream when receiving frames from streams we've refused locally
+
+## 0.1.0
+
+* first release
+* change namespace to move away from forked project
+* make it fully compliant with h2spec
+* allow frame size negotiation
