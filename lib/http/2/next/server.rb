@@ -95,6 +95,7 @@ module HTTP2Next
 
       headers_frame = {
         type: :headers,
+        flags: [:end_headers],
         stream: 1,
         weight: DEFAULT_WEIGHT,
         dependency: 0,
@@ -103,7 +104,7 @@ module HTTP2Next
       }
 
       if body.empty?
-        headers_frame[:flags] = [:end_stream]
+        headers_frame[:flags] << [:end_stream]
         stream << headers_frame
       else
         stream << headers_frame

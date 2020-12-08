@@ -1,5 +1,6 @@
 module HTTP2Next
   class Server < Connection
+
     def upgrade: (String settings, Enumerable[header_pair] headers, String body) -> void
 
     def origin_set=: (Array[_ToS]) -> void

@@ -284,6 +284,16 @@ RSpec.shared_examples "a connection" do
       end
     end
 
+    it "should require that split promise blocks are a contiguous sequence" do
+      headers = push_promise_frame
+      headers[:flags] = []
+
+      conn << f.generate(headers)
+      (frame_types - [continuation_frame]).each do |frame|
+        expect { conn << f.generate(frame) }.to raise_error(ProtocolError)
+      end
+    end
+
     it "should raise connection error on decode of invalid frame" do
       frame = f.generate(data_frame) # Receiving DATA on unopened stream 1 is an error.
       # Connection errors emit protocol error frames
