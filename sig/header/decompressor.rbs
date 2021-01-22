@@ -5,14 +5,14 @@ module HTTP2Next
 
       def table_size=: (Integer) -> void
 
-      def integer: (Buffer, Integer) -> Integer
+      def integer: (String, Integer) -> Integer
 
-      def string: (Buffer) -> String
+      def string: (String) -> String
 
-      def header: (Buffer) -> header_command
+      def header: (String) -> header_command
 
-      def decode: (Buffer, frame?) -> Array[header_pair]
-                | (Buffer) -> Array[header_pair]
+      def decode: (String, frame?) -> Array[header_pair]
+                | (String) -> Array[header_pair]
       private
 
       def initialize: (context_hash options) -> untyped

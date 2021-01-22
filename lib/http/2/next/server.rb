@@ -79,7 +79,8 @@ module HTTP2Next
       receive(CONNECTION_PREFACE_MAGIC)
 
       # Process received HTTP2-Settings payload
-      buf = HTTP2Next::Buffer.new Base64.urlsafe_decode64(settings.to_s)
+      buf = "".b
+      buf << Base64.urlsafe_decode64(settings.to_s)
       header = @framer.common_header(
         length: buf.bytesize,
         type: :settings,

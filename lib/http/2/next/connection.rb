@@ -51,6 +51,8 @@ module HTTP2Next
     include Emitter
     include Error
 
+    using StringExtensions
+
     # Connection state (:new, :closed).
     attr_reader :state
 
@@ -98,7 +100,7 @@ module HTTP2Next
       @remote_window_limit = @remote_settings[:settings_initial_window_size]
       @remote_window = @remote_window_limit
 
-      @recv_buffer = Buffer.new
+      @recv_buffer = "".b
       @continuation = []
       @error = nil
 
@@ -245,7 +247,7 @@ module HTTP2Next
           @continuation.clear
 
           frame.delete(:length)
-          frame[:payload] = Buffer.new(payload)
+          frame[:payload] = payload
           frame[:flags] << :end_headers
         end
 
@@ -671,7 +673,7 @@ module HTTP2Next
     #
     # @param frame [Hash]
     def decode_headers(frame)
-      frame[:payload] = @decompressor.decode(frame[:payload], frame) if frame[:payload].is_a? Buffer
+      frame[:payload] = @decompressor.decode(frame[:payload], frame) if frame[:payload].is_a?(String)
     rescue CompressionError => e
       connection_error(:compression_error, e: e)
     rescue ProtocolError => e
@@ -686,7 +688,7 @@ module HTTP2Next
     # @return [Array of Frame]
     def encode_headers(frame)
       payload = frame[:payload]
-      payload = @compressor.encode(payload) unless payload.is_a? Buffer
+      payload = @compressor.encode(payload) unless payload.is_a?(String)
 
       frames = []
 
@@ -757,7 +759,7 @@ module HTTP2Next
 
     def verify_pseudo_headers(frame, mandatory_headers)
       headers = frame[:payload]
-      return if headers.is_a?(Buffer)
+      return if headers.is_a?(String)
 
       pseudo_headers = headers.take_while do |field, value|
         # use this loop to validate pseudo-headers

@@ -33,7 +33,7 @@ module HTTP2Next
   # }
 
   # # DATA
-  # type data_frame = { type: :data, flags: frame_control_flags, stream: Integer, length: Integer, payload: Buffer, ?padding: Integer }
+  # type data_frame = { type: :data, flags: frame_control_flags, stream: Integer, length: Integer, payload: String, ?padding: Integer }
 
   # # PUSH_PROMISE
   # type push_promise_frame = { type: :push_promise, promise_stream: Integer, flags: frame_control_flags, stream: Integer, ?method: Symbol, ?trailer: Array[String], ?content_length: Integer, payload: Enumerable[header_pair], ?padding: Integer }
@@ -84,10 +84,9 @@ module HTTP2Next
   type frame_value = Integer |
                      Symbol | # type (:data, :headers)
                      Array[Symbol] |
-                     String | Buffer |
+                     String |
                      bool |
                      Array[String] |
-                     Array[Buffer] |
                      Array[[Symbol | Integer, Integer]] |
                      Enumerable[header_pair] |
                      nil

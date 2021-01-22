@@ -6,11 +6,11 @@ module HTTP2Next
 
     def common_header: (frame) -> String
 
-    def read_common_frame: (Buffer) -> frame
+    def read_common_frame: (String) -> frame
 
-    def generate: (frame) -> Buffer
+    def generate: (frame) -> String
 
-    def parse: (Buffer) -> frame?
+    def parse: (String) -> frame?
 
     private
 

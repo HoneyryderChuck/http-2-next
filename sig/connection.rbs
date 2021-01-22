@@ -48,7 +48,7 @@ module HTTP2Next
 
     def send: (frame) -> void
 
-    def encode: (frame) -> Array[Buffer]
+    def encode: (frame) -> Array[String]
 
     def connection_frame?: (frame) -> bool
 

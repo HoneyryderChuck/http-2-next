@@ -12,8 +12,20 @@ module HTTP2Next
   end
 
   module StringExtensions
-    unless String.method_defined?(:unpack1)
-      refine String do
+    refine String do
+      def read(n)
+        slice!(0, n)
+      end
+
+      def read_uint32
+        read(4).unpack1("N")
+      end
+
+      def shift_byte
+        slice!(0, 1).ord
+      end
+
+      unless String.method_defined?(:unpack1)
         def unpack1(format)
           unpack(format).first
         end

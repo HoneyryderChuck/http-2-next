@@ -163,7 +163,7 @@ module HTTP2Next
       return unless @_trailers
 
       trailers = frame[:payload]
-      return if trailers.is_a?(Buffer)
+      return unless trailers.respond_to?(:each)
 
       trailers.each do |field, _|
         @_trailers.delete(field)

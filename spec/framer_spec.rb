@@ -3,6 +3,8 @@
 require "helper"
 
 RSpec.describe HTTP2Next::Framer do
+  using StringExtensions
+
   let(:f) { Framer.new }
 
   context "common header" do
@@ -22,7 +24,7 @@ RSpec.describe HTTP2Next::Framer do
     end
 
     it "should parse common 9 byte header" do
-      expect(f.read_common_header(Buffer.new(bytes))).to eq frame
+      expect(f.read_common_header(bytes)).to eq frame
     end
 
     it "should generate a large frame" do
@@ -36,7 +38,7 @@ RSpec.describe HTTP2Next::Framer do
       }
       bytes = [5, 17, 0x01, 0x5, 0x0000000F].pack("CnCCN")
       expect(f.common_header(frame)).to eq bytes
-      expect(f.read_common_header(Buffer.new(bytes))).to eq frame
+      expect(f.read_common_header(bytes)).to eq frame
     end
 
     it "should raise exception on invalid frame type when sending" do
@@ -403,11 +405,11 @@ RSpec.describe HTTP2Next::Framer do
             expect(padded[-trailer_len, trailer_len]).to match(/\A\0*\z/)
           end
           it "should parse a frame with padding" do
-            expect(f.parse(Buffer.new(padded))).to eq \
-              f.parse(Buffer.new(normal)).merge(padding: padlen)
+            expect(f.parse(padded)).to eq \
+              f.parse(normal).merge(padding: padlen)
           end
           it "should preserve payload" do
-            expect(f.parse(Buffer.new(padded))[:payload]).to eq frame[:payload]
+            expect(f.parse(padded)[:payload]).to eq frame[:payload]
           end
         end
       end
@@ -433,7 +435,7 @@ RSpec.describe HTTP2Next::Framer do
       let(:padded) { f.generate(frame.merge(padding: 123)) }
       it "should raise exception when the given padding is longer than the payload" do
         padded.setbyte(9, 240)
-        expect { f.parse(Buffer.new(padded)) }.to raise_error(ProtocolError, /padding/)
+        expect { f.parse(padded) }.to raise_error(ProtocolError, /padding/)
       end
     end
   end
@@ -455,7 +457,7 @@ RSpec.describe HTTP2Next::Framer do
     frames.each do |(frame, size)|
       bytes = f.generate(frame)
       expect(bytes.slice(1, 2).unpack1("n")).to eq size
-      expect(bytes.readbyte(0)).to eq 0
+      expect(bytes.getbyte(0)).to eq 0
     end
   end
 
@@ -483,7 +485,7 @@ RSpec.describe HTTP2Next::Framer do
   it "should ignore unknown extension frames" do
     frame = { type: :headers, stream: 1, payload: "headers" }
     bytes = f.generate(frame)
-    bytes = Buffer.new("#{bytes}#{bytes}") # Two HEADERS frames in bytes
+    bytes = "#{bytes}#{bytes}".b # Two HEADERS frames in bytes
     bytes.setbyte(3, 42) # Make the first unknown type 42
 
     expect(f.parse(bytes)[:type]).to be_nil

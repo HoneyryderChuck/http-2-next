@@ -2,6 +2,7 @@
 
 module HTTP2Next
   module Header
+    using StringExtensions
     # Responsible for decoding received headers and maintaining compression
     # context of the opposing peer. Decompressor must be initialized with
     # appropriate starting context based on local role: client or server.
@@ -30,11 +31,11 @@ module HTTP2Next
       # @return [Integer]
       def integer(buf, n)
         limit = 2**n - 1
-        i = !n.zero? ? (buf.getbyte & limit) : 0
+        i = !n.zero? ? (buf.shift_byte & limit) : 0
 
         m = 0
         if i == limit
-          while (byte = buf.getbyte)
+          while (byte = buf.shift_byte)
             i += ((byte & 127) << m)
             m += 7
 
@@ -53,12 +54,12 @@ module HTTP2Next
       def string(buf)
         raise CompressionError, "invalid header block fragment" if buf.empty?
 
-        huffman = (buf.readbyte(0) & 0x80) == 0x80
+        huffman = (buf.getbyte(0) & 0x80) == 0x80
         len = integer(buf, 7)
         str = buf.read(len)
         raise CompressionError, "string too short" unless str.bytesize == len
 
-        str = Huffman.new.decode(Buffer.new(str)) if huffman
+        str = Huffman.new.decode(str) if huffman
         str.force_encoding(Encoding::UTF_8)
       end
 
@@ -67,7 +68,7 @@ module HTTP2Next
       # @param buf [Buffer]
       # @return [Hash] command
       def header(buf)
-        peek = buf.readbyte(0)
+        peek = buf.getbyte(0)
 
         header = {}
         header[:type], type = HEADREP.find do |_t, desc|

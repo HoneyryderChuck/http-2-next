@@ -178,7 +178,7 @@ module HTTP2Next
     #
     # @param frame [Hash]
     def generate(frame)
-      bytes  = Buffer.new
+      bytes  = "".b
       length = 0
 
       frame[:flags] ||= []
@@ -374,7 +374,7 @@ module HTTP2Next
           e_sd = payload.read_uint32
           frame[:dependency] = e_sd & RBIT
           frame[:exclusive] = (e_sd & EBIT) != 0
-          frame[:weight] = payload.getbyte + 1
+          frame[:weight] = payload.shift_byte + 1
         end
         frame[:payload] = payload.read(frame[:length])
       when :priority
@@ -383,7 +383,7 @@ module HTTP2Next
         e_sd = payload.read_uint32
         frame[:dependency] = e_sd & RBIT
         frame[:exclusive] = (e_sd & EBIT) != 0
-        frame[:weight] = payload.getbyte + 1
+        frame[:weight] = payload.shift_byte + 1
       when :rst_stream
         raise FrameSizeError, "Invalid length for RST_STREAM (#{frame[:length]} != 4)" if frame[:length] != 4
 
@@ -428,10 +428,10 @@ module HTTP2Next
       when :altsvc
         frame[:max_age], frame[:port] = payload.read(6).unpack(UINT32 + UINT16)
 
-        len = payload.getbyte
+        len = payload.shift_byte
         frame[:proto] = payload.read(len) if len > 0
 
-        len = payload.getbyte
+        len = payload.shift_byte
         frame[:host] = payload.read(len) if len > 0
 
         frame[:origin] = payload.read(payload.size) unless payload.empty?
