@@ -51,13 +51,17 @@ loop do
   conn = HTTP2Next::Server.new
   conn.on(:frame) do |bytes|
     # puts "Writing bytes: #{bytes.unpack("H*").first}"
-    sock.write(bytes)
+    sock.write(bytes) unless sock.closed?
   end
   conn.on(:frame_sent) do |frame|
     puts "Sent frame: #{frame.inspect}"
   end
   conn.on(:frame_received) do |frame|
     puts "Received frame: #{frame.inspect}"
+  end
+
+  conn.on(:goaway) do
+    sock.close
   end
 
   conn.on(:stream) do |stream|
