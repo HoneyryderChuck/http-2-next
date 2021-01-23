@@ -161,7 +161,7 @@ module HTTP2Next
       send(type: :goaway, last_stream: last_stream,
            error: error, payload: payload)
       @state = :closed
-      @closed_since = Time.now
+      @closed_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
 
     # Sends a WINDOW_UPDATE frame to the peer.
@@ -480,7 +480,7 @@ module HTTP2Next
           # the connection, although a new connection can be established
           # for new streams.
           @state = :closed
-          @closed_since = Time.now
+          @closed_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           emit(:goaway, frame[:last_stream], frame[:error], frame[:payload])
         when :altsvc
           # 4.  The ALTSVC HTTP/2 Frame
@@ -505,7 +505,7 @@ module HTTP2Next
         when :ping
           ping_management(frame)
         else
-          connection_error if (Time.now - @closed_since) > 15
+          connection_error if (Process.clock_gettime(Process::CLOCK_MONOTONIC) - @closed_since) > 15
         end
       else
         connection_error
@@ -738,11 +738,11 @@ module HTTP2Next
         # References to such streams will be purged whenever another stream
         # is closed, with a minimum of 15s RTT time window.
         @streams_recently_closed.reject! do |stream_id, v|
-          to_delete = (Time.now - v) > 15
+          to_delete = (Process.clock_gettime(Process::CLOCK_MONOTONIC) - v) > 15
           @streams.delete stream_id if to_delete
           to_delete
         end
-        @streams_recently_closed[id] = Time.now
+        @streams_recently_closed[id] = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
 
       stream.on(:promise, &method(:promise)) if is_a? Server

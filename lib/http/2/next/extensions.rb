@@ -14,7 +14,10 @@ module HTTP2Next
   module StringExtensions
     refine String do
       def read(n)
-        slice!(0, n)
+        chunk = byteslice(0..n - 1)
+        remaining = byteslice(n..-1)
+        remaining ? replace(remaining) : clear
+        chunk
       end
 
       def read_uint32
@@ -22,7 +25,7 @@ module HTTP2Next
       end
 
       def shift_byte
-        slice!(0, 1).ord
+        read(1).ord
       end
 
       unless String.method_defined?(:unpack1)
