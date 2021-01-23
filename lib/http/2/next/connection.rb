@@ -692,11 +692,12 @@ module HTTP2Next
 
       frames = []
 
-      while payload.bytesize > 0
+      while payload && payload.bytesize > 0
         cont = frame.dup
         cont[:type] = :continuation
         cont[:flags] = []
-        cont[:payload] = payload.slice!(0, @remote_settings[:settings_max_frame_size])
+        cont[:payload] = payload.byteslice(0, @remote_settings[:settings_max_frame_size])
+        payload = payload.byteslice(@remote_settings[:settings_max_frame_size]..-1)
         frames << cont
       end
       if frames.empty?

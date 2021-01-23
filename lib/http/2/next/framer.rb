@@ -159,7 +159,7 @@ module HTTP2Next
     # @return [Hash] the corresponding frame
     def read_common_header(buf)
       frame = {}
-      len_hi, len_lo, type, flags, stream = buf.slice(0, 9).unpack(HEADERPACK)
+      len_hi, len_lo, type, flags, stream = buf.byteslice(0, 9).unpack(HEADERPACK)
 
       frame[:length] = (len_hi << FRAME_LENGTH_HISHIFT) | len_lo
       frame[:type], = FRAME_TYPES.find { |_t, pos| type == pos }
@@ -360,7 +360,7 @@ module HTTP2Next
           frame[:padding] = padlen + 1
           raise ProtocolError, "padding too long" if padlen > payload.bytesize
 
-          payload.slice!(-padlen, padlen) if padlen > 0
+          payload = payload.byteslice(0, payload.bytesize - padlen) if padlen > 0
           frame[:length] -= frame[:padding]
           frame[:flags].delete(:padded)
         end
@@ -374,7 +374,9 @@ module HTTP2Next
           e_sd = payload.read_uint32
           frame[:dependency] = e_sd & RBIT
           frame[:exclusive] = (e_sd & EBIT) != 0
-          frame[:weight] = payload.shift_byte + 1
+          weight = payload.byteslice(0, 1).ord + 1
+          frame[:weight] = weight
+          payload = payload.byteslice(1..-1)
         end
         frame[:payload] = payload.read(frame[:length])
       when :priority
@@ -383,7 +385,9 @@ module HTTP2Next
         e_sd = payload.read_uint32
         frame[:dependency] = e_sd & RBIT
         frame[:exclusive] = (e_sd & EBIT) != 0
-        frame[:weight] = payload.shift_byte + 1
+        weight = payload.byteslice(0, 1).ord + 1
+        frame[:weight] = weight
+        payload = payload.byteslice(1..-1)
       when :rst_stream
         raise FrameSizeError, "Invalid length for RST_STREAM (#{frame[:length]} != 4)" if frame[:length] != 4
 
@@ -428,10 +432,12 @@ module HTTP2Next
       when :altsvc
         frame[:max_age], frame[:port] = payload.read(6).unpack(UINT32 + UINT16)
 
-        len = payload.shift_byte
+        len = payload.byteslice(0, 1).ord
+        payload = payload.byteslice(1..-1)
         frame[:proto] = payload.read(len) if len > 0
 
-        len = payload.shift_byte
+        len = payload.byteslice(0, 1).ord
+        payload = payload.byteslice(1..-1)
         frame[:host] = payload.read(len) if len > 0
 
         frame[:origin] = payload.read(payload.size) unless payload.empty?

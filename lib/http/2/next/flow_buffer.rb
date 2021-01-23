@@ -138,10 +138,13 @@ module HTTP2Next
 
         # Split frame so that it fits in the window
         # TODO: consider padding!
-        frame[:payload] = payload.slice!(0, window_size)
-        frame[:length] = frame[:payload].bytesize
-        chunk[:length]  = payload.bytesize
+        frame_bytes = payload.byteslice(0, window_size)
+        payload = payload.byteslice(window_size..-1)
+
+        frame[:payload] = frame_bytes
+        frame[:length] = frame_bytes.bytesize
         chunk[:payload] = payload
+        chunk[:length]  = payload.bytesize
 
         # if no longer last frame in sequence...
         frame[:flags] -= [:end_stream] if end_stream
