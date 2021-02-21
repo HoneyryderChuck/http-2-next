@@ -1,3 +1,13 @@
+## 0.4.0
+
+No API changes.
+
+* `HTTPX::Buffer` has been removed, and was replaced by `String` usage with an enhanced API via refinements.
+* Using `String#byteslice` in significant chunks of the parsing process.
+* Removed usage of `Time.now` and replaced it with monotonic time calculations.
+
+All of the above contributed to a massive reduction in memory usage and GC pressure.
+
 ## 0.3.0
 
 No significant API changes. The main "features" are the RBS type signatures for the library modules.
