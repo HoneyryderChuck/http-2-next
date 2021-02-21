@@ -3,6 +3,8 @@
 require "helper"
 
 RSpec.describe HTTP2Next::Header do
+  using StringExtensions
+
   let(:c) { Compressor.new }
   let(:d) { Decompressor.new }
 
@@ -11,25 +13,25 @@ RSpec.describe HTTP2Next::Header do
       it "should encode 10 using a 5-bit prefix" do
         buf = c.integer(10, 5)
         expect(buf).to eq [10].pack("C")
-        expect(d.integer(Buffer.new(buf), 5)).to eq 10
+        expect(d.integer(buf, 5)).to eq 10
       end
 
       it "should encode 10 using a 0-bit prefix" do
         buf = c.integer(10, 0)
         expect(buf).to eq [10].pack("C")
-        expect(d.integer(Buffer.new(buf), 0)).to eq 10
+        expect(d.integer(buf, 0)).to eq 10
       end
 
       it "should encode 1337 using a 5-bit prefix" do
         buf = c.integer(1337, 5)
         expect(buf).to eq [31, 128 + 26, 10].pack("C*")
-        expect(d.integer(Buffer.new(buf), 5)).to eq 1337
+        expect(d.integer(buf, 5)).to eq 1337
       end
 
       it "should encode 1337 using a 0-bit prefix" do
         buf = c.integer(1337, 0)
         expect(buf).to eq [128 + 57, 10].pack("C*")
-        expect(d.integer(Buffer.new(buf), 0)).to eq 1337
+        expect(d.integer(buf, 0)).to eq 1337
       end
     end
 
@@ -51,7 +53,7 @@ RSpec.describe HTTP2Next::Header do
             str = c.string(plain)
             expect(str.getbyte(0) & 0x80).to eq msb
 
-            buf = Buffer.new(str + trailer)
+            buf = str + trailer
             expect(d.string(buf)).to eq plain
             expect(buf).to eq trailer
           end
@@ -75,8 +77,8 @@ RSpec.describe HTTP2Next::Header do
     it "should handle indexed representation" do
       h = { name: 10, type: :indexed }
       wire = c.header(h)
-      expect(wire.readbyte(0) & 0x80).to eq 0x80
-      expect(wire.readbyte(0) & 0x7f).to eq h[:name] + 1
+      expect(wire.getbyte(0) & 0x80).to eq 0x80
+      expect(wire.getbyte(0) & 0x7f).to eq h[:name] + 1
       expect(d.header(wire)).to eq h
     end
     it "should raise when decoding indexed representation with index zero" do
@@ -90,16 +92,16 @@ RSpec.describe HTTP2Next::Header do
       it "should handle indexed header" do
         h = { name: 10, value: "my-value", type: :noindex }
         wire = c.header(h)
-        expect(wire.readbyte(0) & 0xf0).to eq 0x0
-        expect(wire.readbyte(0) & 0x0f).to eq h[:name] + 1
+        expect(wire.getbyte(0) & 0xf0).to eq 0x0
+        expect(wire.getbyte(0) & 0x0f).to eq h[:name] + 1
         expect(d.header(wire)).to eq h
       end
 
       it "should handle literal header" do
         h = { name: "x-custom", value: "my-value", type: :noindex }
         wire = c.header(h)
-        expect(wire.readbyte(0) & 0xf0).to eq 0x0
-        expect(wire.readbyte(0) & 0x0f).to eq 0
+        expect(wire.getbyte(0) & 0xf0).to eq 0x0
+        expect(wire.getbyte(0) & 0x0f).to eq 0
         expect(d.header(wire)).to eq h
       end
     end
@@ -108,16 +110,16 @@ RSpec.describe HTTP2Next::Header do
       it "should handle indexed header" do
         h = { name: 10, value: "my-value", type: :incremental }
         wire = c.header(h)
-        expect(wire.readbyte(0) & 0xc0).to eq 0x40
-        expect(wire.readbyte(0) & 0x3f).to eq h[:name] + 1
+        expect(wire.getbyte(0) & 0xc0).to eq 0x40
+        expect(wire.getbyte(0) & 0x3f).to eq h[:name] + 1
         expect(d.header(wire)).to eq h
       end
 
       it "should handle literal header" do
         h = { name: "x-custom", value: "my-value", type: :incremental }
         wire = c.header(h)
-        expect(wire.readbyte(0) & 0xc0).to eq 0x40
-        expect(wire.readbyte(0) & 0x3f).to eq 0
+        expect(wire.getbyte(0) & 0xc0).to eq 0x40
+        expect(wire.getbyte(0) & 0x3f).to eq 0
         expect(d.header(wire)).to eq h
       end
     end
@@ -126,16 +128,16 @@ RSpec.describe HTTP2Next::Header do
       it "should handle indexed header" do
         h = { name: 10, value: "my-value", type: :neverindexed }
         wire = c.header(h)
-        expect(wire.readbyte(0) & 0xf0).to eq 0x10
-        expect(wire.readbyte(0) & 0x0f).to eq h[:name] + 1
+        expect(wire.getbyte(0) & 0xf0).to eq 0x10
+        expect(wire.getbyte(0) & 0x0f).to eq h[:name] + 1
         expect(d.header(wire)).to eq h
       end
 
       it "should handle literal header" do
         h = { name: "x-custom", value: "my-value", type: :neverindexed }
         wire = c.header(h)
-        expect(wire.readbyte(0) & 0xf0).to eq 0x10
-        expect(wire.readbyte(0) & 0x0f).to eq 0
+        expect(wire.getbyte(0) & 0xf0).to eq 0x10
+        expect(wire.getbyte(0) & 0x0f).to eq 0
         expect(d.header(wire)).to eq h
       end
     end
@@ -557,21 +559,21 @@ RSpec.describe HTTP2Next::Header do
               (0...nth).each do |i|
                 bytes = [ex[:streams][i][:wire].delete(" \n")].pack("H*")
                 if ex[:streams][i][:has_bad_headers]
-                  expect { dc.decode(HTTP2Next::Buffer.new(bytes)) }.to raise_error ProtocolError
+                  expect { dc.decode(bytes) }.to raise_error ProtocolError
                 else
-                  dc.decode(HTTP2Next::Buffer.new(bytes))
+                  dc.decode(bytes)
                 end
               end
             end
             if ex[:streams][nth][:has_bad_headers]
               it "should raise CompressionError" do
                 bytes = [ex[:streams][nth][:wire].delete(" \n")].pack("H*")
-                expect { dc.decode(HTTP2Next::Buffer.new(bytes)) }.to raise_error ProtocolError
+                expect { dc.decode(bytes) }.to raise_error ProtocolError
               end
             else
               let!(:emitted) do
                 bytes = [ex[:streams][nth][:wire].delete(" \n")].pack("H*")
-                dc.decode(HTTP2Next::Buffer.new(bytes))
+                dc.decode(bytes)
               end
               it "should emit expected headers" do
                 # partitioned compare

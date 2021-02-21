@@ -76,6 +76,7 @@ end
 
 stream.on(:close) do
   log.info "stream closed"
+  conn.goaway
 end
 
 stream.on(:half_close) do
@@ -110,15 +111,20 @@ else
   stream.data(options[:payload])
 end
 
-while !sock.closed? && !sock.eof?
-  data = sock.read_nonblock(1024)
-  # puts "Received bytes: #{data.unpack("H*").first}"
+require "memory_profiler"
+report = MemoryProfiler.report(allow_files: "http-2-next") do
+  while !sock.closed? && !sock.eof?
+    data = sock.read_nonblock(1024)
+    # puts "Received bytes: #{data.unpack("H*").first}"
 
-  begin
-    conn << data
-  rescue StandardError => e
-    puts "#{e.class} exception: #{e.message} - closing socket."
-    e.backtrace.each { |l| puts "\t#{l}" }
-    sock.close
+    begin
+      conn << data
+    rescue StandardError => e
+      puts "#{e.class} exception: #{e.message} - closing socket."
+      e.backtrace.each { |l| puts "\t#{l}" }
+      sock.close
+    end
   end
 end
+
+report.pretty_print

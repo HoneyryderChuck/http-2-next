@@ -51,6 +51,8 @@ module HTTP2Next
     include Emitter
     include Error
 
+    using StringExtensions
+
     # Connection state (:new, :closed).
     attr_reader :state
 
@@ -98,7 +100,7 @@ module HTTP2Next
       @remote_window_limit = @remote_settings[:settings_initial_window_size]
       @remote_window = @remote_window_limit
 
-      @recv_buffer = Buffer.new
+      @recv_buffer = "".b
       @continuation = []
       @error = nil
 
@@ -159,7 +161,7 @@ module HTTP2Next
       send(type: :goaway, last_stream: last_stream,
            error: error, payload: payload)
       @state = :closed
-      @closed_since = Time.now
+      @closed_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
 
     # Sends a WINDOW_UPDATE frame to the peer.
@@ -245,7 +247,7 @@ module HTTP2Next
           @continuation.clear
 
           frame.delete(:length)
-          frame[:payload] = Buffer.new(payload)
+          frame[:payload] = payload
           frame[:flags] << :end_headers
         end
 
@@ -478,7 +480,7 @@ module HTTP2Next
           # the connection, although a new connection can be established
           # for new streams.
           @state = :closed
-          @closed_since = Time.now
+          @closed_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           emit(:goaway, frame[:last_stream], frame[:error], frame[:payload])
         when :altsvc
           # 4.  The ALTSVC HTTP/2 Frame
@@ -503,7 +505,7 @@ module HTTP2Next
         when :ping
           ping_management(frame)
         else
-          connection_error if (Time.now - @closed_since) > 15
+          connection_error if (Process.clock_gettime(Process::CLOCK_MONOTONIC) - @closed_since) > 15
         end
       else
         connection_error
@@ -671,7 +673,7 @@ module HTTP2Next
     #
     # @param frame [Hash]
     def decode_headers(frame)
-      frame[:payload] = @decompressor.decode(frame[:payload], frame) if frame[:payload].is_a? Buffer
+      frame[:payload] = @decompressor.decode(frame[:payload], frame) if frame[:payload].is_a?(String)
     rescue CompressionError => e
       connection_error(:compression_error, e: e)
     rescue ProtocolError => e
@@ -686,15 +688,16 @@ module HTTP2Next
     # @return [Array of Frame]
     def encode_headers(frame)
       payload = frame[:payload]
-      payload = @compressor.encode(payload) unless payload.is_a? Buffer
+      payload = @compressor.encode(payload) unless payload.is_a?(String)
 
       frames = []
 
-      while payload.bytesize > 0
+      while payload && payload.bytesize > 0
         cont = frame.dup
         cont[:type] = :continuation
         cont[:flags] = []
-        cont[:payload] = payload.slice!(0, @remote_settings[:settings_max_frame_size])
+        cont[:payload] = payload.byteslice(0, @remote_settings[:settings_max_frame_size])
+        payload = payload.byteslice(@remote_settings[:settings_max_frame_size]..-1)
         frames << cont
       end
       if frames.empty?
@@ -735,11 +738,11 @@ module HTTP2Next
         # References to such streams will be purged whenever another stream
         # is closed, with a minimum of 15s RTT time window.
         @streams_recently_closed.reject! do |stream_id, v|
-          to_delete = (Time.now - v) > 15
+          to_delete = (Process.clock_gettime(Process::CLOCK_MONOTONIC) - v) > 15
           @streams.delete stream_id if to_delete
           to_delete
         end
-        @streams_recently_closed[id] = Time.now
+        @streams_recently_closed[id] = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
 
       stream.on(:promise, &method(:promise)) if is_a? Server
@@ -757,7 +760,7 @@ module HTTP2Next
 
     def verify_pseudo_headers(frame, mandatory_headers)
       headers = frame[:payload]
-      return if headers.is_a?(Buffer)
+      return if headers.is_a?(String)
 
       pseudo_headers = headers.take_while do |field, value|
         # use this loop to validate pseudo-headers

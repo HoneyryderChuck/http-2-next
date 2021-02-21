@@ -3,7 +3,7 @@ module HTTP2Next
     class Huffman
       def encode: (String str) -> String
 
-      def decode: (Buffer str) -> String
+      def decode: (String str) -> String
     end
   end
 end

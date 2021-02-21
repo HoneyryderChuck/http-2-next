@@ -21,7 +21,7 @@ RSpec.describe HTTP2Next::Header::Huffman do
     let(:encoder) { HTTP2Next::Header::Huffman.new }
     huffman_examples.each do |plain, encoded|
       it "should decode #{encoded} into #{plain}" do
-        expect(encoder.decode(HTTP2Next::Buffer.new([encoded].pack("H*")))).to eq plain
+        expect(encoder.decode([encoded].pack("H*"))).to eq plain
       end
     end
 
@@ -37,35 +37,35 @@ RSpec.describe HTTP2Next::Header::Huffman do
       it "should encode then decode '#{string}' into the same" do
         s = string.dup.force_encoding(Encoding::BINARY)
         encoded = encoder.encode(s)
-        expect(encoder.decode(HTTP2Next::Buffer.new(encoded))).to eq s
+        expect(encoder.decode(encoded)).to eq s
       end
     end
 
     it "should encode/decode all_possible 2-byte sequences" do
       (2**16).times do |n|
         str = [n].pack("V")[0, 2].force_encoding(Encoding::BINARY)
-        expect(encoder.decode(HTTP2Next::Buffer.new(encoder.encode(str)))).to eq str
+        expect(encoder.decode(encoder.encode(str))).to eq str
       end
     end
 
     it "should raise when input is shorter than expected" do
       encoded = huffman_examples.first.last
       encoded = [encoded].pack("H*")
-      expect { encoder.decode(HTTP2Next::Buffer.new(encoded[0...-1])) }.to raise_error(/EOS invalid/)
+      expect { encoder.decode(encoded[0...-1]) }.to raise_error(/EOS invalid/)
     end
     it "should raise when input is not padded by 1s" do
       encoded = "f1e3c2e5f23a6ba0ab90f4fe" # note the fe at end
       encoded = [encoded].pack("H*")
-      expect { encoder.decode(HTTP2Next::Buffer.new(encoded)) }.to raise_error(/EOS invalid/)
+      expect { encoder.decode(encoded) }.to raise_error(/EOS invalid/)
     end
     it "should raise when exceedingly padded" do
       encoded = "e7cf9bebe89b6fb16fa9b6ffff" # note the extra ff
       encoded = [encoded].pack("H*")
-      expect { encoder.decode(HTTP2Next::Buffer.new(encoded)) }.to raise_error(/EOS invalid/)
+      expect { encoder.decode(encoded) }.to raise_error(/EOS invalid/)
     end
     it "should raise when EOS is explicitly encoded" do
       encoded = ["1c7fffffffff"].pack("H*") # a b EOS
-      expect { encoder.decode(HTTP2Next::Buffer.new(encoded)) }.to raise_error(/EOS found/)
+      expect { encoder.decode(encoded) }.to raise_error(/EOS found/)
     end
   end
 end

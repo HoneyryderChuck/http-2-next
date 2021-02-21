@@ -91,7 +91,7 @@ module HTTP2Next
       # @param h [Hash] header command
       # @param buffer [String]
       # @return [Buffer]
-      def header(h, buffer = Buffer.new)
+      def header(h, buffer = "".b)
         rep = HEADREP[h[:type]]
 
         case h[:type]
@@ -122,7 +122,7 @@ module HTTP2Next
       # @param headers [Array] +[[name, value], ...]+
       # @return [Buffer]
       def encode(headers)
-        buffer = Buffer.new
+        buffer = "".b
         pseudo_headers, regular_headers = headers.partition { |f, _| f.start_with? ":" }
         headers = [*pseudo_headers, *regular_headers]
         commands = @cc.encode(headers)

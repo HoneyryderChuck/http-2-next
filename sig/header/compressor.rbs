@@ -9,10 +9,10 @@ module HTTP2Next
 
       def string: (String) -> String
 
-      def header: (header_command, Buffer) -> Buffer
-                | (header_command) -> Buffer
+      def header: (header_command, String) -> String
+                | (header_command) -> String
 
-      def encode: (Enumerable[header_pair]) -> Buffer
+      def encode: (Enumerable[header_pair]) -> String
 
       private
 
