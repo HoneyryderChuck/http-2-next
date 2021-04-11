@@ -88,7 +88,7 @@ module HTTP2Next
       @state  = state
       @error  = false
       @closed = false
-      @_method = @_content_length = nil
+      @_method = @_content_length = @_status_code = nil
       @_waiting_on_trailers = false
       @received_data = false
 
@@ -126,12 +126,17 @@ module HTTP2Next
         stream_error(:stream_closed) if (@state == :closed && @closed != :local_rst) ||
                                         @state == :remote_closed
         @_method ||= frame[:method]
+        @_status_code ||= frame[:status]
         @_content_length ||= frame[:content_length]
         @_trailers ||= frame[:trailer]
         if @_waiting_on_trailers
           verify_trailers(frame)
-        elsif @received_data
-          stream_error(:protocol_error, msg: "already received data")
+        elsif @received_data &&
+              (!@_status_code || @_status_code >= 200)
+
+          # An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving a final
+          # (non-informational) status code MUST treat the corresponding request or response as malformed.
+          verify_trailers(frame)
         end
         emit(:headers, frame[:payload]) unless frame[:ignore]
         @_waiting_on_trailers = !@_trailers.nil?
