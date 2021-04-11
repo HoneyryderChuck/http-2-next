@@ -33,7 +33,7 @@ module HTTP2Next
     # @param block [Proc] callback function
     def emit(event, *args, &block)
       listeners(event).delete_if do |cb|
-        cb.call(*args, &block) == :delete
+        :delete == cb.call(*args, &block) # rubocop:disable Style/YodaCondition
       end
     end
 
