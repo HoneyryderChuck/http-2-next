@@ -65,7 +65,7 @@ module HTTP2Next
 
   type frame_key = :type | :flags | :stream | :padding | :ignore |
                    # headers
-                   :method | :trailer | :content_length |
+                   :method | :trailer | :content_length | :status |
                    # data, settings, ping
                    :payload | :length |
                    # promise

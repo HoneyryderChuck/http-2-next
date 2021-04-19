@@ -124,6 +124,8 @@ module HTTP2Next
 
             if frame
               case field
+              when ":status"
+                frame[:status] = Integer(value)
               when ":method"
                 frame[:method] = value
               when "content-length"
