@@ -1,3 +1,8 @@
+## 0.4.1
+
+* fixed HTTP/2 trailers (particularly the case where an end-headers flag is sent before the data, and another after data, which also closes the stream, which is valid spec-wise).
+* fixed comparison on callbacks when the returned value overwrite `eql?`.
+
 ## 0.4.0
 
 No API changes.
