@@ -1,3 +1,7 @@
+## 0.4.2
+
+* force-encode data payloads to ascii while creating DATA frames.
+
 ## 0.4.1
 
 * fixed HTTP/2 trailers (particularly the case where an end-headers flag is sent before the data, and another after data, which also closes the stream, which is valid spec-wise).
