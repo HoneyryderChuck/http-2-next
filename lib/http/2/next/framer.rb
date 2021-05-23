@@ -187,6 +187,7 @@ module HTTP2Next
       case frame[:type]
       when :data
         bytes << frame[:payload]
+        bytes.force_encoding(Encoding::BINARY)
         length += frame[:payload].bytesize
 
       when :headers
