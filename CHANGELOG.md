@@ -1,3 +1,7 @@
+## 0.4.3
+
+* fixed "string too short" error when reading headers with no value.
+
 ## 0.4.2
 
 * force-encode data payloads to ascii while creating DATA frames.
