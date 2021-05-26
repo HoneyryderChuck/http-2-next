@@ -14,6 +14,8 @@ module HTTP2Next
   module StringExtensions
     refine String do
       def read(n)
+        return "".b if n == 0
+
         chunk = byteslice(0..n - 1)
         remaining = byteslice(n..-1)
         remaining ? replace(remaining) : clear
