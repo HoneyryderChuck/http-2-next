@@ -17,7 +17,7 @@ module HTTP2Next
     settings_max_concurrent_streams: Framer::MAX_STREAM_ID, # unlimited
     settings_initial_window_size: 65_535,
     settings_max_frame_size: 16_384,
-    settings_max_header_list_size: 2**31 - 1 # unlimited
+    settings_max_header_list_size: (2 << 30) - 1 # unlimited
   }.freeze
 
   DEFAULT_CONNECTION_SETTINGS = {
@@ -26,7 +26,7 @@ module HTTP2Next
     settings_max_concurrent_streams: 100,
     settings_initial_window_size: 65_535,
     settings_max_frame_size: 16_384,
-    settings_max_header_list_size: 2**31 - 1 # unlimited
+    settings_max_header_list_size: (2 << 30) - 1 # unlimited
   }.freeze
 
   # Default stream priority (lower values are higher priority).
@@ -121,9 +121,7 @@ module HTTP2Next
     def new_stream(**args)
       raise ConnectionClosed if @state == :closed
 
-      if @active_stream_count >= (@max_streams || @remote_settings[:settings_max_concurrent_streams])
-        raise StreamLimitExceeded
-      end
+      raise StreamLimitExceeded if @active_stream_count >= (@max_streams || @remote_settings[:settings_max_concurrent_streams])
 
       connection_error(:protocol_error, msg: "id is smaller than previous") if @stream_id < @last_activated_stream
 

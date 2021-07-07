@@ -9,7 +9,7 @@ module HTTP2Next
     include Error
 
     # Default value of max frame size (16384 bytes)
-    DEFAULT_MAX_FRAME_SIZE = 2**14
+    DEFAULT_MAX_FRAME_SIZE = 2 << 13
 
     # maximum frame size
     attr_accessor :local_max_frame_size, :remote_max_frame_size

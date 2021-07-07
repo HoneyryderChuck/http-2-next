@@ -7,7 +7,7 @@ module HTTP2Next
   module FlowBuffer
     include Error
 
-    MAX_WINDOW_SIZE = 2**31 - 1
+    MAX_WINDOW_SIZE = (2 << 30) - 1
 
     # Amount of buffered data. Only DATA payloads are subject to flow stream
     # and connection flow control.
