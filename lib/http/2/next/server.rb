@@ -133,8 +133,8 @@ module HTTP2Next
       send(type: :origin, stream: 0, payload: @origin_set)
     end
 
-    def verify_pseudo_headers(frame, mandatory_headers = REQUEST_MANDATORY_HEADERS)
-      super(frame, mandatory_headers)
+    def verify_pseudo_headers(frame)
+      _verify_pseudo_headers(frame, REQUEST_MANDATORY_HEADERS)
     end
 
     # Handle locally initiated server-push event emitted by the stream.

@@ -347,7 +347,7 @@ module HTTP2Next
               end
             end
 
-            verify_pseudo_headers(frame, REQUEST_MANDATORY_HEADERS)
+            _verify_pseudo_headers(frame, REQUEST_MANDATORY_HEADERS)
             stream = activate_stream(id: pid, parent: parent)
             verify_stream_order(stream.id)
             emit(:promise, stream)
@@ -763,7 +763,7 @@ module HTTP2Next
       @last_stream_id = id
     end
 
-    def verify_pseudo_headers(frame, mandatory_headers)
+    def _verify_pseudo_headers(frame, mandatory_headers)
       headers = frame[:payload]
       return if headers.is_a?(String)
 
