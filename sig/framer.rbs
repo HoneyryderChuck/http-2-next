@@ -1,7 +1,36 @@
 module HTTP2Next
   class Framer
+    DEFAULT_MAX_FRAME_SIZE: Integer
+
+    MAX_STREAM_ID: Integer
+
+    MAX_WINDOWINC: Integer
+
+    FRAME_TYPES: Hash[Symbol, Integer]
+
+    FRAME_TYPES_WITH_PADDING: Array[Symbol]
+
+    FRAME_FLAGS: Hash[Symbol, Hash[Symbol, Integer]]
+
+    DEFINED_SETTINGS: Hash[Symbol, Integer]
+
+    DEFINED_ERRORS: Hash[Symbol, Integer]
+
+    RBIT: Integer
+    RBYTE: Integer
+    EBIT: Integer
+    UINT32: String
+    UINT16: String
+    UINT8: String
+    HEADERPACK: String
+    FRAME_LENGTH_HISHIFT: Integer
+    FRAME_LENGTH_LOMASK: Integer
+
+    @local_max_frame_size: Integer
+    @remote_max_frame_size: Integer
+
     attr_accessor local_max_frame_size: Integer
-    
+
     attr_accessor remote_max_frame_size: Integer
 
     def common_header: (frame) -> String
@@ -14,11 +43,9 @@ module HTTP2Next
 
     private
 
-    def initialize: (Integer, Integer) -> untyped
-                  | (Integer) -> untyped
-                  | () -> untyped
+    def initialize: (?Integer local_max_frame_size, ?Integer remote_max_frame_size) -> untyped
 
-    def pack_error: (Integer | Symbol e) -> String
+    def pack_error: (Integer | Symbol error) -> String
 
     def unpack_error: (Integer) -> (Symbol | Integer)
   end
