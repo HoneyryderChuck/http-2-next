@@ -118,9 +118,7 @@ module HTTP2Next
     end
 
     def retrieve(window_size)
-      return if @buffer.empty?
-
-      frame = @buffer.first
+      frame = @buffer.first or return
 
       frame_size = frame[:payload].bytesize
       end_stream = frame[:flags].include? :end_stream
@@ -133,7 +131,7 @@ module HTTP2Next
       @buffer.shift
 
       if frame_size > window_size
-        payload = frame.delete(:payload)
+        payload = frame[:payload]
         chunk   = frame.dup
 
         # Split frame so that it fits in the window
