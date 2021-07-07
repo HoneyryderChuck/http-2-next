@@ -460,14 +460,14 @@ module HTTP2Next
 
     private
 
-    def pack_error(e)
-      unless e.is_a? Integer
-        e = DEFINED_ERRORS[e]
+    def pack_error(error)
+      unless error.is_a? Integer
+        error = DEFINED_ERRORS[error]
 
-        raise CompressionError, "Unknown error ID for #{e}" unless e
+        raise CompressionError, "Unknown error ID for #{error}" unless error
       end
 
-      [e].pack(UINT32)
+      [error].pack(UINT32)
     end
 
     def unpack_error(error)
