@@ -74,8 +74,8 @@ module HTTP2Next
 
     private
 
-    def verify_pseudo_headers(frame, mandatory_headers = RESPONSE_MANDATORY_HEADERS)
-      super(frame, mandatory_headers)
+    def verify_pseudo_headers(frame)
+      _verify_pseudo_headers(frame, RESPONSE_MANDATORY_HEADERS)
     end
   end
 end

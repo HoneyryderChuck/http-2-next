@@ -11,7 +11,11 @@ module HTTP2Next
     class Error < StandardError
       def self.inherited(klass)
         super
-        type = klass.name.split("::").last
+
+        type = klass.name or return
+
+        type = type.split("::").last or return
+
         type = type.gsub(/([^\^])([A-Z])/, '\1_\2').downcase.to_sym
         HTTP2Next::Error.types[type] = klass
       end

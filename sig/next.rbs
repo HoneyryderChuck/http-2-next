@@ -1,4 +1,6 @@
 module HTTP2Next
+  VERSION: String
+
   DEFAULT_FLOW_WINDOW: Integer
 
   DEFAULT_HEADER_SIZE: Integer
@@ -7,7 +9,9 @@ module HTTP2Next
 
   type settings_hash = Hash[Symbol, Integer]
 
-  type settings_enum = Enumerable[Symbol, Integer]
+  type settings_ary = Array[settings_enum]
+
+  type settings_enum = Enumerable[[Symbol, Integer]]
 
   SPEC_DEFAULT_CONNECTION_SETTINGS: settings_hash
 
@@ -17,14 +21,14 @@ module HTTP2Next
 
   CONNECTION_PREFACE_MAGIC: String
 
-  REQUEST_MANDATORY_HEADERS: Array[Symbol]
+  REQUEST_MANDATORY_HEADERS: Array[String]
 
-  RESPONSE_MANDATORY_HEADERS: Array[Symbol]
+  RESPONSE_MANDATORY_HEADERS: Array[String]
 
-  type header_pair = [String, String]
+  type header_pair = [string, string]
 
   # # FRAMES
-  # type frame_control_flags = Array[:end_headers | :end_stream]
+  type frame_control_flags = Array[:end_headers | :end_stream]
 
   # # HEADERS
   # type headers_frame = {
@@ -33,7 +37,9 @@ module HTTP2Next
   # }
 
   # # DATA
-  # type data_frame = { type: :data, flags: frame_control_flags, stream: Integer, length: Integer, payload: String, ?padding: Integer }
+  type data_frame = { type: :data, flags: frame_control_flags, stream: Integer, length: Integer, payload: String, padding: Integer }
+                  | { type: :data, flags: frame_control_flags, stream: Integer, length: Integer, payload: String }
+                  | { type: :data, flags: frame_control_flags, payload: String }
 
   # # PUSH_PROMISE
   # type push_promise_frame = { type: :push_promise, promise_stream: Integer, flags: frame_control_flags, stream: Integer, ?method: Symbol, ?trailer: Array[String], ?content_length: Integer, payload: Enumerable[header_pair], ?padding: Integer }
@@ -45,7 +51,7 @@ module HTTP2Next
   # type window_update_frame = { type: :window_update, stream: Integer, increment: Integer }
 
   # # PRIORITY
-  # type priority_frame = { type: :priority, stream: Integer, dependency: Integer, exclusive: bool, weight: Integer }
+  type priority_frame = { type: :priority, stream: Integer, dependency: Integer, exclusive: bool, weight: Integer }
 
   # # ALTSVC
   # type altsvc_frame = { type: :altsvc, stream: 0, max_age: Integer, port: Integer, proto: "String", host: String }

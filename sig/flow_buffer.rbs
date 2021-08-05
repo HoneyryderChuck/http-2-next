@@ -14,9 +14,7 @@ module HTTP2Next
 
     def calculate_window_update: (Integer) -> void
 
-    def send_data: () -> void
-                 | (frame?) -> void
-                 | (frame?, bool) -> void
+    def send_data: (?frame? frame, ?bool encode) -> void
 
     def process_window_update: (frame: frame, ?encode: bool) -> void
   end

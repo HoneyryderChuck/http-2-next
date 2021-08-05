@@ -17,7 +17,7 @@ module HTTP2Next
     settings_max_concurrent_streams: Framer::MAX_STREAM_ID, # unlimited
     settings_initial_window_size: 65_535,
     settings_max_frame_size: 16_384,
-    settings_max_header_list_size: 2**31 - 1 # unlimited
+    settings_max_header_list_size: (2 << 30) - 1 # unlimited
   }.freeze
 
   DEFAULT_CONNECTION_SETTINGS = {
@@ -26,7 +26,7 @@ module HTTP2Next
     settings_max_concurrent_streams: 100,
     settings_initial_window_size: 65_535,
     settings_max_frame_size: 16_384,
-    settings_max_header_list_size: 2**31 - 1 # unlimited
+    settings_max_header_list_size: (2 << 30) - 1 # unlimited
   }.freeze
 
   # Default stream priority (lower values are higher priority).
@@ -120,6 +120,7 @@ module HTTP2Next
     # @param parent [Stream]
     def new_stream(**args)
       raise ConnectionClosed if @state == :closed
+
       raise StreamLimitExceeded if @active_stream_count >= (@max_streams || @remote_settings[:settings_max_concurrent_streams])
 
       connection_error(:protocol_error, msg: "id is smaller than previous") if @stream_id < @last_activated_stream
@@ -344,7 +345,7 @@ module HTTP2Next
               end
             end
 
-            verify_pseudo_headers(frame, REQUEST_MANDATORY_HEADERS)
+            _verify_pseudo_headers(frame, REQUEST_MANDATORY_HEADERS)
             stream = activate_stream(id: pid, parent: parent)
             verify_stream_order(stream.id)
             emit(:promise, stream)
@@ -380,7 +381,7 @@ module HTTP2Next
               # (see Section 5.1).
               when :window_update
                 stream = @streams_recently_closed[frame[:stream]]
-                connection_error(:protocol_error, "sent window update on idle stream") unless stream
+                connection_error(:protocol_error, msg: "sent window update on idle stream") unless stream
                 process_window_update(frame: frame, encode: true)
               else
                 # An endpoint that receives an unexpected stream identifier
@@ -397,8 +398,8 @@ module HTTP2Next
       connection_error(e: e)
     end
 
-    def <<(*args)
-      receive(*args)
+    def <<(data)
+      receive(data)
     end
 
     private
@@ -692,26 +693,28 @@ module HTTP2Next
 
       frames = []
 
-      while payload && payload.bytesize > 0
-        cont = frame.dup
-        cont[:type] = :continuation
-        cont[:flags] = []
-        cont[:payload] = payload.byteslice(0, @remote_settings[:settings_max_frame_size])
-        payload = payload.byteslice(@remote_settings[:settings_max_frame_size]..-1)
-        frames << cont
-      end
-      if frames.empty?
-        frames = [frame]
-      else
-        frames.first[:type]  = frame[:type]
-        frames.first[:flags] = frame[:flags] - [:end_headers]
-        frames.last[:flags] << :end_headers
+      begin
+        while payload && payload.bytesize > 0
+          cont = frame.dup
+          cont[:type] = :continuation
+          cont[:flags] = []
+          cont[:payload] = payload.byteslice(0, @remote_settings[:settings_max_frame_size])
+          payload = payload.byteslice(@remote_settings[:settings_max_frame_size]..-1)
+          frames << cont
+        end
+
+        if frames.empty?
+          frames << frame
+        else
+          frames.first[:type]  = frame[:type]
+          frames.first[:flags] = frame[:flags] - [:end_headers]
+          frames.last[:flags] << :end_headers
+        end
+      rescue StandardError => e
+        connection_error(:compression_error, e: e)
       end
 
       frames
-    rescue StandardError => e
-      connection_error(:compression_error, e: e)
-      nil
     end
 
     # Activates new incoming or outgoing stream and registers appropriate
@@ -758,7 +761,7 @@ module HTTP2Next
       @last_stream_id = id
     end
 
-    def verify_pseudo_headers(frame, mandatory_headers)
+    def _verify_pseudo_headers(frame, mandatory_headers)
       headers = frame[:payload]
       return if headers.is_a?(String)
 

@@ -4,7 +4,7 @@ module HTTP2Next
     include Emitter
 
     attr_reader id: Integer
-    attr_reader state: Symbol 
+    attr_reader state: Symbol
     attr_reader parent: Stream?
     attr_reader weight: Integer
     attr_reader dependency: Integer
@@ -42,7 +42,7 @@ module HTTP2Next
     def cancel: () -> void
 
     def refuse: () -> void
-             
+
     def window_update: (Integer increment) -> void
 
     private
@@ -54,7 +54,7 @@ module HTTP2Next
       ?dependency: Integer,
       ?exclusive: bool,
       ?parent: Stream?,
-      ?state: Symbol      
+      ?state: Symbol
     ) -> untyped
 
     def transition: (frame, bool sending) -> void
@@ -63,7 +63,7 @@ module HTTP2Next
 
     def complete_transition: (frame) -> void
 
-    def process_priority: (frame) -> void
+    def process_priority: ({weight: Integer, dependency: Integer, exclusive: bool}) -> void
 
     def end_frame?: () -> bool
 

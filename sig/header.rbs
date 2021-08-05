@@ -11,5 +11,17 @@ module HTTP2Next
     type context_hash = Hash[Symbol, Symbol | Integer]
 
     type header_command = Hash[header_key, header_value]
+
+    HEADREP: Hash[Symbol, Hash[Symbol, Integer]]
+
+    NAIVE: Hash[Symbol, Symbol]
+    LINEAR: Hash[Symbol, Symbol]
+    STATIC: Hash[Symbol, Symbol]
+    SHORTER: Hash[Symbol, Symbol]
+    NAIVEH: Hash[Symbol, Symbol]
+    LINEARH: Hash[Symbol, Symbol]
+    STATICH: Hash[Symbol, Symbol]
+    SHORTERH: Hash[Symbol, Symbol]
+
   end
 end
