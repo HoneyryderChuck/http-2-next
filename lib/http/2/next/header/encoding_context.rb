@@ -79,6 +79,13 @@ module HTTP2Next
         ["www-authenticate",            ""]
       ].each { |pair| pair.each(&:freeze).freeze }.freeze
 
+      STATIC_TABLE_BY_FIELD = STATIC_TABLE
+                              .each_with_object({})
+                              .each_with_index { |((field, value), hs), idx| (hs[field] ||= []) << [idx, value] }
+                              .each { |pair| pair.each(&:freeze).freeze }.freeze
+
+      STATIC_TABLE_SIZE = STATIC_TABLE.size
+
       # Current table of header key-value pairs.
       attr_reader :table
 
@@ -133,7 +140,7 @@ module HTTP2Next
       # @return [Array] +[key, value]+
       def dereference(index)
         # NOTE: index is zero-based in this module.
-        value = STATIC_TABLE[index] || @table[index - STATIC_TABLE.size]
+        value = STATIC_TABLE[index] || @table[index - STATIC_TABLE_SIZE]
         raise CompressionError, "Index too large" unless value
 
         value
@@ -245,22 +252,24 @@ module HTTP2Next
         name_only = nil
 
         if %i[all static].include?(@options[:index])
-          STATIC_TABLE.each_index do |i|
-            if STATIC_TABLE[i] == header
-              exact ||= i
-              break
-            elsif STATIC_TABLE[i].first == header.first
+          field, value = header
+          if (svalues = STATIC_TABLE_BY_FIELD[field])
+            svalues.each do |i, svalue|
               name_only ||= i
+              if svalue == value
+                exact = i
+                break
+              end
             end
           end
         end
         if [:all].include?(@options[:index]) && !exact
           @table.each_index do |i|
             if @table[i] == header
-              exact ||= i + STATIC_TABLE.size
+              exact ||= i + STATIC_TABLE_SIZE
               break
             elsif @table[i].first == header.first
-              name_only ||= i + STATIC_TABLE.size
+              name_only ||= i + STATIC_TABLE_SIZE
             end
           end
         end
