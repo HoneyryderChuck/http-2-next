@@ -1,3 +1,11 @@
+## 0.5.0
+
+* optimization for header decompression of static headers
+
+it was identified that traversing the static headers table for each incoming header was one of the bottlenecks, and it was O(n) for all cases where there was not an exact match. In order to circumvent this, an additional table derived from the static headers table with the header field as lookup key was created, which eliminated the main bottleneck (at the cost of roughly 1.5Kb extra).
+
+* several rbs signature improvements and fixes.
+
 ## 0.4.3
 
 * fixed "string too short" error when reading headers with no value.
