@@ -7,6 +7,9 @@ Style/RedundantFreeze:
 Style/FrozenStringLiteralComment:
   Enabled: false
 
+Style/AndOr:
+  Enabled: false
+
 Layout/IndentHeredoc:
   Enabled: false
 
