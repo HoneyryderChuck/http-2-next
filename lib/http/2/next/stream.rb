@@ -129,10 +129,9 @@ module HTTP2Next
         @_status_code ||= frame[:status]
         @_content_length ||= frame[:content_length]
         @_trailers ||= frame[:trailer]
-        if @_waiting_on_trailers
-          verify_trailers(frame)
-        elsif @received_data &&
-              (!@_status_code || @_status_code >= 200)
+        if @_waiting_on_trailers ||
+           (@received_data &&
+               (!@_status_code || @_status_code >= 200))
 
           # An endpoint that receives a HEADERS frame without the END_STREAM flag set after receiving a final
           # (non-informational) status code MUST treat the corresponding request or response as malformed.

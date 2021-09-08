@@ -1,6 +1,7 @@
 inherit_from: .rubocop_todo.yml
 
 AllCops:
+  NewCops: enable
   TargetRubyVersion: 2.7
   DisplayCopNames: true
   Exclude:
@@ -28,9 +29,6 @@ Bundler/DuplicatedGem:
   Enabled: false
 
 Style/OptionalBooleanParameter:
-  Enabled: false
-
-Gemspec/RequiredRubyVersion:
   Enabled: false
 
 Lint/MissingSuper:
@@ -79,9 +77,6 @@ Style/HashTransformKeys:
 Style/CommentAnnotation:
   Enabled: false
 
-Style/HashTransformValues:
-  Enabled: true
-
 Style/SlicingWithRange:
   Enabled: false
 
@@ -89,5 +84,6 @@ Lint/SuppressedException:
   Exclude:
     - Rakefile
 
-RescueEnsureAlignment:
-  Enabled: false
+Lint/EmptyBlock:
+  Exclude:
+    - spec/*

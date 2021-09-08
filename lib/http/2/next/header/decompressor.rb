@@ -31,7 +31,7 @@ module HTTP2Next
       # @return [Integer]
       def integer(buf, n)
         limit = 2**n - 1
-        i = !n.zero? ? (buf.shift_byte & limit) : 0
+        i = n.zero? ? 0 : (buf.shift_byte & limit)
 
         m = 0
         if i == limit
