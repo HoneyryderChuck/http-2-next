@@ -22,9 +22,7 @@ end
 begin
   require "rubocop/rake_task"
   desc "Run rubocop"
-  RuboCop::RakeTask.new(:cop) do |task|
-    task.options += %W[-c.rubocop-#{RUBY_MAJOR_MINOR}.yml]
-  end
+  RuboCop::RakeTask.new
 rescue LoadError
 end
 
@@ -44,8 +42,6 @@ namespace :coverage do
     SimpleCov.collate Dir["coverage/**/.resultset.json"]
   end
 end
-
-task :"test:ci" => (RUBY_ENGINE == "ruby" ? %i[test rubocop] : %i[test])
 
 desc "install h2spec"
 task :h2spec_install do
@@ -104,7 +100,7 @@ task :h2spec do
 end
 
 default_tasks = %i[spec]
-default_tasks << :cop unless RUBY_ENGINE == "jruby"
+default_tasks << :rubocop if defined?(RuboCop)
 default_tasks += %i[h2spec_install h2spec] if ENV.key?("CI")
 task default: default_tasks
 task all: %i[default hpack]
