@@ -2,6 +2,7 @@ module HTTP2Next
   class Connection
     include FlowBuffer
     include Emitter
+    include Error
 
     REQUEST_MANDATORY_HEADERS: Array[String]
     RESPONSE_MANDATORY_HEADERS: Array[String]
@@ -21,12 +22,39 @@ module HTTP2Next
 
     attr_writer max_streams: Integer?
 
+    @stream_id: Integer
+    @local_role: :client | :server
+    @remote_role: :client | :server
+
+    @compressor: Header::Compressor
+    @decompressor: Header::Decompressor
+
+    @last_activated_stream: Integer
+    @last_stream_id: Integer
+    @streams: Hash[Integer, Stream]
+    @streams_recently_closed: Hash[Integer, Stream]
+
+    @framer: Framer
+
+    @local_window_limit: Integer
+    @local_window: Integer
+    @remote_window_limit: Integer
+    @remote_window: Integer
+
+    @recv_buffer: String
+    @continuation: Array[frame]
+    @error: Symbol?
+
+    @h2c_upgrade: Symbol?
+    @closed_since: (Float | Integer)?
+    @received_frame: bool
+
     def closed?: () -> bool
 
     def new_stream: (**untyped) -> Stream
 
     def ping: (String) -> void
-            | (String) { () -> void } -> void
+            | (String) { (*untyped) -> void } -> void
 
     def goaway: (?Symbol, ?String) -> void
 

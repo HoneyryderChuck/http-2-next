@@ -36,8 +36,7 @@ module HTTP2Next
 
     def chunk_data: (String payload, Integer max_size) { (String) -> void } -> String
 
-    def close: (Symbol error) -> void
-             | () -> void
+    def close: (?Symbol error) -> void
 
     def cancel: () -> void
 
@@ -67,8 +66,7 @@ module HTTP2Next
 
     def end_frame?: () -> bool
 
-    def stream_error: (Symbol error, ?msg: String?) -> void
-                    | () -> void
+    def stream_error: (?Symbol error, ?msg: String) -> void
 
     alias error stream_error
 

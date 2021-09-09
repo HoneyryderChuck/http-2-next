@@ -1,6 +1,15 @@
 module HTTP2Next
   module Header
     class Huffman
+      include Error
+
+      BITS_AT_ONCE: Integer
+      EOS: Integer
+      CODES: Array[[Integer, Integer]]
+      ENCODE_TABLE: Array[String]
+      MAX_FINAL_STATE: Integer
+      MACHINE: Array[Array[[Integer?, Integer]]]
+
       def encode: (String str) -> String
 
       def decode: (String str) -> String

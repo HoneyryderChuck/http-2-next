@@ -1,5 +1,7 @@
 module HTTP2Next
   module FlowBuffer
+    include Error
+
     MAX_WINDOW_SIZE: Integer
 
     def buffered_amount: () -> Integer

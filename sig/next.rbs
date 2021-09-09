@@ -54,7 +54,7 @@ module HTTP2Next
   type priority_frame = { type: :priority, stream: Integer, dependency: Integer, exclusive: bool, weight: Integer }
 
   # # ALTSVC
-  # type altsvc_frame = { type: :altsvc, stream: 0, max_age: Integer, port: Integer, proto: "String", host: String }
+  type altsvc_frame = { type: :altsvc, stream: 0, max_age: Integer, port: Integer, proto: "String", host: String }
 
   # # ORIGIN
   # type origin_frame = { type: :origin, stream: 0, origin: Array[String] }

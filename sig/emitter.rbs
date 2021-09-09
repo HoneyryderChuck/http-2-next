@@ -8,6 +8,6 @@ module HTTP2Next
 
     private
 
-    def listeners: (Symbol event)  -> Array[Proc]
+    def listeners: (Symbol event)  -> Array[^(*untyped) -> void]
   end
 end

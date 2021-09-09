@@ -3,6 +3,8 @@ module HTTP2Next
     class Decompressor
       @cc: EncodingContext
 
+      FORBIDDEN_HEADERS: Array[String]
+
       def table_size=: (Integer) -> void
 
       def integer: (String, Integer) -> Integer
@@ -11,8 +13,8 @@ module HTTP2Next
 
       def header: (String) -> header_command
 
-      def decode: (String, frame?) -> Array[header_pair]
-                | (String) -> Array[header_pair]
+      def decode: (String, ?frame) -> Array[header_pair]
+
       private
 
       def initialize: (context_hash options) -> untyped
