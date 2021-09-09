@@ -309,6 +309,14 @@ module HTTP2Next
             decode_headers(frame)
             return if @state == :closed
 
+            pid = frame[:promise_stream]
+
+            # if PUSH parent is recently closed, RST_STREAM the push
+            if @streams_recently_closed[frame[:stream]]
+              send(type: :rst_stream, stream: pid, error: :refused_stream)
+              return
+            end
+
             # PUSH_PROMISE frames MUST be associated with an existing, peer-
             # initiated stream... A receiver MUST treat the receipt of a
             # PUSH_PROMISE on a stream that is neither "open" nor
@@ -320,15 +328,8 @@ module HTTP2Next
             # (Section 5.4.1) of type PROTOCOL_ERROR, unless the receiver
             # recently sent a RST_STREAM frame to cancel the associated stream.
             parent = @streams[frame[:stream]]
-            pid = frame[:promise_stream]
 
-            # if PUSH parent is recently closed, RST_STREAM the push
-            if @streams_recently_closed[frame[:stream]]
-              send(type: :rst_stream, stream: pid, error: :refused_stream)
-              return
-            end
-
-            connection_error(msg: "missing parent ID") if parent.nil?
+            connection_error(msg: "missing parent ID") unless parent
 
             unless parent.state == :open || parent.state == :half_closed_local
               # An endpoint might receive a PUSH_PROMISE frame after it sends

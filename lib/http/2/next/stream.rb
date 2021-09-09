@@ -87,7 +87,6 @@ module HTTP2Next
       @parent = parent
       @state  = state
       @error  = false
-      @closed = false
       @_method = @_content_length = @_status_code = nil
       @_waiting_on_trailers = false
       @received_data = false
@@ -266,10 +265,10 @@ module HTTP2Next
       total = payload.bytesize
       cursor = 0
       while (total - cursor) > max_size
-        yield payload.byteslice(cursor, max_size)
+        yield payload.byteslice(cursor, max_size).to_s
         cursor += max_size
       end
-      payload.byteslice(cursor, total - cursor)
+      payload.byteslice(cursor, total - cursor).to_s
     end
 
     # Sends a RST_STREAM frame which closes current stream - this does not
