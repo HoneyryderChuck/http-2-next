@@ -143,9 +143,8 @@ while !sock.closed? && !sock.eof?
   data = sock.read_nonblock(1024)
 
   begin
-    if !uh.parsing && !uh.complete
-      uh << data
-    elsif uh.parsing && !uh.complete
+    if !uh.parsing && !uh.complete ||
+       uh.parsing && !uh.complete
       uh << data
     elsif uh.complete
       conn << data

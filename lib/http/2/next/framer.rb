@@ -368,7 +368,7 @@ module HTTP2Next
       end
 
       case frame[:type]
-      when :data
+      when :data, :ping, :continuation
         frame[:payload] = payload.read(frame[:length])
       when :headers
         if frame[:flags].include? :priority
@@ -414,8 +414,6 @@ module HTTP2Next
       when :push_promise
         frame[:promise_stream] = payload.read_uint32 & RBIT
         frame[:payload] = payload.read(frame[:length])
-      when :ping
-        frame[:payload] = payload.read(frame[:length])
       when :goaway
         frame[:last_stream] = payload.read_uint32 & RBIT
         frame[:error] = unpack_error payload.read_uint32
@@ -428,8 +426,6 @@ module HTTP2Next
         end
 
         frame[:increment] = payload.read_uint32 & RBIT
-      when :continuation
-        frame[:payload] = payload.read(frame[:length])
       when :altsvc
         frame[:max_age], frame[:port] = payload.read(6).unpack(UINT32 + UINT16)
 
