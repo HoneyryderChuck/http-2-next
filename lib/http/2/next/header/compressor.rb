@@ -31,7 +31,7 @@ module HTTP2Next
       # @param n [Integer] number of available bits
       # @return [String] binary string
       def integer(i, n)
-        limit = 2**n - 1
+        limit = (2**n) - 1
         return [i].pack("C") if i < limit
 
         bytes = []

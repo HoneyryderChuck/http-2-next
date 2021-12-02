@@ -15,6 +15,14 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
   spec.required_ruby_version = ">=2.1.0"
 
+  spec.metadata = {
+    "bug_tracker_uri" => "https://gitlab.com/honeyryderchuck/http-2-next/issues",
+    "changelog_uri" => "https://gitlab.com/honeyryderchuck/http-2-next/-/blob/master/CHANGELOG.md",
+    "source_code_uri" => "https://gitlab.com/honeyryderchuck/http-2-next",
+    "homepage_uri" => "https://gitlab.com/honeyryderchuck/http-2-next",
+    "rubygems_mfa_required" => "true"
+  }
+
   spec.files = Dir["LICENSE.txt", "README.md", "lib/**/*.rb", "sig/**/*.rbs"]
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})

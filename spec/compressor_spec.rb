@@ -200,7 +200,7 @@ RSpec.describe HTTP2Next::Header do
           end
 
           original_table = cc.table.dup
-          original_size = original_table.join.bytesize + original_table.size * 32
+          original_size = original_table.join.bytesize + (original_table.size * 32)
 
           cc.process(name: "x-custom",
                      value: "a" * (2048 - original_size),

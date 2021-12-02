@@ -325,7 +325,7 @@ module HTTP2Next
         # Padding:  Padding octets that contain no application semantic value.
         # Padding octets MUST be set to zero when sending and ignored when
         # receiving.
-        bytes << "\0" * padlen
+        bytes << ("\0" * padlen)
       end
 
       frame[:length] = length
