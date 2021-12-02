@@ -25,7 +25,7 @@ module HTTP2Next
       # @return [String] binary string
       def encode(str)
         bitstring = str.each_byte.map { |chr| ENCODE_TABLE[chr] }.join
-        bitstring << "1" * ((8 - bitstring.size) % 8)
+        bitstring << ("1" * ((8 - bitstring.size) % 8))
         [bitstring].pack("B*")
       end
 
@@ -40,7 +40,7 @@ module HTTP2Next
 
         mask = (1 << BITS_AT_ONCE) - 1
         buf.each_byte do |chr|
-          (8 / BITS_AT_ONCE - 1).downto(0) do |shift|
+          ((8 / BITS_AT_ONCE) - 1).downto(0) do |shift|
             branch = (chr >> (shift * BITS_AT_ONCE)) & mask
             # MACHINE[state] = [final, [transitions]]
             #  [final] unfinished bits so far are prefix of the EOS code.

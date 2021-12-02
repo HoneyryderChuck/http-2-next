@@ -5,7 +5,7 @@ stages:
 
 # Cache gems in between builds
 cache:
-  key: ${CI_COMMIT_REF_SLUG}
+  key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
   paths:
     - vendor/ruby
     - vendor/jruby
@@ -27,17 +27,25 @@ jruby:
   variables:
     JRUBY_OPTS: "--debug"
   before_script: *before_script
-  image: "jruby:9.2.9"
+  image: "jruby:9.3"
   script:
     - *test
   artifacts:
     paths:
       - coverage
+truffleruby:
+  before_script:
+    - *before_script
+  image: "ghcr.io/graalvm/truffleruby:latest"
+  script:
+    - *test
+  artifacts:
+    paths:
+      - "coverage"
 ruby21:
   before_script:
-    - apk --update add g++ make
     - *before_script
-  image: "ruby:2.1-alpine"
+  image: "ruby:2.1"
   script:
     - *test
   artifacts:
@@ -45,54 +53,48 @@ ruby21:
       - coverage
 ruby22:
   before_script:
-    - apk --update add g++ make
     - *before_script
-  image: "ruby:2.2-alpine"
+  image: "ruby:2.2"
   only:
     - master
   script:
     - *test
 ruby23:
   before_script:
-    - apk --update add g++ make
     - *before_script
-  image: "ruby:2.3-alpine"
+  image: "ruby:2.3"
   only:
     - master
   script:
     - *test
 ruby24:
   before_script:
-    - apk --update add g++ make
     - *before_script
-  image: "ruby:2.4-alpine"
+  image: "ruby:2.4"
   only:
     - master
   script:
     - *test
 ruby25:
   before_script:
-    - apk --update add g++ make
     - *before_script
-  image: "ruby:2.5-alpine"
+  image: "ruby:2.5"
   only:
     - master
   script:
     - *test
 ruby26:
   before_script:
-    - apk --update add g++ make
     - *before_script
-  image: "ruby:2.6-alpine"
+  image: "ruby:2.6"
   only:
     - master
   script:
     - *test
 ruby27:
   before_script:
-    - apk --update add g++ make
     - *before_script
-  image: "ruby:2.7-alpine"
+  image: "ruby:2.7"
   script:
     - *test
   artifacts:
@@ -100,14 +102,13 @@ ruby27:
       - coverage
 ruby30:
   before_script:
-    - apk --update add g++ make git
     - *before_script
     - export RUBYOPT="-rbundler/setup -rrbs/test/setup"
     - export RBS_TEST_RAISE="true"
     - export RBS_TEST_LOGLEVEL="error"
     - export RBS_TEST_OPT="-Isig"
     - export RBS_TEST_TARGET="HTTP2Next*"
-  image: "ruby:3.0-rc-alpine"
+  image: "ruby:3.0"
   script:
     - *test
   artifacts:
@@ -117,12 +118,13 @@ ruby30:
 coverage:
   stage: prepare
   dependencies:
+    - truffleruby
     - jruby
     - ruby21
     - ruby27
-  image: "ruby:2.7-alpine"
+    - ruby30
+  image: "ruby:3.0"
   before_script:
-    - apk --update add g++ make
     - gem install simplecov --no-doc
   script:
     - find coverage -name "*resultset.json" -exec sed -i 's?/home?'`pwd`'?' {} \;

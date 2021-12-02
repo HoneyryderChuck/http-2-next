@@ -93,8 +93,8 @@ task :h2spec do
   end
 
   server_pid = Process.spawn("ruby example/server.rb -p 9000", out: File::NULL)
-  sleep RUBY_ENGINE == "jruby" ? 20 : 5
-  system("#{h2spec} -p 9000 -o 1 --strict")
+  sleep RUBY_ENGINE == "ruby" ? 5 : 20
+  system("#{h2spec} -p 9000 -o 2 --strict")
   Process.kill("TERM", server_pid)
   exit($CHILD_STATUS.exitstatus)
 end

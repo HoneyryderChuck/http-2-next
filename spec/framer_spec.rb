@@ -29,9 +29,9 @@ RSpec.describe HTTP2Next::Framer do
 
     it "should generate a large frame" do
       f = Framer.new
-      f.remote_max_frame_size = 2**24 - 1
+      f.remote_max_frame_size = (2**24) - 1
       frame = {
-        length: 2**18 + 2**16 + 17,
+        length: (2**18) + (2**16) + 17,
         type: :headers,
         flags: %i[end_stream end_headers],
         stream: 15
