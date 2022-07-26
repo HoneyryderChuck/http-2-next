@@ -87,8 +87,8 @@ desc "run h2spec"
 task :h2spec do
   h2spec = File.join(__dir__, "h2spec")
   unless File.exist?(h2spec)
-    abort 'Please install h2spec first.\n'\
-          'Run "rake h2spec_install",\n'\
+    abort 'Please install h2spec first.\n' \
+          'Run "rake h2spec_install",\n' \
           "Or Download the binary from https://github.com/summerwind/h2spec/releases"
   end
 
