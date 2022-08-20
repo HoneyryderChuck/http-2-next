@@ -224,7 +224,7 @@ module HTTP2Next
     end
 
     def promise(headers, end_headers: true, &block)
-      raise ArgumentError, "must provide callback" unless block_given?
+      raise ArgumentError, "must provide callback" unless block
 
       flags = end_headers ? [:end_headers] : []
       emit(:promise, self, headers, flags, &block)

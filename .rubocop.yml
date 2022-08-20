@@ -1,5 +1,9 @@
 inherit_from: .rubocop_todo.yml
 
+require:
+  - rubocop-performance
+  - rubocop-thread_safety
+
 AllCops:
   NewCops: enable
   TargetRubyVersion: 2.7
@@ -8,6 +12,7 @@ AllCops:
     - "bin/**"
     - "vendor/**/*"
     - "**/huffman_statemachine.rb"
+    - "lib/tasks/**"
 
 
 Metrics/BlockLength:
@@ -87,3 +92,10 @@ Lint/SuppressedException:
 Lint/EmptyBlock:
   Exclude:
     - spec/*
+
+Performance/CollectionLiteralInLoop:
+  Exclude:
+    - spec/*
+
+Performance/MethodObjectAsBlock:
+  Enabled: false

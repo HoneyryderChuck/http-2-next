@@ -3,7 +3,8 @@
 module HTTP2Next
   # Stream, connection, and compressor exceptions.
   module Error
-    @types = {}
+    @types = {} # rubocop:disable ThreadSafety/MutableClassInstanceVariable
+
     class << self
       attr_reader :types
     end
@@ -60,5 +61,7 @@ module HTTP2Next
     class StreamLimitExceeded < Error; end
 
     class FrameSizeError < Error; end
+
+    @types.freeze
   end
 end

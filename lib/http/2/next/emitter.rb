@@ -10,7 +10,7 @@ module HTTP2Next
     # @param event [Symbol]
     # @param block [Proc] callback function
     def on(event, &block)
-      raise ArgumentError, "must provide callback" unless block_given?
+      raise ArgumentError, "must provide callback" unless block
 
       listeners(event.to_sym).push block
     end

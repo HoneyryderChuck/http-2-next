@@ -16,6 +16,7 @@ if RUBY_VERSION >= "3.0"
   gem "rbs"
   gem "rubocop"
   gem "rubocop-performance"
+  gem "rubocop-thread_safety"
   gem "steep"
   gem "typeprof"
 end

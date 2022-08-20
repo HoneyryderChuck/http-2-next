@@ -5,7 +5,7 @@ require "bundler/gem_tasks"
 require "open3"
 require_relative "lib/tasks/generate_huffman_table"
 
-RUBY_MAJOR_MINOR = RUBY_VERSION.split(/\./).first(2).join(".")
+RUBY_MAJOR_MINOR = RUBY_VERSION.split(".").first(2).join(".")
 
 begin
   require "rspec/core/rake_task"
