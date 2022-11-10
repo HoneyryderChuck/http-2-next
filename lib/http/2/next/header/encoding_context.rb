@@ -81,7 +81,7 @@ module HTTP2Next
 
       STATIC_TABLE_BY_FIELD = STATIC_TABLE
                               .each_with_object({})
-                              .each_with_index { |((field, value), hs), idx| (hs[field] ||= []) << [idx, value] }
+                              .with_index { |((field, value), hs), idx| (hs[field] ||= []) << [idx, value] }
                               .each { |pair| pair.each(&:freeze).freeze }.freeze
 
       STATIC_TABLE_SIZE = STATIC_TABLE.size
