@@ -1,8 +1,8 @@
 # HTTP-2-Next
 
 [![Gem Version](https://badge.fury.io/rb/http-2-next.svg)](http://rubygems.org/gems/http-2-next)
-[![Build status](https://gitlab.com/honeyryderchuck/http-2-next/badges/master/pipeline.svg)](https://gitlab.com/honeyryderchuck/http-2-next/commits/master)
-[![coverage report](https://gitlab.com/honeyryderchuck/http-2-next/badges/master/coverage.svg?job=coverage)](https://honeyryderchuck.gitlab.io/http-2-next/coverage/#_AllFiles)
+[![Build status](https://gitlab.com/os85/http-2-next/badges/master/pipeline.svg)](https://gitlab.com/os85/http-2-next/commits/master)
+[![coverage report](https://gitlab.com/os85/http-2-next/badges/master/coverage.svg?job=coverage)](https://os85.gitlab.io/http-2-next/coverage/#_AllFiles)
 
 **Attention!** This is a fork of the [http-2](https://github.com/igrigorik/http-2) gem.
 
@@ -265,7 +265,7 @@ conn.on(:stream) do |stream|
     # split response between multiple DATA frames
     stream.data(response_chunk, end_stream: false)
     stream.data(last_chunk)
-    
+
     # now send the previously promised data
     push_stream.data(push_data)
   end

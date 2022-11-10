@@ -11,15 +11,15 @@ Gem::Specification.new do |spec|
   spec.email         = ["cardoso_tiago@hotmail.com"]
   spec.description   = "Pure-ruby HTTP 2.0 protocol implementation"
   spec.summary       = spec.description
-  spec.homepage      = "https://gitlab.com/honeyryderchuck/http-2-next"
+  spec.homepage      = "https://gitlab.com/os85/http-2-next"
   spec.license       = "MIT"
   spec.required_ruby_version = ">=2.1.0"
 
   spec.metadata = {
-    "bug_tracker_uri" => "https://gitlab.com/honeyryderchuck/http-2-next/issues",
-    "changelog_uri" => "https://gitlab.com/honeyryderchuck/http-2-next/-/blob/master/CHANGELOG.md",
-    "source_code_uri" => "https://gitlab.com/honeyryderchuck/http-2-next",
-    "homepage_uri" => "https://gitlab.com/honeyryderchuck/http-2-next",
+    "bug_tracker_uri" => "https://gitlab.com/os85/http-2-next/issues",
+    "changelog_uri" => "https://gitlab.com/os85/http-2-next/-/blob/master/CHANGELOG.md",
+    "source_code_uri" => "https://gitlab.com/os85/http-2-next",
+    "homepage_uri" => "https://gitlab.com/os85/http-2-next",
     "rubygems_mfa_required" => "true"
   }
 
