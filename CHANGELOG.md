@@ -1,3 +1,7 @@
+## 0.5.1
+
+point release to update links in rubygems.
+
 ## 0.5.0
 
 * optimization for header decompression of static headers
