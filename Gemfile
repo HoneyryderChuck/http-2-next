@@ -13,12 +13,14 @@ gem "pry-byebug", platform: :mri
 gem "rspec", "~> 3.4.0"
 
 if RUBY_VERSION >= "3.0"
-  gem "rbs"
   gem "rubocop"
   gem "rubocop-performance"
   gem "rubocop-thread_safety"
-  gem "steep"
-  gem "typeprof"
+  platform :mri do
+    gem "rbs"
+    gem "steep"
+    gem "typeprof"
+  end
 end
 
 gem "memory_profiler"
