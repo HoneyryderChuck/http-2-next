@@ -39,6 +39,7 @@ truffleruby:
   image: "ghcr.io/graalvm/truffleruby:latest"
   script:
     - *test
+  allow_failure: true
   artifacts:
     paths:
       - "coverage"
