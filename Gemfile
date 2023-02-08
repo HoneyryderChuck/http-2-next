@@ -15,7 +15,6 @@ gem "rspec", "~> 3.4.0"
 if RUBY_VERSION >= "3.0"
   gem "rubocop"
   gem "rubocop-performance"
-  gem "rubocop-thread_safety"
   platform :mri do
     gem "rbs"
     gem "steep"
