@@ -25,14 +25,14 @@ RSpec.describe HTTP2Next::Header do
 
   context "Decompressor" do
     folders.each do |folder|
-      next if /#/.match?(folder)
+      next if folder.include?("#")
 
       path = File.expand_path("hpack-test-case/#{folder}", File.dirname(__FILE__))
       next unless Dir.exist?(path)
 
       context folder.to_s do
         Dir.foreach(path) do |file|
-          next unless /\.json/.match?(file)
+          next unless file.include?(".json")
 
           it "should decode #{file}" do
             story = JSON.parse(File.read("#{path}/#{file}"))
@@ -58,7 +58,7 @@ RSpec.describe HTTP2Next::Header do
       SHORTER
       STATIC
     ].each do |mode|
-      next if /#/.match?(mode)
+      next if mode.include?("#")
 
       ["", "H"].each do |huffman|
         encoding_mode = "#{mode}#{huffman}".to_sym
@@ -70,7 +70,7 @@ RSpec.describe HTTP2Next::Header do
           context "with #{mode}#{huffman} mode and table_size #{table_size}" do
             path = File.expand_path("hpack-test-case/raw-data", File.dirname(__FILE__))
             Dir.foreach(path) do |file|
-              next unless /\.json/.match?(file)
+              next unless file.include?(".json")
 
               it "should encode #{file}" do
                 story = JSON.parse(File.read("#{path}/#{file}"))

@@ -3,7 +3,7 @@
 module HTTP2Next
   # Stream, connection, and compressor exceptions.
   module Error
-    @types = {} # rubocop:disable ThreadSafety/MutableClassInstanceVariable
+    @types = {}
 
     class << self
       attr_reader :types

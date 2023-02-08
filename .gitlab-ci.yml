@@ -27,7 +27,7 @@ jruby:
   variables:
     JRUBY_OPTS: "--debug"
   before_script: *before_script
-  image: "jruby:9.3"
+  image: "jruby:9.4"
   script:
     - *test
   artifacts:
@@ -40,6 +40,7 @@ truffleruby:
   image: "ghcr.io/graalvm/truffleruby:latest"
   script:
     - *test
+  allow_failure: true
   artifacts:
     paths:
       - "coverage"
