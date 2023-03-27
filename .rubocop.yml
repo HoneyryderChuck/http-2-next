@@ -98,3 +98,7 @@ Performance/CollectionLiteralInLoop:
 
 Performance/MethodObjectAsBlock:
   Enabled: false
+
+Metrics/CollectionLiteralLength:
+  Exclude:
+    - lib/http/2/next/header/huffman.rb
