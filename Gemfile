@@ -22,5 +22,5 @@ if RUBY_VERSION >= "3.0"
   end
 end
 
-gem "memory_profiler"
-gem "stackprof", platform: :mri
+# gem "memory_profiler"
+# gem "stackprof", platform: :mri
