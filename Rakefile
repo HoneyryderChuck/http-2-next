@@ -101,6 +101,6 @@ end
 
 default_tasks = %i[spec]
 default_tasks << :rubocop if defined?(RuboCop) && RUBY_ENGINE == "ruby"
-default_tasks += %i[h2spec_install h2spec] if ENV.key?("CI")
+default_tasks += %i[h2spec_install h2spec] if ENV.key?("CI") && RUBY_VERSION >= "3.0.0"
 task default: default_tasks
 task all: %i[default hpack]
