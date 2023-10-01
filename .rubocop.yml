@@ -35,6 +35,9 @@ Bundler/DuplicatedGem:
 Style/OptionalBooleanParameter:
   Enabled: false
 
+Style/ArgumentsForwarding:
+  Enabled: false
+
 Lint/MissingSuper:
   Exclude:
     - 'lib/httpx/io/unix.rb'

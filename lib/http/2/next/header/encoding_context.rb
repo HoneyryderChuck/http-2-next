@@ -8,8 +8,6 @@ module HTTP2Next
     class EncodingContext
       include Error
 
-      using RegexpExtensions
-
       UPPER = /[[:upper:]]/.freeze
 
       # @private

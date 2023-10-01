@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.summary       = spec.description
   spec.homepage      = "https://gitlab.com/os85/http-2-next"
   spec.license       = "MIT"
-  spec.required_ruby_version = ">=2.1.0"
+  spec.required_ruby_version = ">=2.7.0"
 
   spec.metadata = {
     "bug_tracker_uri" => "https://gitlab.com/os85/http-2-next/issues",
@@ -24,6 +24,5 @@ Gem::Specification.new do |spec|
   }
 
   spec.files = Dir["LICENSE.txt", "README.md", "lib/**/*.rb", "sig/**/*.rbs"]
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 end
