@@ -59,7 +59,7 @@ ruby30:
     - export RUBYOPT="-rbundler/setup -rrbs/test/setup"
     - export RBS_TEST_RAISE="true"
     - export RBS_TEST_LOGLEVEL="error"
-    - export RBS_TEST_OPT="-Isig"
+    - export RBS_TEST_OPT="-Isig -rbase64"
     - export RBS_TEST_TARGET="HTTP2Next*"
   image: "ruby:3.0"
   script:
@@ -73,7 +73,7 @@ ruby31:
     - export RUBYOPT="-rbundler/setup -rrbs/test/setup"
     - export RBS_TEST_RAISE="true"
     - export RBS_TEST_LOGLEVEL="error"
-    - export RBS_TEST_OPT="-Isig"
+    - export RBS_TEST_OPT="-Isig -rbase64"
     - export RBS_TEST_TARGET="HTTP2Next*"
   image: "ruby:3.1"
   script:
@@ -87,7 +87,7 @@ ruby32:
     - export RUBYOPT="-rbundler/setup -rrbs/test/setup"
     - export RBS_TEST_RAISE="true"
     - export RBS_TEST_LOGLEVEL="error"
-    - export RBS_TEST_OPT="-Isig"
+    - export RBS_TEST_OPT="-Isig -rbase64"
     - export RBS_TEST_TARGET="HTTP2Next*"
   image: "ruby:3.2"
   script:
