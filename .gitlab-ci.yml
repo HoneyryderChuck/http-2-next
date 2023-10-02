@@ -44,55 +44,6 @@ truffleruby:
   artifacts:
     paths:
       - "coverage"
-ruby21:
-  before_script:
-    - *before_script
-  image: "ruby:2.1"
-  script:
-    - *test
-  artifacts:
-    paths:
-      - coverage
-ruby22:
-  before_script:
-    - *before_script
-  image: "ruby:2.2"
-  only:
-    - master
-  script:
-    - *test
-ruby23:
-  before_script:
-    - *before_script
-  image: "ruby:2.3"
-  only:
-    - master
-  script:
-    - *test
-ruby24:
-  before_script:
-    - *before_script
-  image: "ruby:2.4"
-  only:
-    - master
-  script:
-    - *test
-ruby25:
-  before_script:
-    - *before_script
-  image: "ruby:2.5"
-  only:
-    - master
-  script:
-    - *test
-ruby26:
-  before_script:
-    - *before_script
-  image: "ruby:2.6"
-  only:
-    - master
-  script:
-    - *test
 ruby27:
   before_script:
     - *before_script
@@ -108,7 +59,7 @@ ruby30:
     - export RUBYOPT="-rbundler/setup -rrbs/test/setup"
     - export RBS_TEST_RAISE="true"
     - export RBS_TEST_LOGLEVEL="error"
-    - export RBS_TEST_OPT="-Isig"
+    - export RBS_TEST_OPT="-Isig -rbase64"
     - export RBS_TEST_TARGET="HTTP2Next*"
   image: "ruby:3.0"
   script:
@@ -122,9 +73,23 @@ ruby31:
     - export RUBYOPT="-rbundler/setup -rrbs/test/setup"
     - export RBS_TEST_RAISE="true"
     - export RBS_TEST_LOGLEVEL="error"
-    - export RBS_TEST_OPT="-Isig"
+    - export RBS_TEST_OPT="-Isig -rbase64"
     - export RBS_TEST_TARGET="HTTP2Next*"
   image: "ruby:3.1"
+  script:
+    - *test
+  artifacts:
+    paths:
+      - coverage
+ruby32:
+  before_script:
+    - *before_script
+    - export RUBYOPT="-rbundler/setup -rrbs/test/setup"
+    - export RBS_TEST_RAISE="true"
+    - export RBS_TEST_LOGLEVEL="error"
+    - export RBS_TEST_OPT="-Isig -rbase64"
+    - export RBS_TEST_TARGET="HTTP2Next*"
+  image: "ruby:3.2"
   script:
     - *test
   artifacts:
@@ -133,13 +98,7 @@ ruby31:
 
 coverage:
   stage: prepare
-  dependencies:
-    - truffleruby
-    - jruby
-    - ruby21
-    - ruby27
-    - ruby31
-  image: "ruby:3.1"
+  image: "ruby:3.2"
   before_script:
     - gem install simplecov --no-doc
   script:
