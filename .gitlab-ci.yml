@@ -97,6 +97,7 @@ ruby32:
       - coverage
 
 coverage:
+  coverage: '/\(\d+.\d+\%\) covered/'
   stage: prepare
   image: "ruby:3.2"
   before_script:
