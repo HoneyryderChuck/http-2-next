@@ -21,6 +21,29 @@ module HTTP2Next
 
     attr_writer max_streams: Integer?
 
+    @stream_id: Integer
+    @active_stream_count: Integer
+    @last_activated_stream: Integer
+    @last_stream_id: Integer
+
+    @streams: Hash[Integer, Stream]
+    @streams_recently_closed: Hash[Integer, Stream]
+
+    @framer: Framer
+
+    @local_window_limit: Integer
+    @remote_window_limit: Integer
+
+    @compressor: Header::Compressor
+    @decompressor: Header::Decompressor
+    @error: Symbol?
+
+    @recv_buffer: String
+    @continuation: Array[frame]
+
+    @closed_since: Float?
+    @received_frame: bool
+
     def closed?: () -> bool
 
     def new_stream: (**untyped) -> Stream
@@ -37,9 +60,9 @@ module HTTP2Next
     def receive: (string data) -> void
     alias << receive
 
-    private
+    def initialize: (?settings_hash) -> void
 
-    def initialize: (?settings_hash) -> untyped
+    private
 
     def send: (frame) -> void
 
@@ -67,6 +90,6 @@ module HTTP2Next
 
     def _verify_pseudo_headers: (frame, Array[String]) -> void
 
-    def connection_error: (?Symbol error, ?msg: String, ?e: StandardError) -> void
+    def connection_error: (?Symbol error, ?msg: String?, ?e: StandardErrori?) -> void
   end
 end
