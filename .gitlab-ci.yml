@@ -37,7 +37,7 @@ truffleruby:
   allow_failure: true
   before_script:
     - *before_script
-  image: "ghcr.io/graalvm/truffleruby:latest"
+  image: "ghcr.io/graalvm/truffleruby-community:latest"
   script:
     - *test
   allow_failure: true
