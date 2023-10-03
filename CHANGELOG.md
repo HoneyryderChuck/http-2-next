@@ -1,3 +1,15 @@
+## 1.0.0
+
+There are no public API breaking changes.
+
+### Breaking changes
+
+Set ruby 2.7 as the lowest supported ruby version.
+
+### Chore
+
+Removing `base64` library usage for ruby 3.3 or higher (as it's going to be removed from bundled gems).
+
 ## 0.5.1
 
 point release to update links in rubygems.
