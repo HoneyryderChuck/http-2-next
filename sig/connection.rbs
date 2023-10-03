@@ -90,6 +90,6 @@ module HTTP2Next
 
     def _verify_pseudo_headers: (frame, Array[String]) -> void
 
-    def connection_error: (?Symbol error, ?msg: String?, ?e: StandardErrori?) -> void
+    def connection_error: (?Symbol error, ?msg: String?, ?e: StandardError?) -> void
   end
 end
