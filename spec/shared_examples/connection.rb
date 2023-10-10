@@ -233,18 +233,24 @@ RSpec.shared_examples "a connection" do
       s2.send push_promise_frame
       expect(conn.active_stream_count).to eq 0
 
+      s3 = conn.new_stream
+      s3.send push_promise_frame
+      expect(conn.active_stream_count).to eq 0
+
       # transition to half closed
       s1.receive headers_frame
       s2.send headers_frame
+      s3.send rst_stream_frame
       expect(conn.active_stream_count).to eq 2
 
       # transition to closed
       s1.receive data_frame
       s2.send data_frame
-      expect(conn.active_stream_count).to eq 2
+      expect(conn.active_stream_count).to eq 0
 
       expect(s1).to be_closed
       expect(s2).to be_closed
+      expect(s3).to be_closed
     end
 
     it "should not exceed stream limit set by peer" do

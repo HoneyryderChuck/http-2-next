@@ -734,7 +734,11 @@ module HTTP2Next
       # Streams that are in the "open" state, or either of the "half closed"
       # states count toward the maximum number of streams that an endpoint is
       # permitted to open.
-      stream.once(:active) { @active_stream_count += 1 }
+      stream.once(:active) do
+        @active_stream_count += 1
+        stream.once(:close) { @active_stream_count -= 1 }
+      end
+
       stream.once(:close) do
         # Store a reference to the closed stream, such that we can respond
         # to any in-flight frames while close is registered on both sides.
