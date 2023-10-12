@@ -19,8 +19,6 @@ module HTTP2Next
 
     attr_reader active_stream_count: Integer
 
-    attr_writer max_streams: Integer?
-
     @stream_id: Integer
     @active_stream_count: Integer
     @last_activated_stream: Integer

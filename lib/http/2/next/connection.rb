@@ -73,9 +73,6 @@ module HTTP2Next
     # are not counted towards the stream limit).
     attr_reader :active_stream_count
 
-    # Max number of streams that can be in-transit in this connection.
-    attr_writer :max_streams
-
     # Initializes new connection object.
     #
     def initialize(settings = {})
@@ -86,7 +83,6 @@ module HTTP2Next
       @decompressor = Header::Decompressor.new(settings)
 
       @active_stream_count = 0
-      @max_streams = nil
       @last_activated_stream = 0
       @last_stream_id = 0
       @streams = {}
@@ -120,8 +116,7 @@ module HTTP2Next
     # @param parent [Stream]
     def new_stream(**args)
       raise ConnectionClosed if @state == :closed
-
-      raise StreamLimitExceeded if @active_stream_count >= (@max_streams || @remote_settings[:settings_max_concurrent_streams])
+      raise StreamLimitExceeded if @active_stream_count >= @remote_settings[:settings_max_concurrent_streams]
 
       connection_error(:protocol_error, msg: "id is smaller than previous") if @stream_id < @last_activated_stream
 
@@ -727,7 +722,7 @@ module HTTP2Next
     def activate_stream(id:, **args)
       connection_error(msg: "Stream ID already exists") if @streams.key?(id)
 
-      raise StreamLimitExceeded if @active_stream_count >= (@max_streams || @local_settings[:settings_max_concurrent_streams])
+      raise StreamLimitExceeded if @active_stream_count >= @local_settings[:settings_max_concurrent_streams]
 
       stream = Stream.new(connection: self, id: id, **args)
 
