@@ -17,7 +17,7 @@ module HTTP2Next
     attr_reader local_settings: settings_hash
     attr_reader pending_settings: settings_ary
 
-    attr_reader active_stream_count: Integer
+    attr_accessor active_stream_count: Integer
 
     @stream_id: Integer
     @active_stream_count: Integer

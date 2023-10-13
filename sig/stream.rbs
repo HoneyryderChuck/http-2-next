@@ -12,6 +12,16 @@ module HTTP2Next
     attr_reader local_window: Integer
     attr_reader closed: Symbol?
 
+    @connection: Connection
+    @local_window_max_size: Integer
+    @error: bool
+    @_method: String?
+    @_content_length: Integer?
+    @_status_code: Integer?
+    @_waiting_on_trailers: bool
+    @received_data: bool
+    @activated: bool
+
     alias window local_window
 
     def closed?: () -> bool
@@ -60,6 +70,10 @@ module HTTP2Next
     def transition: (frame, bool sending) -> void
 
     def event: (Symbol newstate) -> void
+
+    def activate_stream_in_conn: () -> void
+
+    def close_stream_in_conn: (*untyped) -> void
 
     def complete_transition: (frame) -> void
 

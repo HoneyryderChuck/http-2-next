@@ -71,7 +71,7 @@ module HTTP2Next
 
     # Number of active streams between client and server (reserved streams
     # are not counted towards the stream limit).
-    attr_reader :active_stream_count
+    attr_accessor :active_stream_count
 
     # Initializes new connection object.
     #
@@ -725,14 +725,6 @@ module HTTP2Next
       raise StreamLimitExceeded if @active_stream_count >= @local_settings[:settings_max_concurrent_streams]
 
       stream = Stream.new(connection: self, id: id, **args)
-
-      # Streams that are in the "open" state, or either of the "half closed"
-      # states count toward the maximum number of streams that an endpoint is
-      # permitted to open.
-      stream.once(:active) do
-        @active_stream_count += 1
-        stream.once(:close) { @active_stream_count -= 1 }
-      end
 
       stream.once(:close) do
         # Store a reference to the closed stream, such that we can respond

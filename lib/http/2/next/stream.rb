@@ -91,6 +91,7 @@ module HTTP2Next
       @_method = @_content_length = @_status_code = nil
       @_waiting_on_trailers = false
       @received_data = false
+      @activated = false
 
       on(:window) { |v| @remote_window = v }
       on(:local_window) { |v| @local_window_max_size = @local_window = v }
@@ -605,7 +606,7 @@ module HTTP2Next
       case newstate
       when :open
         @state = newstate
-        emit(:active)
+        activate_stream_in_conn
 
       when :reserved_local, :reserved_remote
         @state = newstate
@@ -613,7 +614,7 @@ module HTTP2Next
 
       when :half_closed_local, :half_closed_remote
         @closed = newstate
-        emit(:active) unless @state == :open
+        activate_stream_in_conn unless @state == :open
         @state = :half_closing
 
       when :local_closed, :remote_closed, :local_rst, :remote_rst
@@ -624,11 +625,25 @@ module HTTP2Next
       @state
     end
 
+    # Streams that are in the "open" state, or either of the "half closed"
+    # states count toward the maximum number of streams that an endpoint is
+    # permitted to open.
+    def activate_stream_in_conn
+      @connection.active_stream_count += 1
+      @activated = true
+      emit(:active)
+    end
+
+    def close_stream_in_conn(*args)
+      @connection.active_stream_count -= 1 if @activated
+      emit(:close, *args)
+    end
+
     def complete_transition(frame)
       case @state
       when :closing
         @state = :closed
-        emit(:close, frame[:error])
+        close_stream_in_conn(frame[:error])
       when :half_closing
         @state = @closed
         emit(:half_close)
