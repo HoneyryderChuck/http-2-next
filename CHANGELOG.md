@@ -1,3 +1,11 @@
+## 1.0.1
+
+### Bugfixes
+
+Active stream count on a connection is no longer interpreted as a "max number of streams" cap on a given connection, and is correctly used as "max concurrent streams". This fixes an earlier patch which was motivated by solving an h2spec compliance issue, given that upstream `http-2` had a stream accounting bug (it decrements active stream count in cases where it shouldn't, including for push streams which go from "reserved" to "closed", and it does not increent it on the "h2c upgrade" case).
+
+This also removes support for `HTTP2Next::Connection#max_streams`, which was a "hack" to circumvent the buggy implementation, and should therefore not be used.
+
 ## 1.0.0
 
 There are no public API breaking changes.
