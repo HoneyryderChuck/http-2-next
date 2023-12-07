@@ -731,11 +731,13 @@ module HTTP2Next
         # to any in-flight frames while close is registered on both sides.
         # References to such streams will be purged whenever another stream
         # is closed, with a minimum of 15s RTT time window.
-        @streams_recently_closed.reject! do |stream_id, v|
-          to_delete = (Process.clock_gettime(Process::CLOCK_MONOTONIC) - v) > 15
-          @streams.delete stream_id if to_delete
-          to_delete
-        end
+        now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+        # TODO: use a drop_while! variant whenever there is one.
+        @streams_recently_closed = @streams_recently_closed.drop_while do |_, v|
+          (now - v) > 15
+        end.to_h
+
         @streams_recently_closed[id] = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
 
