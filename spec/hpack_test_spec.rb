@@ -61,7 +61,7 @@ RSpec.describe HTTP2Next::Header do
       next if mode.include?("#")
 
       ["", "H"].each do |huffman|
-        encoding_mode = "#{mode}#{huffman}".to_sym
+        encoding_mode = :"#{mode}#{huffman}"
         encoding_options = HTTP2Next::Header::EncodingContext.const_get(encoding_mode)
         [4096, 512].each do |table_size|
           options = { table_size: table_size }

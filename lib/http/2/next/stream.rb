@@ -170,7 +170,7 @@ module HTTP2Next
       trailers = frame[:payload]
       return unless trailers.respond_to?(:each)
 
-      trailers.each do |field, _|
+      trailers.each do |field, _| # rubocop:disable Style/HashEachMethods
         @_trailers.delete(field)
         break if @_trailers.empty?
       end
