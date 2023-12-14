@@ -1,3 +1,9 @@
+## 1.0.2
+
+### improvements
+
+Using `#drop_while` enumerable function to drop timed out recently closed streams, which reduced the complexity of it from O(n) to O(log n), making a difference in a few benchmarks.
+
 ## 1.0.1
 
 ### Bugfixes
