@@ -95,11 +95,25 @@ ruby32:
   artifacts:
     paths:
       - coverage
+ruby33:
+  before_script:
+    - *before_script
+    - export RUBYOPT="-rbundler/setup -rrbs/test/setup"
+    - export RBS_TEST_RAISE="true"
+    - export RBS_TEST_LOGLEVEL="error"
+    - export RBS_TEST_OPT="-Isig"
+    - export RBS_TEST_TARGET="HTTP2Next*"
+  image: "ruby:3.3"
+  script:
+    - *test
+  artifacts:
+    paths:
+      - coverage
 
 coverage:
   coverage: '/\(\d+.\d+\%\) covered/'
   stage: prepare
-  image: "ruby:3.2"
+  image: "ruby:3.3"
   before_script:
     - gem install simplecov --no-doc
   script:
