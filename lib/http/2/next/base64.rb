@@ -16,14 +16,6 @@ elsif !defined?(Base64)
         str.unpack1("m")
       end
 
-      def strict_encode64(bin)
-        [bin].pack("m0")
-      end
-
-      def strict_decode64(str)
-        str.unpack1("m0")
-      end
-
       def urlsafe_encode64(bin, padding: true)
         str = strict_encode64(bin)
         str.chomp!("==") or str.chomp!("=") unless padding
