@@ -7,6 +7,7 @@ module HTTP2Next
     using StringExtensions
 
     include Error
+    include PackingExtensions
 
     # Default value of max frame size (16384 bytes)
     DEFAULT_MAX_FRAME_SIZE = 2 << 13
@@ -123,10 +124,9 @@ module HTTP2Next
     # - http://tools.ietf.org/html/draft-ietf-httpbis-http2-16#section-4.1
     #
     # @param frame [Hash]
+    # @param buffer [String] buffer to pack bytes into
     # @return [String]
-    def common_header(frame)
-      header = []
-
+    def common_header(frame, buffer:)
       raise CompressionError, "Invalid frame type (#{frame[:type]})" unless FRAME_TYPES[frame[:type]]
 
       raise CompressionError, "Frame size is too large: #{frame[:length]}" if frame[:length] > @remote_max_frame_size
@@ -139,18 +139,18 @@ module HTTP2Next
         raise CompressionError, "Window increment (#{frame[:increment]}) is too large"
       end
 
-      header << (frame[:length] >> FRAME_LENGTH_HISHIFT)
-      header << (frame[:length] & FRAME_LENGTH_LOMASK)
-      header << FRAME_TYPES[frame[:type]]
-      header << frame[:flags].reduce(0) do |acc, f|
-        position = FRAME_FLAGS[frame[:type]][f]
-        raise CompressionError, "Invalid frame flag (#{f}) for #{frame[:type]}" unless position
+      pack([
+             (frame[:length] >> FRAME_LENGTH_HISHIFT),
+             (frame[:length] & FRAME_LENGTH_LOMASK),
+             FRAME_TYPES[frame[:type]],
+             frame[:flags].reduce(0) do |acc, f|
+               position = FRAME_FLAGS[frame[:type]][f]
+               raise CompressionError, "Invalid frame flag (#{f}) for #{frame[:type]}" unless position
 
-        acc | (1 << position)
-      end
-
-      header << frame[:stream]
-      header.pack(HEADERPACK) # 8+16,8,8,32
+               acc | (1 << position)
+             end,
+             frame[:stream]
+           ], HEADERPACK, buffer: buffer, offset: 0) # 8+16,8,8,32
     end
 
     # Decodes common 9-byte header.
@@ -200,8 +200,8 @@ module HTTP2Next
         end
 
         if frame[:flags].include? :priority
-          bytes << [(frame[:exclusive] ? EBIT : 0) | (frame[:dependency] & RBIT)].pack(UINT32)
-          bytes << [frame[:weight] - 1].pack(UINT8)
+          pack([(frame[:exclusive] ? EBIT : 0) | (frame[:dependency] & RBIT)], UINT32, buffer: bytes)
+          pack([frame[:weight] - 1], UINT8, buffer: bytes)
           length += 5
         end
 
@@ -213,12 +213,12 @@ module HTTP2Next
           raise CompressionError, "Must specify all of priority parameters for #{frame[:type]}"
         end
 
-        bytes << [(frame[:exclusive] ? EBIT : 0) | (frame[:dependency] & RBIT)].pack(UINT32)
-        bytes << [frame[:weight] - 1].pack(UINT8)
+        pack([(frame[:exclusive] ? EBIT : 0) | (frame[:dependency] & RBIT)], UINT32, buffer: bytes)
+        pack([frame[:weight] - 1], UINT8, buffer: bytes)
         length += 5
 
       when :rst_stream
-        bytes << pack_error(frame[:error])
+        pack_error(frame[:error], buffer: bytes)
         length += 4
 
       when :settings
@@ -233,13 +233,13 @@ module HTTP2Next
             raise CompressionError, "Unknown settings ID for #{k}" if k.nil?
           end
 
-          bytes << [k].pack(UINT16)
-          bytes << [v].pack(UINT32)
+          pack([k], UINT16, buffer: bytes)
+          pack([v], UINT32, buffer: bytes)
           length += 6
         end
 
       when :push_promise
-        bytes << [frame[:promise_stream] & RBIT].pack(UINT32)
+        pack([frame[:promise_stream] & RBIT], UINT32, buffer: bytes)
         bytes << frame[:payload]
         length += 4 + frame[:payload].bytesize
 
@@ -250,8 +250,8 @@ module HTTP2Next
         length += 8
 
       when :goaway
-        bytes << [frame[:last_stream] & RBIT].pack(UINT32)
-        bytes << pack_error(frame[:error])
+        pack([frame[:last_stream] & RBIT], UINT32, buffer: bytes)
+        pack_error(frame[:error], buffer: bytes)
         length += 8
 
         if frame[:payload]
@@ -260,7 +260,7 @@ module HTTP2Next
         end
 
       when :window_update
-        bytes << [frame[:increment] & RBIT].pack(UINT32)
+        pack([frame[:increment] & RBIT], UINT32, buffer: bytes)
         length += 4
 
       when :continuation
@@ -268,26 +268,26 @@ module HTTP2Next
         length += frame[:payload].bytesize
 
       when :altsvc
-        bytes << [frame[:max_age], frame[:port]].pack(UINT32 + UINT16)
+        pack([frame[:max_age], frame[:port]], UINT32 + UINT16, buffer: bytes)
         length += 6
         if frame[:proto]
           raise CompressionError, "Proto too long" if frame[:proto].bytesize > 255
 
-          bytes << [frame[:proto].bytesize].pack(UINT8)
+          pack([frame[:proto].bytesize], UINT8, buffer: bytes)
           bytes << frame[:proto]
           length += 1 + frame[:proto].bytesize
         else
-          bytes << [0].pack(UINT8)
+          pack([0], UINT8, buffer: bytes)
           length += 1
         end
         if frame[:host]
           raise CompressionError, "Host too long" if frame[:host].bytesize > 255
 
-          bytes << [frame[:host].bytesize].pack(UINT8)
+          pack([frame[:host].bytesize], UINT8, buffer: bytes)
           bytes << frame[:host]
           length += 1 + frame[:host].bytesize
         else
-          bytes << [0].pack(UINT8)
+          pack([0], UINT8, buffer: bytes)
           length += 1
         end
         if frame[:origin]
@@ -297,7 +297,7 @@ module HTTP2Next
 
       when :origin
         frame[:payload].each do |origin|
-          bytes << [origin.bytesize].pack(UINT16)
+          pack([origin.bytesize], UINT16, buffer: bytes)
           bytes << origin
           length += 2 + origin.bytesize
         end
@@ -319,7 +319,7 @@ module HTTP2Next
         end
 
         length += padlen
-        bytes.prepend([padlen -= 1].pack(UINT8))
+        pack([padlen -= 1], UINT8, buffer: bytes, offset: 0)
         frame[:flags] << :padded
 
         # Padding:  Padding octets that contain no application semantic value.
@@ -329,7 +329,7 @@ module HTTP2Next
       end
 
       frame[:length] = length
-      bytes.prepend(common_header(frame))
+      common_header(frame, buffer: bytes)
     end
 
     # Decodes complete HTTP/2 frame from provided buffer. If the buffer
@@ -456,14 +456,14 @@ module HTTP2Next
 
     private
 
-    def pack_error(error)
+    def pack_error(error, buffer:)
       unless error.is_a? Integer
         error = DEFINED_ERRORS[error]
 
         raise CompressionError, "Unknown error ID for #{error}" unless error
       end
 
-      [error].pack(UINT32)
+      pack([error], UINT32, buffer: buffer)
     end
 
     def unpack_error(error)

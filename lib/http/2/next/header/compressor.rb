@@ -4,6 +4,8 @@ module HTTP2Next
   module Header
     # Responsible for encoding header key-value pairs using HPACK algorithm.
     class Compressor
+      include PackingExtensions
+
       # @param options [Hash] encoding options
       def initialize(options = {})
         @cc = EncodingContext.new(options)
@@ -29,10 +31,12 @@ module HTTP2Next
       #
       # @param i [Integer] value to encode
       # @param n [Integer] number of available bits
+      # @param buffer [String] buffer to pack bytes into
+      # @param offset [Integer] offset to insert packed bytes in buffer
       # @return [String] binary string
-      def integer(i, n)
+      def integer(i, n, buffer:, offset: 0)
         limit = (2**n) - 1
-        return [i].pack("C") if i < limit
+        return pack([i], "C", buffer: buffer, offset: offset) if i < limit
 
         bytes = []
         bytes.push limit unless n.zero?
@@ -44,7 +48,7 @@ module HTTP2Next
         end
 
         bytes.push i
-        bytes.pack("C*")
+        pack(bytes, "C*", buffer: buffer, offset: offset)
       end
 
       # Encodes provided value via string literal representation.
@@ -70,12 +74,18 @@ module HTTP2Next
       def string(str)
         plain = nil
         huffman = nil
-        plain = integer(str.bytesize, 7) << str.dup.force_encoding(Encoding::BINARY) unless @cc.options[:huffman] == :always
+        unless @cc.options[:huffman] == :always
+          plain = "".b
+          integer(str.bytesize, 7, buffer: plain)
+          plain << str.dup.force_encoding(Encoding::BINARY)
+        end
+
         unless @cc.options[:huffman] == :never
           huffman = Huffman.new.encode(str)
-          huffman = integer(huffman.bytesize, 7) << huffman
+          integer(huffman.bytesize, 7, buffer: huffman, offset: 0)
           huffman.setbyte(0, huffman.ord | 0x80)
         end
+
         case @cc.options[:huffman]
         when :always
           huffman
@@ -96,14 +106,14 @@ module HTTP2Next
 
         case h[:type]
         when :indexed
-          buffer << integer(h[:name] + 1, rep[:prefix])
+          integer(h[:name] + 1, rep[:prefix], buffer: buffer)
         when :changetablesize
-          buffer << integer(h[:value], rep[:prefix])
+          integer(h[:value], rep[:prefix], buffer: buffer)
         else
           if h[:name].is_a? Integer
-            buffer << integer(h[:name] + 1, rep[:prefix])
+            integer(h[:name] + 1, rep[:prefix], buffer: buffer)
           else
-            buffer << integer(0, rep[:prefix])
+            integer(0, rep[:prefix], buffer: buffer)
             buffer << string(h[:name])
           end
 

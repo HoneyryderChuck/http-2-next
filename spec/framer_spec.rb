@@ -20,7 +20,7 @@ RSpec.describe HTTP2Next::Framer do
     let(:bytes) { [0, 0x04, 0x01, 0x5, 0x0000000F].pack("CnCCN") }
 
     it "should generate common 9 byte header" do
-      expect(f.common_header(frame)).to eq bytes
+      expect(f.common_header(frame, buffer: "".b)).to eq bytes
     end
 
     it "should parse common 9 byte header" do
@@ -37,35 +37,35 @@ RSpec.describe HTTP2Next::Framer do
         stream: 15
       }
       bytes = [5, 17, 0x01, 0x5, 0x0000000F].pack("CnCCN")
-      expect(f.common_header(frame)).to eq bytes
+      expect(f.common_header(frame, buffer: "".b)).to eq bytes
       expect(f.read_common_header(bytes)).to eq frame
     end
 
     it "should raise exception on invalid frame type when sending" do
       expect do
         frame[:type] = :bogus
-        f.common_header(frame)
+        f.common_header(frame, buffer: "".b)
       end.to raise_error(CompressionError, /invalid.*type/i)
     end
 
     it "should raise exception on invalid stream ID" do
       expect do
         frame[:stream] = Framer::MAX_STREAM_ID + 1
-        f.common_header(frame)
+        f.common_header(frame, buffer: "".b)
       end.to raise_error(CompressionError, /stream/i)
     end
 
     it "should raise exception on invalid frame flag" do
       expect do
         frame[:flags] = [:bogus]
-        f.common_header(frame)
+        f.common_header(frame, buffer: "".b)
       end.to raise_error(CompressionError, /frame flag/)
     end
 
     it "should raise exception on invalid frame size" do
       expect do
         frame[:length] = 2**24
-        f.common_header(frame)
+        f.common_header(frame, buffer: "".b)
       end.to raise_error(CompressionError, /too large/)
     end
   end
