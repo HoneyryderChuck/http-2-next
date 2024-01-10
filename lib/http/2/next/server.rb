@@ -80,13 +80,15 @@ module HTTP2Next
       # Process received HTTP2-Settings payload
       buf = "".b
       buf << Base64.urlsafe_decode64(settings.to_s)
-      header = @framer.common_header(
-        length: buf.bytesize,
-        type: :settings,
-        stream: 0,
-        flags: []
+      @framer.common_header(
+        {
+          length: buf.bytesize,
+          type: :settings,
+          stream: 0,
+          flags: []
+        },
+        buffer: buf
       )
-      buf.prepend(header)
       receive(buf)
 
       # Activate stream (id: 1) with on HTTP/1.1 request parameters

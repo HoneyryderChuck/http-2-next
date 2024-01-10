@@ -13,6 +13,7 @@ module HTTP2Next
       using StringExtensions
 
       include Error
+      include PackingExtensions
 
       BITS_AT_ONCE = 4
       EOS = 256

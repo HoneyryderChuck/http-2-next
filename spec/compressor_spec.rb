@@ -11,25 +11,25 @@ RSpec.describe HTTP2Next::Header do
   context "literal representation" do
     context "integer" do
       it "should encode 10 using a 5-bit prefix" do
-        buf = c.integer(10, 5)
+        buf = c.integer(10, 5, buffer: "".b)
         expect(buf).to eq [10].pack("C")
         expect(d.integer(buf, 5)).to eq 10
       end
 
       it "should encode 10 using a 0-bit prefix" do
-        buf = c.integer(10, 0)
+        buf = c.integer(10, 0, buffer: "".b)
         expect(buf).to eq [10].pack("C")
         expect(d.integer(buf, 0)).to eq 10
       end
 
       it "should encode 1337 using a 5-bit prefix" do
-        buf = c.integer(1337, 5)
+        buf = c.integer(1337, 5, buffer: "".b)
         expect(buf).to eq [31, 128 + 26, 10].pack("C*")
         expect(d.integer(buf, 5)).to eq 1337
       end
 
       it "should encode 1337 using a 0-bit prefix" do
-        buf = c.integer(1337, 0)
+        buf = c.integer(1337, 0, buffer: "".b)
         expect(buf).to eq [128 + 57, 10].pack("C*")
         expect(d.integer(buf, 0)).to eq 1337
       end

@@ -1,3 +1,9 @@
+## 1.0.3
+
+### Bugfixes
+
+Fix compatibility with ruby 3.3
+
 ## 1.0.2
 
 ### improvements

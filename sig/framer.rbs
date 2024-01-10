@@ -1,5 +1,7 @@
 module HTTP2Next
   class Framer
+    include PackingExtensions
+
     DEFAULT_MAX_FRAME_SIZE: Integer
 
     MAX_STREAM_ID: Integer
@@ -33,7 +35,7 @@ module HTTP2Next
 
     attr_accessor remote_max_frame_size: Integer
 
-    def common_header: (frame) -> String
+    def common_header: (frame, buffer: String) -> String
 
     def read_common_frame: (String) -> frame
 
@@ -45,7 +47,7 @@ module HTTP2Next
 
     def initialize: (?Integer local_max_frame_size, ?Integer remote_max_frame_size) -> untyped
 
-    def pack_error: (Integer | Symbol error) -> String
+    def pack_error: (Integer | Symbol error, buffer: String) -> String
 
     def unpack_error: (Integer) -> (Symbol | Integer)
   end
