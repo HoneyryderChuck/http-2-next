@@ -1,8 +1,11 @@
 ## 1.0.3
 
-### Bugfixes
+### Improvements
 
-Fix compatibility with ruby 3.3
+Adopting ruby 3.3:
+
+* Backporting required `base64` lib support (`base64` will no longer be in standard lib)
+* Using the `:buffer` kwarg from `Array#pack` to reduce string allocations
 
 ## 1.0.2
 
