@@ -72,26 +72,16 @@ module HTTP2Next
       # @param str [String]
       # @return [String] binary string
       def string(str)
-        plain = nil
-        huffman = nil
-        unless @cc.options[:huffman] == :always
-          plain = "".b
-          integer(str.bytesize, 7, buffer: plain)
-          plain << str.dup.force_encoding(Encoding::BINARY)
-        end
-
-        unless @cc.options[:huffman] == :never
-          huffman = Huffman.new.encode(str)
-          integer(huffman.bytesize, 7, buffer: huffman, offset: 0)
-          huffman.setbyte(0, huffman.ord | 0x80)
-        end
-
         case @cc.options[:huffman]
         when :always
-          huffman
+          huffman_string(str)
         when :never
-          plain
+          plain_string(str)
         else
+          huffman = huffman_string(str)
+
+          plain = plain_string(str)
+
           huffman.bytesize < plain.bytesize ? huffman : plain
         end
       end
@@ -141,6 +131,26 @@ module HTTP2Next
         end
 
         buffer
+      end
+
+      private
+
+      # @param str [String]
+      # @return [String] binary string
+      def huffman_string(str)
+        huffman = Huffman.new.encode(str)
+        integer(huffman.bytesize, 7, buffer: huffman, offset: 0)
+        huffman.setbyte(0, huffman.ord | 0x80)
+        huffman
+      end
+
+      # @param str [String]
+      # @return [String] binary string
+      def plain_string(str)
+        plain = "".b
+        integer(str.bytesize, 7, buffer: plain)
+        plain << str.dup.force_encoding(Encoding::BINARY)
+        plain
       end
     end
   end
