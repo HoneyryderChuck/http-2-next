@@ -11,15 +11,17 @@ module HTTP2Next
 
       def string: (String) -> String
 
-      def header: (header_command, String) -> String
-                | (header_command) -> String
+      def header: (header_command, ?String) -> String
 
       def encode: (Enumerable[header_pair]) -> String
 
       private
 
-      def initialize: (context_hash options) -> untyped
-                    | () -> untyped
+      def initialize: (?context_hash options) -> void
+
+      def huffman_string: (String str) -> String
+
+      def plain_string: (String str) -> String
     end
   end
 end
