@@ -37,12 +37,12 @@ module HTTP2Next
     # @param frame [Hash]
     def send(frame)
       send_connection_preface
-      super(frame)
+      super
     end
 
     def receive(frame)
       send_connection_preface
-      super(frame)
+      super
     end
 
     # sends the preface and initializes the first stream in half-closed state
