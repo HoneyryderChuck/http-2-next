@@ -4,7 +4,9 @@
 [![Build status](https://gitlab.com/os85/http-2-next/badges/master/pipeline.svg)](https://gitlab.com/os85/http-2-next/commits/master)
 [![coverage report](https://gitlab.com/os85/http-2-next/badges/master/coverage.svg?job=coverage)](https://os85.gitlab.io/http-2-next/coverage/#_AllFiles)
 
-**Attention!** This is a fork of the [http-2](https://github.com/igrigorik/http-2) gem.
+## Attention!
+
+After being forked from [http-2](https://github.com/igrigorik/http-2) in 2019, `http-2-next` found its way back to the main repository, **and all of its improvements are available since `http-2 v1.0.0`**. This repository is therefore archived and will be no longer maintained. Thank you!
 
 Pure Ruby, framework and transport agnostic, implementation of HTTP/2 protocol and HPACK header compression with support for:
 
